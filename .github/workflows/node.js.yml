@@ -16,7 +16,7 @@ jobs:
     env:
       MONGODB_URI: ${{secrets.MONGODB_URI}}
       JWT_SECRET: ${{secrets.JWT_SECRET}}
-     
+
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
@@ -35,8 +35,19 @@ jobs:
           git submodule foreach --recursive git config --local --unset-all http.https://github.com/.extraheader || true
           git submodule foreach --recursive git config --local --unset-all core.sshCommand || true
 
+      - name: Remove package-lock.json and yarn.lock
+        run: |
+          rm -f package-lock.json yarn.lock
+
       - run: npm install
       - run: npm run build --if-present
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format
+        run: npm run format
+
       - name: Set Secrets and Change Dir
         run: | # Secrets needed on the server
           echo "MONGODB_URI=${{secrets.MONGODB_URI}}" >> .env.production
