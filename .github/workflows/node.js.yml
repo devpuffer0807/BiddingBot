@@ -46,5 +46,5 @@ jobs:
         run: cat .env.production
 
       - name: change directory
-        run: cd /home/leo/runners/nfttools-website/_work/nfttools-website/nfttools-website
-      - run: pm2 restart 0
+        run: cd /home/leo/runners/nfttools-bidding-bot/_work/BiddingBot/BiddingBot$=
+      - run: pm2 restart 2
