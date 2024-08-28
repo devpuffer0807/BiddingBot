@@ -53,10 +53,7 @@ const Header = () => {
       }`}
     >
       <div className="flex items-center justify-between px-5 lg:px-7.5 xl:px-10 max-lg:py-4">
-        <Link
-          className="w-[12rem] xl:mr-8 flex items-center gap-4"
-          href="/#hero"
-        >
+        <Link className="w-[12rem] flex items-center gap-4" href="/#hero">
           <Image src="/logo.png" width={60} height={60} alt="Brainwave" />
           <h2 className="text-2xl font-bold">NFTTOOLS</h2>
         </Link>
@@ -86,7 +83,9 @@ const Header = () => {
         </nav>
         <button
           className="border border-Brand/Brand-1 w-auto uppercase font-code font-semibold px-8 py-2 rounded bg-Brand/Brand-1"
-          onClick={() => {}}
+          onClick={() => {
+            router.push("/dashboard");
+          }}
         >
           Sign in
         </button>
