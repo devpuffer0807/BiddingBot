@@ -5,17 +5,24 @@ import WalletIcon from "@/assets/svg/WalletIcon";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
-const Sidebar = ({ isCollapsed, setIsCollapsed }: any) => {
+interface SidebarProps {
+  isCollapsed: boolean;
+  setIsCollapsed: (isCollapsed: boolean) => void;
+}
+
+const NAV_ITEMS = [
+  { name: "Dashboard", icon: DashboardIcon, href: "/dashboard" },
+  { name: "Wallet", icon: WalletIcon, href: "/dashboard/wallet" },
+];
+
+const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
+  const [isMobile, setIsMobile] = useState(false);
 
   const { showSideBar, setShowSidebar } = useGlobal();
-
-  const NAV_ITEMS = [
-    { name: "Dashboard", icon: DashboardIcon, href: "/dashboard" },
-    { name: "Wallet", icon: WalletIcon, href: "/dashboard/wallet" },
-  ];
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
@@ -24,29 +31,46 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: any) => {
   async function signOut() {
     try {
       const response = await fetch("/api/auth/signout");
+      if (!response.ok) {
+        throw new Error("Sign out failed");
+      }
       const { success } = await response.json();
       if (success) {
         router.push("/");
+      } else {
+        throw new Error("Sign out was not successful");
       }
     } catch (error) {
-      console.log(error);
+      console.error("Sign out error:", error);
+      // Consider adding user feedback here, e.g., toast notification
     }
   }
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      if (window.innerWidth > 768) {
+        setShowSidebar(true);
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [setShowSidebar]);
 
   return (
     <div
       className={`pt-9 bg-Neutral-BG-[night] border top-[92px] left-0 pb-[300px] border-Neutral/Neutral-Border-[night] h-full fixed z-[99] transition-all duration-300 ${
         isCollapsed ? "w-[80px]" : "w-[300px]"
       } ${
-        window.innerWidth <= 768
-          ? showSideBar
-            ? "translate-x-0"
-            : "-translate-x-full"
-          : ""
+        isMobile ? (showSideBar ? "translate-x-0" : "-translate-x-full") : ""
       }`}
     >
       <button
         onClick={toggleCollapse}
+        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         className={`fixed transition-all duration-300 ease-in-out ${
           isCollapsed ? "left-[50px] top-[56px]" : "left-[268px] top-[64px]"
         } text-white rounded-md`}

@@ -44,6 +44,8 @@ const config: Config = {
         "Neutral/Neutral-100-[night]": "#0F0F12",
         "Neutral/Neutral-500-[day]": "#7E7E8F",
         "Brand/Brand-1": "#7364DB",
+        "Accents/Green": "#50D1B2",
+        "Accents/Red": "#E23738",
       },
       fontFamily: {
         sans: ["var(--font-sora)", ...fontFamily.sans],
