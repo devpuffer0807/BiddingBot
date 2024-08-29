@@ -1,14 +1,15 @@
 "use client";
-
 import React, { useState } from "react";
+
 import { expenseGraph, gasGraph, incomeGraph, inventoryGraph } from "@/assets";
 import ExpenseIcon from "@/assets/svg/ExpenseIcon";
 import GasIcon from "@/assets/svg/GasIcon";
 import InventoryIcon from "@/assets/svg/InventoryIcon";
 import ProfitIcon from "@/assets/svg/ProfitIcon";
 import SoldIcon from "@/assets/svg/SoldIcon";
-import WalletModal from "@/components/wallet/WalletModal";
 import Card from "@/components/wallet/Card";
+import WalletHoldings from "@/components/wallet/WalletHoldings";
+import WalletModal from "@/components/wallet/WalletModal";
 
 const cardData = [
   {
@@ -70,6 +71,7 @@ const Wallet = () => {
           <Card key={index} {...card} />
         ))}
       </div>
+      <WalletHoldings />
       <WalletModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   );
