@@ -11,6 +11,8 @@ import {
   importWalletFromPrivateKey,
   isValidPrivateKeyOrSeedPhrase,
 } from "@/utils";
+import { useWalletStore } from "@/store/walletStore";
+import { toast } from "react-toastify";
 
 const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
   const [walletName, setWalletName] = useState("");
@@ -22,6 +24,7 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
   const [wallet, setWallet] = useState<ethers.Wallet | HDNodeWallet | null>(
     null
   );
+  const addWallet = useWalletStore((state) => state.addWallet);
 
   useEffect(() => {
     const setupProvider = async () => {
@@ -34,8 +37,39 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
   }, []);
 
   const createNewWallet = useCallback(() => {
-    return ethers.Wallet.createRandom();
+    try {
+      const newWallet = ethers.Wallet.createRandom();
+      console.log("New wallet created:", newWallet);
+      return newWallet;
+    } catch (error) {
+      console.error("Error creating new wallet:", error);
+      throw error;
+    }
   }, []);
+
+  const generateWalletName = () => {
+    const colors = [
+      "Red",
+      "Blue",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Orange",
+      "Pink",
+    ];
+    const animals = [
+      "Lion",
+      "Tiger",
+      "Bear",
+      "Wolf",
+      "Fox",
+      "Eagle",
+      "Dolphin",
+    ];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+    return `${randomColor} ${randomAnimal}`;
+  };
 
   const handleSubmit = useCallback(async () => {
     try {
@@ -57,21 +91,29 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
 
       if (newWallet) {
         setWallet(newWallet);
+        addWallet(walletName || generateWalletName(), newWallet);
         setStep(2);
+        toast.success("Wallet created successfully!");
+      } else {
+        throw new Error("Failed to create or import wallet");
       }
-
-      console.log({ newWallet });
     } catch (error) {
-      alert(JSON.stringify(error));
+      console.error("Error creating wallet:", error);
+      toast.error(
+        `Error: ${
+          error instanceof Error ? error.message : "Unknown error occurred"
+        }`
+      );
+      throw error;
     }
-  }, [showImportInput, importValue, createNewWallet]);
+  }, [showImportInput, importValue, createNewWallet, walletName, addWallet]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       {step === 1 ? (
         <>
           <h2 className="text-center text-xl font-bold my-4 text-Brand/Brand-1">
-            {showImportInput ? "IMPORT EXISTING WALLET" : "CREATE NEW WALLET"}
+            {showImportInput ? "IMPORT EXISTING WALLET" : "CREATE A NEW WALLET"}
           </h2>
           <>
             <div className="my-4 w-full">
@@ -161,23 +203,22 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
                 {visible ? "Hide" : "Show"} Private Key
               </button>
             </div>
-
+            <div
+              className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4"
+              role="alert"
+            >
+              <p className="font-bold">Warning</p>
+              <p>
+                Please copy and securely store your private key or seed phrase.
+                This is the only way to recover your wallet if you lose access.
+              </p>
+            </div>
             <div className="flex justify-between">
               <button
                 className="px-12 rounded py-3 bg-Brand/Brand-1 text-white text-sm font-bold"
-                onClick={() => {}}
+                onClick={() => setStep(1)}
               >
                 Back
-              </button>
-
-              <button
-                className="px-12 rounded py-3 bg-Brand/Brand-1 text-white text-sm font-bold"
-                onClick={() => {
-                  if (!wallet || !wallet.privateKey) return;
-                  addWalletToMetaMask(wallet.privateKey, provider);
-                }}
-              >
-                Add to MetaMask
               </button>
             </div>
           </div>

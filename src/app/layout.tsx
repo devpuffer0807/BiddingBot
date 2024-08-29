@@ -3,6 +3,7 @@ import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import Head from "next/head";
 import { GlobalProvider } from "./context/GlobalContext";
+import ToastProvider from "./context/ToastProvider";
 
 export const metadata: Metadata = {
   title:
@@ -60,7 +61,10 @@ export default function RootLayout({
         <meta name="next-head-count" content="3" />
       </Head>
       <body>
-        <GlobalProvider>{children}</GlobalProvider>
+        <GlobalProvider>
+          {children}
+          <ToastProvider />
+        </GlobalProvider>
       </body>
     </html>
   );
