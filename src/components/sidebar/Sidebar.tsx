@@ -14,9 +14,9 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
+  { name: "Task", icon: TaskIcon, href: "/dashboard/tasks" },
   { name: "Dashboard", icon: DashboardIcon, href: "/dashboard" },
   { name: "Wallet", icon: WalletIcon, href: "/dashboard/wallet" },
-  { name: "Task", icon: TaskIcon, href: "/dashboard/tasks" },
 ];
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
