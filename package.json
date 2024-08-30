@@ -16,6 +16,7 @@
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
     "ethers": "^6.13.2",
+    "formik": "^2.4.6",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.0",
     "next": "14.2.6",
@@ -26,6 +27,7 @@
     "recharts": "^2.12.7",
     "scroll-lock": "^2.1.5",
     "swr": "^2.2.5",
+    "yup": "^1.4.0",
     "zustand": "^4.5.5"
   },
   "devDependencies": {

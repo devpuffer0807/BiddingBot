@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { Task, useTaskStore } from "@/store";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 interface TaskFormState {
   slug: string;
-  minBidEth: string;
-  maxBidEth: string;
   selectedWallet: string;
   minFloorPricePercentage: string;
   maxFloorPricePercentage: string;
@@ -13,103 +13,77 @@ interface TaskFormState {
 }
 
 export const useTaskForm = (
-  initialState: Omit<TaskFormState, "slugValid" | "slugDirty">
+  initialState: Omit<TaskFormState, "slugValid" | "slugDirty">,
+  taskId?: string
 ) => {
-  const [formState, setFormState] = useState<TaskFormState>({
-    ...initialState,
-    slugValid: null,
-    slugDirty: false,
-  });
-  const [errors, setErrors] = useState<Partial<TaskFormState>>({});
+  const { addTask, editTask, tasks } = useTaskStore();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    if (name === "slug") {
-      setFormState((prev) => ({ ...prev, slug: value, slugDirty: true }));
-    } else if (name === "minBidEth" || name === "maxBidEth") {
-      const regex = /^[0-9]*\.?[0-9]*$/;
-      if (regex.test(value) || value === "") {
-        setFormState((prev) => ({ ...prev, [name]: value }));
-      }
-    } else if (
-      name === "minFloorPricePercentage" ||
-      name === "maxFloorPricePercentage"
-    ) {
-      const numValue = parseInt(value);
-      if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
-        setFormState((prev) => ({ ...prev, [name]: value }));
-      }
-    } else {
-      setFormState((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleWalletChange = (value: string) => {
-    setFormState((prev) => ({ ...prev, selectedWallet: value }));
-  };
-
-  const handleMarketplaceToggle = (marketplace: string) => {
-    setFormState((prev) => {
-      const updatedMarketplaces = prev.selectedMarketplaces.includes(
-        marketplace
+  const validationSchema = Yup.object({
+    slug: Yup.string().required("Collection slug is required"),
+    selectedWallet: Yup.string().required("Wallet selection is required"),
+    minFloorPricePercentage: Yup.number()
+      .min(0, "Min percentage must be at least 0")
+      .max(100, "Min percentage must be at most 100")
+      .required("Min floor price percentage is required"),
+    maxFloorPricePercentage: Yup.number()
+      .min(0, "Max percentage must be at least 0")
+      .max(100, "Max percentage must be at most 100")
+      .moreThan(
+        Yup.ref("minFloorPricePercentage"),
+        "Max percentage must be greater than min percentage"
       )
-        ? prev.selectedMarketplaces.filter((m) => m !== marketplace)
-        : [...prev.selectedMarketplaces, marketplace];
-      return { ...prev, selectedMarketplaces: updatedMarketplaces };
-    });
-  };
+      .required("Max floor price percentage is required"),
+    selectedMarketplaces: Yup.array()
+      .of(Yup.string())
+      .min(1, "At least one marketplace must be selected"),
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      ...initialState,
+      slugValid: null,
+      slugDirty: false,
+    },
+    validationSchema,
+    onSubmit: (values) => {
+      const taskData: Omit<Task, "id"> = {
+        slug: values.slug,
+        selectedWallet: values.selectedWallet,
+        minFloorPricePercentage: Number(values.minFloorPricePercentage),
+        maxFloorPricePercentage: Number(values.maxFloorPricePercentage),
+        selectedMarketplaces: values.selectedMarketplaces,
+      };
+
+      if (taskId) {
+        editTask(taskId, taskData);
+      } else {
+        addTask(taskData);
+      }
+    },
+  });
 
   const validateSlug = async (slug: string) => {
     try {
-      // Replace this with your actual API call
       const response = await fetch(`/api/ethereum/collections?slug=${slug}`);
       const isValid = response.status === 200;
-      setFormState((prev) => ({ ...prev, slugValid: isValid }));
+      formik.setFieldValue("slugValid", isValid);
     } catch (error) {
       console.error("Error validating slug:", error);
-      setFormState((prev) => ({ ...prev, slugValid: false }));
+      formik.setFieldValue("slugValid", false);
     }
   };
 
-  useEffect(() => {
-    if (formState.slugDirty && formState.slug) {
-      const debounceTimer = setTimeout(() => {
-        validateSlug(formState.slug);
-      }, 500);
-
-      return () => clearTimeout(debounceTimer);
-    }
-  }, [formState.slug, formState.slugDirty]);
-
-  const validateForm = () => {
-    const newErrors: Partial<TaskFormState> = {};
-    if (!formState.slug) newErrors.slug = "Collection slug is required";
-    if (!formState.minBidEth) newErrors.minBidEth = "Min bid is required";
-    if (!formState.maxBidEth) newErrors.maxBidEth = "Max bid is required";
-    if (!formState.selectedWallet)
-      newErrors.selectedWallet = "Wallet selection is required";
-    if (formState.selectedMarketplaces.length === 0)
-      newErrors.selectedMarketplaces = [
-        "At least one marketplace must be selected",
-      ];
-    if (!formState.minFloorPricePercentage)
-      newErrors.minFloorPricePercentage =
-        "Min floor price percentage is required";
-    if (!formState.maxFloorPricePercentage)
-      newErrors.maxFloorPricePercentage =
-        "Max floor price percentage is required";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleMarketplaceToggle = (marketplace: string) => {
+    const currentMarketplaces = formik.values.selectedMarketplaces;
+    const updatedMarketplaces = currentMarketplaces.includes(marketplace)
+      ? currentMarketplaces.filter((m) => m !== marketplace)
+      : [...currentMarketplaces, marketplace];
+    formik.setFieldValue("selectedMarketplaces", updatedMarketplaces);
   };
 
   return {
-    formState,
-    errors,
-    handleInputChange,
-    handleWalletChange,
+    formik,
+    validateSlug,
     handleMarketplaceToggle,
-    validateForm,
   };
 };
