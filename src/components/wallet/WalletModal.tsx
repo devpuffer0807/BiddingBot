@@ -11,8 +11,8 @@ import {
   importWalletFromPrivateKey,
   isValidPrivateKeyOrSeedPhrase,
 } from "@/utils";
-import { useWalletStore } from "@/store/walletStore";
 import { toast } from "react-toastify";
+import { useWalletStore } from "@/store";
 
 const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
   const [walletName, setWalletName] = useState("");
