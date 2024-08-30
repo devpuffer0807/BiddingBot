@@ -46,6 +46,26 @@ const Header = () => {
     setOpenNavigation(false);
   };
 
+  const handleSignIn = async () => {
+    try {
+      const response = await fetch("/api/auth/token", {
+        method: "GET",
+        credentials: "include", // This is important for including cookies in the request
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        router.push("/dashboard");
+      } else {
+        router.push("/auth/signin");
+      }
+    } catch (error) {
+      console.error("Error checking authentication:", error);
+      router.push("/auth/signin");
+    }
+  };
+
   return (
     <div
       className={`fixed top-0 left-0 w-full z-50 border-b border-n-6 lg:bg-n-8/90 lg:backdrop-blur-sm ${
@@ -83,9 +103,7 @@ const Header = () => {
         </nav>
         <button
           className="border border-Brand/Brand-1 w-auto uppercase font-code font-semibold px-8 py-2 rounded bg-Brand/Brand-1"
-          onClick={() => {
-            router.push("/dashboard");
-          }}
+          onClick={handleSignIn}
         >
           Sign in
         </button>

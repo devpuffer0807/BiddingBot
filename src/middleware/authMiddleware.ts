@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { cookies } from "next/headers";
 import jwt, { JsonWebTokenError } from "jsonwebtoken";
 
 export function authMiddleware(request: NextRequest) {
-  const cookieStore = cookies();
-  const tokenObject = cookieStore.get("token");
-  const token = tokenObject?.value;
+  const token = request.cookies.get("token")?.value;
 
   if (!token) {
+    console.log("No token found in cookie");
     return NextResponse.redirect(new URL("/auth/signin", request.url));
   }
 
@@ -16,11 +14,12 @@ export function authMiddleware(request: NextRequest) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
       userId: string;
     };
-    const userId = decoded.userId;
+
+    console.log("Token successfully verified:", decoded);
 
     // Add the userId to the request headers
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set("X-User-ID", userId);
+    requestHeaders.set("X-User-ID", decoded.userId);
 
     return NextResponse.next({
       request: {
@@ -28,18 +27,20 @@ export function authMiddleware(request: NextRequest) {
       },
     });
   } catch (error) {
-    if (
-      error instanceof JsonWebTokenError &&
-      error.name === "TokenExpiredError"
-    ) {
-      // Handle expired token
+    console.error("Token verification error:", error);
+
+    // Only clear the token for specific JWT errors
+    if (error instanceof JsonWebTokenError) {
+      console.log("JWT error, clearing token");
       const response = NextResponse.redirect(
         new URL("/auth/signin", request.url)
       );
       response.cookies.delete("token");
       return response;
     }
-    // Handle other JWT errors or invalid tokens
+
+    // For other errors, log but don't clear the token
+    console.log("Unknown error, not clearing token");
     return NextResponse.redirect(new URL("/auth/signin", request.url));
   }
 }

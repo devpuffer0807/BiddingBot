@@ -1,20 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { authMiddleware } from "./middleware/authMiddleware";
 
-export function runMiddleware(request: NextRequest) {
-  // Run auth middleware
-  const authResponse = authMiddleware(request);
-  if (authResponse !== NextResponse.next()) {
-    return authResponse;
+export function middleware(request: NextRequest) {
+  // Apply auth middleware for dashboard routes
+  if (request.nextUrl.pathname.startsWith("/dashboard")) {
+    return authMiddleware(request);
   }
 
-  // If all middleware pass, continue to the next middleware or route handler
+  // For all other routes, continue to the next middleware or route handler
   return NextResponse.next();
-}
-export function middleware(request: NextRequest) {
-  return runMiddleware(request);
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|favicon.ico).*)"],
+  matcher: ["/dashboard/:path*"],
 };
