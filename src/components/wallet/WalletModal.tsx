@@ -169,7 +169,6 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
             Wallet Details
           </h2>
           <div className="flex flex-col space-y-4">
-            <p>Wallet Name: {walletName || generateWalletName()}</p>
             <p>Address: {wallet?.address}</p>
             <div>
               <p>Private Key:</p>

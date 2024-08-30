@@ -6,42 +6,62 @@ import { toast } from "react-toastify";
 import { useTaskForm } from "@/hooks/useTaskForm";
 import CheckIcon from "@/assets/svg/CheckIcon";
 import XIcon from "@/assets/svg/XIcon";
-import { useTaskStore } from "@/store";
+import { Task, useTaskStore } from "@/store";
 import Link from "next/link";
+import Toggle from "../common/Toggle";
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   taskId?: string;
+  initialTask?: Task | null;
 }
 
-const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskId }) => {
+const TaskModal: React.FC<TaskModalProps> = ({
+  isOpen,
+  onClose,
+  taskId,
+  initialTask,
+}) => {
+  console.log("TaskModal props:", { isOpen, taskId, initialTask });
+
   const { wallets } = useWalletStore();
   const { tasks } = useTaskStore();
 
-  const initialTask = taskId ? tasks.find((task) => task.id === taskId) : null;
+  const taskFromId = taskId ? tasks.find((task) => task.id === taskId) : null;
 
-  const { formik, validateSlug, handleMarketplaceToggle, submitForm } =
-    useTaskForm(
-      initialTask
-        ? {
-            slug: initialTask.slug,
-            selectedWallet: initialTask.selectedWallet,
-            minFloorPricePercentage:
-              initialTask.minFloorPricePercentage.toString(),
-            maxFloorPricePercentage:
-              initialTask.maxFloorPricePercentage.toString(),
-            selectedMarketplaces: initialTask.selectedMarketplaces,
-          }
-        : {
-            slug: "",
-            selectedWallet: "",
-            minFloorPricePercentage: "",
-            maxFloorPricePercentage: "",
-            selectedMarketplaces: [],
-          },
-      taskId
-    );
+  const {
+    formState,
+    errors,
+    handleChange,
+    handleMarketplaceToggle,
+    handleSubmit,
+    validateSlug,
+    setFormState,
+  } = useTaskForm(
+    initialTask
+      ? {
+          slug: initialTask.slug,
+          selectedWallet: initialTask.selectedWallet,
+          minFloorPricePercentage:
+            initialTask.minFloorPricePercentage.toString(),
+          maxFloorPricePercentage:
+            initialTask.maxFloorPricePercentage.toString(),
+          selectedMarketplaces: initialTask.selectedMarketplaces,
+          running: initialTask.running,
+        }
+      : {
+          slug: "",
+          selectedWallet: "",
+          minFloorPricePercentage: "",
+          maxFloorPricePercentage: "",
+          selectedMarketplaces: [],
+          running: false,
+        },
+    taskId
+  );
+
+  console.log("FormState:", formState);
 
   const walletOptions = wallets.map((wallet) => ({
     value: wallet.id,
@@ -49,22 +69,24 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskId }) => {
     address: wallet.address,
   }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formik.isValid && formik.values.slugValid) {
-      try {
-        await submitForm(); // Use the submitForm function from useTaskForm
-        toast.success(
-          taskId ? "Task updated successfully!" : "Task created successfully!"
-        );
-        onClose();
-      } catch (error) {
-        toast.error(
-          taskId
-            ? "Failed to update task. Please try again."
-            : "Failed to create task. Please try again."
-        );
+    if (handleSubmit()) {
+      // Update the task's running state immediately after creation/update
+      if (taskId) {
+        useTaskStore
+          .getState()
+          .editTask(taskId, { running: formState.running });
+      } else {
+        const newTaskId = useTaskStore.getState().getLastTaskId();
+        useTaskStore
+          .getState()
+          .editTask(newTaskId, { running: formState.running });
       }
+      toast.success(
+        taskId ? "Task updated successfully!" : "Task created successfully!"
+      );
+      onClose();
     } else {
       toast.error("Please fill in all required fields correctly.");
     }
@@ -75,10 +97,11 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskId }) => {
       isOpen={isOpen}
       onClose={onClose}
       className="w-full max-w-[800px] p-4 sm:p-6 md:p-8"
+      key={taskId || "new"} // Add this line
     >
-      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+      <form onSubmit={onSubmit} className="flex flex-col h-full">
         <h2 className="text-center text-xl font-bold mb-6 text-Brand/Brand-1">
-          CREATE A NEW TASK
+          {taskId ? "EDIT TASK" : "CREATE A NEW TASK"}
         </h2>
 
         <div className="flex-grow overflow-y-auto">
@@ -93,36 +116,30 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskId }) => {
                   id="slug"
                   name="slug"
                   onChange={(e) => {
-                    formik.handleChange(e);
-                    formik.setFieldTouched("slug", true, false);
+                    handleChange(e);
                     if (e.target.value) {
                       validateSlug(e.target.value);
                     }
                   }}
-                  onBlur={formik.handleBlur}
-                  value={formik.values.slug}
+                  value={formState.slug}
                   placeholder="collection slug"
                   className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
-                    formik.touched.slug && formik.errors.slug
-                      ? "border-red-500"
-                      : ""
+                    errors.slug ? "border-red-500" : ""
                   }`}
                   required
                   autoComplete="off"
                 />
-                {formik.touched.slug && formik.values.slug.length > 0 && (
+                {formState.slugDirty && formState.slug.length > 0 && (
                   <div className="absolute right-3 top-[50%] transform -translate-y-1/2">
-                    {formik.errors.slug || !formik.values.slugValid ? (
+                    {errors.slug || !formState.slugValid ? (
                       <XIcon />
                     ) : (
                       <CheckIcon />
                     )}
                   </div>
                 )}
-                {formik.touched.slug && formik.errors.slug && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formik.errors.slug}
-                  </p>
+                {errors.slug && (
+                  <p className="text-red-500 text-sm mt-1">{errors.slug}</p>
                 )}
               </div>
             </div>
@@ -136,9 +153,12 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskId }) => {
               <div className="relative">
                 <CustomSelect
                   options={walletOptions}
-                  value={formik.values.selectedWallet}
+                  value={formState.selectedWallet}
                   onChange={(selectedOption) =>
-                    formik.setFieldValue("selectedWallet", selectedOption)
+                    setFormState((prev) => ({
+                      ...prev,
+                      selectedWallet: selectedOption,
+                    }))
                   }
                 />
                 <Link
@@ -148,12 +168,11 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskId }) => {
                   create wallet
                 </Link>
               </div>
-              {formik.touched.selectedWallet &&
-                formik.errors.selectedWallet && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formik.errors.selectedWallet}
-                  </p>
-                )}
+              {errors.selectedWallet && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.selectedWallet}
+                </p>
+              )}
             </div>
             <div>
               <label
@@ -167,25 +186,20 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskId }) => {
                 type="text"
                 id="minFloorPricePercentage"
                 name="minFloorPricePercentage"
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                value={formik.values.minFloorPricePercentage}
+                onChange={handleChange}
+                value={formState.minFloorPricePercentage}
                 placeholder="10"
                 className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
-                  formik.touched.minFloorPricePercentage &&
-                  formik.errors.minFloorPricePercentage
-                    ? "border-red-500"
-                    : ""
+                  errors.minFloorPricePercentage ? "border-red-500" : ""
                 }`}
                 required
                 autoComplete="off"
               />
-              {formik.touched.minFloorPricePercentage &&
-                formik.errors.minFloorPricePercentage && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formik.errors.minFloorPricePercentage}
-                  </p>
-                )}
+              {errors.minFloorPricePercentage && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.minFloorPricePercentage}
+                </p>
+              )}
             </div>
             <div>
               <label
@@ -199,34 +213,29 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskId }) => {
                 type="text"
                 id="maxFloorPricePercentage"
                 name="maxFloorPricePercentage"
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                value={formik.values.maxFloorPricePercentage}
+                onChange={handleChange}
+                value={formState.maxFloorPricePercentage}
                 placeholder="80"
                 className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
-                  formik.touched.maxFloorPricePercentage &&
-                  formik.errors.maxFloorPricePercentage
-                    ? "border-red-500"
-                    : ""
+                  errors.maxFloorPricePercentage ? "border-red-500" : ""
                 }`}
                 required
                 autoComplete="off"
               />
-              {formik.touched.maxFloorPricePercentage &&
-                formik.errors.maxFloorPricePercentage && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formik.errors.maxFloorPricePercentage}
-                  </p>
-                )}
+              {errors.maxFloorPricePercentage && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.maxFloorPricePercentage}
+                </p>
+              )}
             </div>
           </div>
 
           <div className="mt-6">
-            <h2 className="text-lg font-semibold mb-4">Select Marketplace</h2>
+            <h2 className="font-medium mb-4">Select Marketplace</h2>
             <div className="flex flex-wrap gap-4">
               {["MagicEden", "Blur", "OpenSea"].map((marketplace) => {
                 const isActive =
-                  formik.values.selectedMarketplaces.includes(marketplace);
+                  formState.selectedMarketplaces.includes(marketplace);
                 const activeColor =
                   marketplace === "MagicEden"
                     ? "bg-[#e42575]"
@@ -240,42 +249,61 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskId }) => {
                     onClick={() => handleMarketplaceToggle(marketplace)}
                     className="flex items-center"
                   >
-                    <span className="mr-2">{marketplace}</span>
+                    <span className="mr-2 text-sm">{marketplace}</span>
                     <div className="w-10 h-6 flex items-center rounded-full p-1 bg-gray-300">
                       <div
                         className={`w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ease-in-out
-                          ${
-                            isActive
-                              ? `translate-x-4 ${activeColor}`
-                              : "translate-x-0 bg-white"
-                          }`}
+                        ${
+                          isActive
+                            ? `translate-x-4 ${activeColor}`
+                            : "translate-x-0 bg-white"
+                        }`}
                       ></div>
                     </div>
                   </button>
                 );
               })}
             </div>
-            {formik.touched.selectedMarketplaces &&
-              formik.errors.selectedMarketplaces && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.selectedMarketplaces}
-                </p>
-              )}
+            {errors.selectedMarketplaces && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.selectedMarketplaces}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-6">
+            <h2 className="font-medium mb-4">Start Immediately</h2>
+            <div className="flex items-center">
+              <span
+                className="mr-2 text-sm cursor-pointer"
+                onClick={() =>
+                  setFormState((prev) => ({ ...prev, running: !prev.running }))
+                }
+              >
+                Start
+              </span>
+              <Toggle
+                checked={formState.running}
+                onChange={() =>
+                  setFormState((prev) => ({ ...prev, running: !prev.running }))
+                }
+              />
+            </div>
           </div>
         </div>
 
         <div className="flex justify-end mt-6">
           <button
             type="submit"
-            disabled={!formik.isValid || !formik.values.slugValid}
+            disabled={!formState.slugValid}
             className={`w-full sm:w-auto bg-Brand/Brand-1 text-white py-3 px-6 rounded-lg transition-colors
-      ${
-        !formik.isValid || !formik.values.slugValid
-          ? "opacity-50 cursor-not-allowed"
-          : "hover:bg-Brand/Brand-2"
-      }`}
+            ${
+              !formState.slugValid
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-Brand/Brand-2"
+            }`}
           >
-            Create Task
+            {taskId ? "Update Task" : "Create Task"}
           </button>
         </div>
       </form>

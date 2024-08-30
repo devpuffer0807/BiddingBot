@@ -163,3 +163,16 @@
 .url {
   display: none !important;
 }
+
+/* Add this to your global CSS file or create a new CSS module */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
