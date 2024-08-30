@@ -11,9 +11,15 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  className?: string;
 }
 
-const Modal: FC<ModalProps> = ({ isOpen, onClose, children }) => {
+const Modal: FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  children,
+  className = "",
+}) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,7 +57,7 @@ const Modal: FC<ModalProps> = ({ isOpen, onClose, children }) => {
     <div className={OVERLAY_CLASS}>
       <div
         ref={modalRef}
-        className={MODAL_CLASS}
+        className={`${MODAL_CLASS} ${className}`}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
         <button

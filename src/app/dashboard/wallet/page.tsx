@@ -1,5 +1,4 @@
 "use client";
-import React, { useState } from "react";
 
 import { expenseGraph, gasGraph, incomeGraph, inventoryGraph } from "@/assets";
 import ExpenseIcon from "@/assets/svg/ExpenseIcon";
@@ -8,8 +7,11 @@ import InventoryIcon from "@/assets/svg/InventoryIcon";
 import ProfitIcon from "@/assets/svg/ProfitIcon";
 import SoldIcon from "@/assets/svg/SoldIcon";
 import Card from "@/components/wallet/Card";
+import WalletActivities from "@/components/wallet/WalletActivities";
 import WalletHoldings from "@/components/wallet/WalletHoldings";
 import WalletModal from "@/components/wallet/WalletModal";
+import WalletNFTs from "@/components/wallet/WalletNFTs";
+import React, { useState } from "react";
 
 const cardData = [
   {
@@ -72,6 +74,8 @@ const Wallet = () => {
         ))}
       </div>
       <WalletHoldings />
+      <WalletActivities />
+      <WalletNFTs />
       <WalletModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   );

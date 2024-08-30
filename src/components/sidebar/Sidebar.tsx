@@ -1,6 +1,7 @@
 import { useGlobal } from "@/app/context/GlobalContext";
 import { toggle } from "@/assets";
 import DashboardIcon from "@/assets/svg/DashboardIcon";
+import TaskIcon from "@/assets/svg/TaskIcon";
 import WalletIcon from "@/assets/svg/WalletIcon";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,6 +16,7 @@ interface SidebarProps {
 const NAV_ITEMS = [
   { name: "Dashboard", icon: DashboardIcon, href: "/dashboard" },
   { name: "Wallet", icon: WalletIcon, href: "/dashboard/wallet" },
+  { name: "Task", icon: TaskIcon, href: "/dashboard/tasks" },
 ];
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
