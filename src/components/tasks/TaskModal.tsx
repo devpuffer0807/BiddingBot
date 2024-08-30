@@ -23,12 +23,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   taskId,
   initialTask,
 }) => {
-  console.log("TaskModal props:", { isOpen, taskId, initialTask });
-
   const { wallets } = useWalletStore();
-  const { tasks } = useTaskStore();
-
-  const taskFromId = taskId ? tasks.find((task) => task.id === taskId) : null;
 
   const {
     formState,
@@ -60,8 +55,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
         },
     taskId
   );
-
-  console.log("FormState:", formState);
 
   const walletOptions = wallets.map((wallet) => ({
     value: wallet.id,
