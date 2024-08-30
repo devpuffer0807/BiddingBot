@@ -5,6 +5,7 @@ export interface Task {
   id: string;
   slug: string;
   selectedWallet: string;
+  walletPrivateKey: string; // Add this line
   minFloorPricePercentage: number;
   maxFloorPricePercentage: number;
   selectedMarketplaces: string[];

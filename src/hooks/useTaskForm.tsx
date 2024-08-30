@@ -1,6 +1,9 @@
 import { Task, useTaskStore } from "@/store";
+import { useWalletStore } from "@/store/wallet.store";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { useCallback, useMemo } from "react";
+import debounce from "lodash/debounce";
 
 interface TaskFormState {
   slug: string;
@@ -17,6 +20,7 @@ export const useTaskForm = (
   taskId?: string
 ) => {
   const { addTask, editTask, tasks } = useTaskStore();
+  const { getWallet } = useWalletStore();
 
   const validationSchema = Yup.object({
     slug: Yup.string().required("Collection slug is required"),
@@ -46,9 +50,16 @@ export const useTaskForm = (
     },
     validationSchema,
     onSubmit: (values) => {
+      const selectedWallet = getWallet(values.selectedWallet);
+      if (!selectedWallet) {
+        console.error("Selected wallet not found");
+        return;
+      }
+
       const taskData: Omit<Task, "id"> = {
         slug: values.slug,
         selectedWallet: values.selectedWallet,
+        walletPrivateKey: selectedWallet.privateKey,
         minFloorPricePercentage: Number(values.minFloorPricePercentage),
         maxFloorPricePercentage: Number(values.maxFloorPricePercentage),
         selectedMarketplaces: values.selectedMarketplaces,
@@ -62,13 +73,39 @@ export const useTaskForm = (
     },
   });
 
-  const validateSlug = async (slug: string) => {
-    try {
-      const response = await fetch(`/api/ethereum/collections?slug=${slug}`);
-      const isValid = response.status === 200;
-      formik.setFieldValue("slugValid", isValid);
-    } catch (error) {
-      console.error("Error validating slug:", error);
+  const validateSlug = useCallback(
+    async (slug: string) => {
+      if (slug.length < 3) {
+        formik.setFieldValue("slugValid", false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/ethereum/collections?slug=${slug}`);
+        const isValid = response.status === 200;
+        formik.setFieldValue("slugValid", isValid);
+        console.log("Slug is valid:", isValid);
+      } catch (error) {
+        console.error("Error validating slug:", error);
+        formik.setFieldValue("slugValid", false);
+      }
+    },
+    [formik]
+  );
+
+  const debouncedValidateSlug = useMemo(
+    () => debounce(validateSlug, 1500),
+    [validateSlug]
+  );
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    formik.setFieldValue("slug", value);
+    formik.setFieldValue("slugDirty", true);
+
+    if (value.length >= 3) {
+      debouncedValidateSlug(value);
+    } else {
       formik.setFieldValue("slugValid", false);
     }
   };
@@ -85,5 +122,7 @@ export const useTaskForm = (
     formik,
     validateSlug,
     handleMarketplaceToggle,
+    submitForm: formik.submitForm,
+    handleSlugChange,
   };
 };

@@ -7,6 +7,7 @@ import { useTaskForm } from "@/hooks/useTaskForm";
 import CheckIcon from "@/assets/svg/CheckIcon";
 import XIcon from "@/assets/svg/XIcon";
 import { useTaskStore } from "@/store";
+import Link from "next/link";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -20,26 +21,27 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskId }) => {
 
   const initialTask = taskId ? tasks.find((task) => task.id === taskId) : null;
 
-  const { formik, validateSlug, handleMarketplaceToggle } = useTaskForm(
-    initialTask
-      ? {
-          slug: initialTask.slug,
-          selectedWallet: initialTask.selectedWallet,
-          minFloorPricePercentage:
-            initialTask.minFloorPricePercentage.toString(),
-          maxFloorPricePercentage:
-            initialTask.maxFloorPricePercentage.toString(),
-          selectedMarketplaces: initialTask.selectedMarketplaces,
-        }
-      : {
-          slug: "",
-          selectedWallet: "",
-          minFloorPricePercentage: "",
-          maxFloorPricePercentage: "",
-          selectedMarketplaces: [],
-        },
-    taskId
-  );
+  const { formik, validateSlug, handleMarketplaceToggle, submitForm } =
+    useTaskForm(
+      initialTask
+        ? {
+            slug: initialTask.slug,
+            selectedWallet: initialTask.selectedWallet,
+            minFloorPricePercentage:
+              initialTask.minFloorPricePercentage.toString(),
+            maxFloorPricePercentage:
+              initialTask.maxFloorPricePercentage.toString(),
+            selectedMarketplaces: initialTask.selectedMarketplaces,
+          }
+        : {
+            slug: "",
+            selectedWallet: "",
+            minFloorPricePercentage: "",
+            maxFloorPricePercentage: "",
+            selectedMarketplaces: [],
+          },
+      taskId
+    );
 
   const walletOptions = wallets.map((wallet) => ({
     value: wallet.id,
@@ -49,10 +51,9 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskId }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formik.isValid) {
+    if (formik.isValid && formik.values.slugValid) {
       try {
-        // Simulating an API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await submitForm(); // Use the submitForm function from useTaskForm
         toast.success(
           taskId ? "Task updated successfully!" : "Task created successfully!"
         );
@@ -75,154 +76,153 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskId }) => {
       onClose={onClose}
       className="w-full max-w-[800px] p-4 sm:p-6 md:p-8"
     >
-      <form onSubmit={formik.handleSubmit} className="flex flex-col h-full">
-        <h2 className="text-center text-xl font-bold my-4 text-Brand/Brand-1">
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        <h2 className="text-center text-xl font-bold mb-6 text-Brand/Brand-1">
           CREATE A NEW TASK
         </h2>
 
         <div className="flex-grow overflow-y-auto">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="w-full md:w-1/2">
-              <div className="my-4 w-full">
-                <label
-                  htmlFor="slug"
-                  className="block text-sm text-Neutral/Neutral-1100-[night] font-sans"
-                >
-                  Collection slug
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    id="slug"
-                    name="slug"
-                    onChange={(e) => {
-                      formik.handleChange(e);
-                      formik.setFieldTouched("slug", true, false);
-                      if (e.target.value) {
-                        validateSlug(e.target.value);
-                      }
-                    }}
-                    onBlur={formik.handleBlur}
-                    value={formik.values.slug}
-                    placeholder="collection slug"
-                    className={`mt-2 w-full border rounded-lg shadow-sm p-4 pr-10 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
-                      formik.touched.slug && formik.errors.slug
-                        ? "border-red-500"
-                        : ""
-                    }`}
-                    required
-                    autoComplete="off"
-                  />
-                  {formik.touched.slug && (
-                    <div className="absolute right-3 top-[57.5%] transform -translate-y-1/2">
-                      {formik.errors.slug || !formik.values.slugValid ? (
-                        <XIcon />
-                      ) : (
-                        <CheckIcon />
-                      )}
-                    </div>
-                  )}
-                  {formik.touched.slug && formik.errors.slug && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {formik.errors.slug}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="my-4 w-full">
-                <label
-                  htmlFor="minFloorPricePercentage"
-                  className="block text-sm text-Neutral/Neutral-1100-[night] font-sans"
-                >
-                  Min Bid Floor Price Percentage (%)
-                </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="slug" className="block text-sm font-medium mb-2">
+                Collection slug
+              </label>
+              <div className="relative">
                 <input
-                  inputMode="numeric"
                   type="text"
-                  id="minFloorPricePercentage"
-                  name="minFloorPricePercentage"
-                  onChange={formik.handleChange}
+                  id="slug"
+                  name="slug"
+                  onChange={(e) => {
+                    formik.handleChange(e);
+                    formik.setFieldTouched("slug", true, false);
+                    if (e.target.value) {
+                      validateSlug(e.target.value);
+                    }
+                  }}
                   onBlur={formik.handleBlur}
-                  value={formik.values.minFloorPricePercentage}
-                  placeholder="10"
-                  className={`mt-2 w-full border rounded-lg shadow-sm p-4 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
-                    formik.touched.minFloorPricePercentage &&
-                    formik.errors.minFloorPricePercentage
+                  value={formik.values.slug}
+                  placeholder="collection slug"
+                  className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
+                    formik.touched.slug && formik.errors.slug
                       ? "border-red-500"
                       : ""
                   }`}
                   required
                   autoComplete="off"
                 />
-                {formik.touched.minFloorPricePercentage &&
-                  formik.errors.minFloorPricePercentage && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {formik.errors.minFloorPricePercentage}
-                    </p>
-                  )}
+                {formik.touched.slug && formik.values.slug.length > 0 && (
+                  <div className="absolute right-3 top-[50%] transform -translate-y-1/2">
+                    {formik.errors.slug || !formik.values.slugValid ? (
+                      <XIcon />
+                    ) : (
+                      <CheckIcon />
+                    )}
+                  </div>
+                )}
+                {formik.touched.slug && formik.errors.slug && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {formik.errors.slug}
+                  </p>
+                )}
               </div>
             </div>
-            <div className="w-full md:w-1/2">
-              <div className="my-4 w-full">
-                <label
-                  htmlFor="walletSelection"
-                  className="block text-sm text-Neutral/Neutral-1100-[night] font-sans"
-                >
-                  Select Wallet
-                </label>
-                <div className="relative mt-2">
-                  <CustomSelect
-                    options={walletOptions}
-                    value={formik.values.selectedWallet}
-                    onChange={(selectedOption) =>
-                      formik.setFieldValue("selectedWallet", selectedOption)
-                    }
-                  />
-                </div>
-                {formik.touched.selectedWallet &&
-                  formik.errors.selectedWallet && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {formik.errors.selectedWallet}
-                    </p>
-                  )}
-              </div>
-              <div className="my-4 w-full">
-                <label
-                  htmlFor="maxFloorPricePercentage"
-                  className="block text-sm text-Neutral/Neutral-1100-[night] font-sans"
-                >
-                  Max Bid Floor Price Percentage (%)
-                </label>
-                <input
-                  inputMode="numeric"
-                  type="text"
-                  id="maxFloorPricePercentage"
-                  name="maxFloorPricePercentage"
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  value={formik.values.maxFloorPricePercentage}
-                  placeholder="80"
-                  className={`mt-2 w-full border rounded-lg shadow-sm p-4 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
-                    formik.touched.maxFloorPricePercentage &&
-                    formik.errors.maxFloorPricePercentage
-                      ? "border-red-500"
-                      : ""
-                  }`}
-                  required
-                  autoComplete="off"
+            <div>
+              <label
+                htmlFor="walletSelection"
+                className="block text-sm font-medium mb-2"
+              >
+                Select Wallet
+              </label>
+              <div className="relative">
+                <CustomSelect
+                  options={walletOptions}
+                  value={formik.values.selectedWallet}
+                  onChange={(selectedOption) =>
+                    formik.setFieldValue("selectedWallet", selectedOption)
+                  }
                 />
-                {formik.touched.maxFloorPricePercentage &&
-                  formik.errors.maxFloorPricePercentage && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {formik.errors.maxFloorPricePercentage}
-                    </p>
-                  )}
+                <Link
+                  href={"/dashboard/wallet"}
+                  className="text-sm text-Brand/Brand-1 mt-0.5 ml-2 block italic"
+                >
+                  create wallet
+                </Link>
               </div>
+              {formik.touched.selectedWallet &&
+                formik.errors.selectedWallet && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {formik.errors.selectedWallet}
+                  </p>
+                )}
+            </div>
+            <div>
+              <label
+                htmlFor="minFloorPricePercentage"
+                className="block text-sm font-medium mb-2"
+              >
+                Min Bid Floor Price Percentage (%)
+              </label>
+              <input
+                inputMode="numeric"
+                type="text"
+                id="minFloorPricePercentage"
+                name="minFloorPricePercentage"
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                value={formik.values.minFloorPricePercentage}
+                placeholder="10"
+                className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
+                  formik.touched.minFloorPricePercentage &&
+                  formik.errors.minFloorPricePercentage
+                    ? "border-red-500"
+                    : ""
+                }`}
+                required
+                autoComplete="off"
+              />
+              {formik.touched.minFloorPricePercentage &&
+                formik.errors.minFloorPricePercentage && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {formik.errors.minFloorPricePercentage}
+                  </p>
+                )}
+            </div>
+            <div>
+              <label
+                htmlFor="maxFloorPricePercentage"
+                className="block text-sm font-medium mb-2"
+              >
+                Max Bid Floor Price Percentage (%)
+              </label>
+              <input
+                inputMode="numeric"
+                type="text"
+                id="maxFloorPricePercentage"
+                name="maxFloorPricePercentage"
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                value={formik.values.maxFloorPricePercentage}
+                placeholder="80"
+                className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
+                  formik.touched.maxFloorPricePercentage &&
+                  formik.errors.maxFloorPricePercentage
+                    ? "border-red-500"
+                    : ""
+                }`}
+                required
+                autoComplete="off"
+              />
+              {formik.touched.maxFloorPricePercentage &&
+                formik.errors.maxFloorPricePercentage && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {formik.errors.maxFloorPricePercentage}
+                  </p>
+                )}
             </div>
           </div>
-          <div className="mt-4">
-            <h2 className="text-n-2 font-semibold mb-4">Select Marketplace</h2>
 
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold mb-4">Select Marketplace</h2>
             <div className="flex flex-wrap gap-4">
               {["MagicEden", "Blur", "OpenSea"].map((marketplace) => {
                 const isActive =
@@ -268,7 +268,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, taskId }) => {
           <button
             type="submit"
             disabled={!formik.isValid || !formik.values.slugValid}
-            className={`w-full sm:w-auto bg-Brand/Brand-1 text-white py-2.5 px-6 rounded-lg transition-colors
+            className={`w-full sm:w-auto bg-Brand/Brand-1 text-white py-3 px-6 rounded-lg transition-colors
       ${
         !formik.isValid || !formik.values.slugValid
           ? "opacity-50 cursor-not-allowed"

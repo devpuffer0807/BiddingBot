@@ -3,7 +3,7 @@ import { ethers, isHexString } from "ethers";
 export const isValidPrivateKeyOrSeedPhrase = (
   value: string
 ): "PRIVATE_KEY" | "MNEMONIC" | false => {
-  if (isHexString(value, 32)) {
+  if (isHexString(`0x${value}`, 32)) {
     return "PRIVATE_KEY";
   }
 
@@ -15,25 +15,29 @@ export const isValidPrivateKeyOrSeedPhrase = (
   return false;
 };
 
-export const importWalletFromMnemonic = (mnemonic: string) => {
+export const importWalletFromMnemonic = (
+  mnemonic: string
+): ethers.HDNodeWallet | null => {
   try {
-    const wallet = ethers.Wallet.fromPhrase(mnemonic);
+    const wallet = ethers.HDNodeWallet.fromPhrase(mnemonic);
     console.log({ wallet });
     return wallet;
   } catch (error) {
     console.error("Error importing wallet from mnemonic:", error);
-    alert("Invalid mnemonic");
+    return null;
   }
 };
 
-export const importWalletFromPrivateKey = (privateKey: string) => {
+export const importWalletFromPrivateKey = (
+  privateKey: string
+): ethers.Wallet | null => {
   try {
     const wallet = new ethers.Wallet(privateKey);
     console.log({ wallet });
     return wallet;
   } catch (error) {
     console.error("Error importing wallet from private key:", error);
-    alert("Invalid private key");
+    return null;
   }
 };
 
@@ -93,4 +97,48 @@ export const addWalletToMetaMask = async (
   } else {
     alert("MetaMask is not installed. Please install it to use this feature.");
   }
+};
+
+export const generateWalletName = () => {
+  const colors = [
+    "Red",
+    "Blue",
+    "Green",
+    "Yellow",
+    "Purple",
+    "Orange",
+    "Pink",
+    "Teal",
+    "Cyan",
+    "Magenta",
+    "Lime",
+    "Indigo",
+    "Violet",
+    "Maroon",
+    "Navy",
+    "Olive",
+    "Turquoise",
+    "Coral",
+  ];
+  const animals = [
+    "Lion",
+    "Tiger",
+    "Bear",
+    "Wolf",
+    "Fox",
+    "Eagle",
+    "Dolphin",
+    "Elephant", // Added animals
+    "Giraffe",
+    "Penguin",
+    "Koala",
+    "Kangaroo",
+    "Panda",
+    "Octopus",
+    "Cheetah",
+    "Gorilla",
+  ];
+  const randomColor = colors[Math.floor(Math.random() * colors.length)];
+  const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+  return `${randomColor} ${randomAnimal}`;
 };

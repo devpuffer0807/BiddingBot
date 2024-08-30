@@ -6,7 +6,7 @@ import { ethers } from "ethers";
 import { Wallet } from "ethers";
 import { HDNodeWallet } from "ethers";
 import {
-  addWalletToMetaMask,
+  generateWalletName,
   importWalletFromMnemonic,
   importWalletFromPrivateKey,
   isValidPrivateKeyOrSeedPhrase,
@@ -47,33 +47,9 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
     }
   }, []);
 
-  const generateWalletName = () => {
-    const colors = [
-      "Red",
-      "Blue",
-      "Green",
-      "Yellow",
-      "Purple",
-      "Orange",
-      "Pink",
-    ];
-    const animals = [
-      "Lion",
-      "Tiger",
-      "Bear",
-      "Wolf",
-      "Fox",
-      "Eagle",
-      "Dolphin",
-    ];
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
-    return `${randomColor} ${randomAnimal}`;
-  };
-
   const handleSubmit = useCallback(async () => {
     try {
-      let newWallet: Wallet | HDNodeWallet | undefined;
+      let newWallet: Wallet | HDNodeWallet | null = null;
 
       if (showImportInput) {
         const source = isValidPrivateKeyOrSeedPhrase(importValue);
@@ -94,6 +70,12 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
         addWallet(walletName || generateWalletName(), newWallet);
         setStep(2);
         toast.success("Wallet created successfully!");
+
+        // Reset state
+        setWalletName("");
+        setImportValue("");
+        setShowImportInput(false);
+        setVisible(false);
       } else {
         throw new Error("Failed to create or import wallet");
       }
@@ -104,7 +86,6 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
           error instanceof Error ? error.message : "Unknown error occurred"
         }`
       );
-      throw error;
     }
   }, [showImportInput, importValue, createNewWallet, walletName, addWallet]);
 
@@ -188,6 +169,7 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
             Wallet Details
           </h2>
           <div className="flex flex-col space-y-4">
+            <p>Wallet Name: {walletName || generateWalletName()}</p>
             <p>Address: {wallet?.address}</p>
             <div>
               <p>Private Key:</p>
