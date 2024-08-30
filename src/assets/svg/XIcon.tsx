@@ -3,8 +3,8 @@ import React from "react";
 const XIcon = () => {
   return (
     <svg
-      width="16px"
-      height="16px"
+      width="18px"
+      height="18px"
       viewBox="0 0 32 32"
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"

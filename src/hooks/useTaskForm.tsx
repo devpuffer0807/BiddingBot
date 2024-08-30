@@ -63,8 +63,8 @@ export const useTaskForm = (
   const validateSlug = async (slug: string) => {
     try {
       // Replace this with your actual API call
-      const response = await fetch(`/api/validate-slug?slug=${slug}`);
-      const isValid = await response.json();
+      const response = await fetch(`/api/ethereum/collections?slug=${slug}`);
+      const isValid = response.status === 200;
       setFormState((prev) => ({ ...prev, slugValid: isValid }));
     } catch (error) {
       console.error("Error validating slug:", error);
