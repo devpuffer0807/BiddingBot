@@ -1,11 +1,15 @@
 "use client";
 
-import EditIcon from "@/assets/svg/EditIcon";
 import TaskModal from "@/components/tasks/TaskModal";
 import { useTaskStore, Task } from "@/store/task.store";
-import React, { useState, useCallback } from "react";
-import Toggle from "@/components/common/Toggle"; // Make sure to import the Toggle component
+import React, { useState, useCallback, useEffect } from "react";
 import TaskTable from "@/components/tasks/TaskTable";
+import Accordion from "@/components/common/Accordion";
+import RecentBids from "@/components/tasks/RecentBids";
+import { BidInfo, WebSocketResponse } from "@/interface";
+
+const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
+  .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
 
 const Tasks = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,6 +18,40 @@ const Tasks = () => {
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [bids, setBids] = useState<BidInfo[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(20);
+
+  useEffect(() => {
+    const lastSession = sessionStorage.getItem("lastSession");
+    if (!lastSession) {
+      const { tasks, editTask } = useTaskStore.getState();
+      tasks.forEach((task) => {
+        if (task.running) {
+          editTask(task.id, { running: false });
+        }
+      });
+      sessionStorage.setItem("lastSession", Date.now().toString());
+    }
+  }, []);
+
+  useEffect(() => {
+    const runningTasks = tasks.filter((task) => task.running);
+
+    const ws = new WebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
+
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ endpoint: "tasks", data: runningTasks }));
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [tasks]);
 
   const toggleTaskSelection = (taskId: string) => {
     setSelectedTasks((prev) => {
@@ -25,9 +63,70 @@ const Tasks = () => {
     });
   };
 
-  const toggleTaskStatus = (taskId: string) => {
-    toggleTaskRunning(taskId);
-  };
+  useEffect(() => {
+    const runningTasks = tasks.filter((task) => task.running);
+    const BASE_URL = "wss://wss-mainnet.magiceden.io";
+    const ws = new WebSocket(BASE_URL);
+
+    ws.onopen = () => {
+      runningTasks.forEach((task) => {
+        const subscribeMessage = {
+          type: "subscribeCollection",
+          constraint: {
+            chain: "ethereum",
+            collectionSymbol: task.contractAddress.toLowerCase(),
+          },
+        };
+
+        ws.send(JSON.stringify(subscribeMessage));
+      });
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data: WebSocketResponse = JSON.parse(event.data);
+
+        if (data.event === "bid.created" || data.event === "bid.updated") {
+          const bidData = data.data;
+          const marketplace = determineMarketplace(bidData.source.domain);
+
+          const task = tasks.find(
+            (item) =>
+              item.contractAddress.toLowerCase() ===
+              bidData.contract.toLowerCase()
+          );
+          const bidInfo: BidInfo = {
+            collectionSlug: task?.slug || "",
+            basePrice: bidData.price.amount.raw,
+            formattedPrice: bidData.price.amount.decimal.toString(),
+            expirationDate: new Date(
+              Number(bidData.expiration) * 1000
+            ).toISOString(), // Updated line
+            paymentToken: {
+              symbol: bidData.price.currency.symbol,
+              usdPrice: bidData.price.amount.usd.toString(),
+            },
+            makerAddress: bidData.maker,
+            quantity: bidData.quantityRemaining,
+            marketplace: marketplace,
+            eventTimestamp: bidData.updatedAt,
+          };
+
+          setBids((prevBids) => [bidInfo, ...prevBids]);
+        }
+      } catch (error) {
+        console.error("Error processing WebSocket message:", error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [tasks]);
 
   const toggleSelectedTasksStatus = (running: boolean) => {
     toggleMultipleTasksRunning(selectedTasks, running);
@@ -63,6 +162,44 @@ const Tasks = () => {
     }
   };
 
+  const indexOfLastOffer = currentPage * recordsPerPage;
+  const indexOfFirstOffer = indexOfLastOffer - recordsPerPage;
+  const currentBids = bids.slice(indexOfFirstOffer, indexOfLastOffer);
+
+  const totalPages = Math.ceil(bids.length / recordsPerPage);
+
+  const paginate = useCallback((pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  }, []);
+
+  const renderPageNumbers = useCallback(() => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(
+        <button
+          key={i}
+          onClick={() => paginate(i)}
+          className={`px-3 py-1 rounded ${
+            currentPage === i
+              ? "bg-Brand/Brand-1 text-white"
+              : "bg-gray-700 text-white"
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+    return pageNumbers;
+  }, [currentPage, totalPages, paginate]);
+
   return (
     <section className="ml-0 sm:ml-20 p-4 sm:p-6 pb-24">
       <div className="flex flex-col items-center justify-between mb-4 sm:mb-8 pb-4 sm:flex-row">
@@ -92,17 +229,27 @@ const Tasks = () => {
           Stop Selected
         </button>
       </div>
-      <TaskTable
-        tasks={tasks}
-        selectedTasks={selectedTasks}
-        selectAll={selectAll}
-        onToggleSelectAll={toggleSelectAll}
-        onToggleTaskSelection={toggleTaskSelection}
-        onToggleTaskStatus={toggleTaskRunning}
-        onToggleMarketplace={toggleMarketplace}
-        onEditTask={openEditModal}
+      <Accordion title={`Tasks (${tasks.length})`}>
+        <TaskTable
+          tasks={tasks}
+          selectedTasks={selectedTasks}
+          selectAll={selectAll}
+          onToggleSelectAll={toggleSelectAll}
+          onToggleTaskSelection={toggleTaskSelection}
+          onToggleTaskStatus={toggleTaskRunning}
+          onToggleMarketplace={toggleMarketplace}
+          onEditTask={openEditModal}
+        />
+      </Accordion>
+      <RecentBids
+        bids={currentBids}
+        currentPage={currentPage}
+        recordsPerPage={recordsPerPage}
+        totalPages={Math.ceil(bids.length / recordsPerPage)}
+        setRecordsPerPage={setRecordsPerPage}
+        paginate={paginate}
+        renderPageNumbers={renderPageNumbers}
       />
-
       <TaskModal
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -114,3 +261,16 @@ const Tasks = () => {
 };
 
 export default Tasks;
+
+function determineMarketplace(domain: string): string {
+  switch (domain) {
+    case "opensea.io":
+      return "OS";
+    case "blur.io":
+      return "Blur";
+    case "magiceden.io":
+      return "Magic Eden";
+    default:
+      return "Unknown";
+  }
+}

@@ -1,8 +1,9 @@
 import React from "react";
 
-const ChevronDown = () => {
+const ChevronDown = ({ className = "" }) => {
   return (
     <svg
+      className={className}
       width="16px"
       height="16px"
       viewBox="0 0 20 20"
