@@ -44,6 +44,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
             initialTask.maxFloorPricePercentage.toString(),
           selectedMarketplaces: initialTask.selectedMarketplaces,
           running: initialTask.running,
+          contractAddress: initialTask.contractAddress, // Add this line
         }
       : {
           slug: "",
@@ -52,6 +53,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           maxFloorPricePercentage: "",
           selectedMarketplaces: [],
           running: false,
+          contractAddress: "", // Add this line
         },
     taskId
   );
@@ -83,6 +85,18 @@ const TaskModal: React.FC<TaskModalProps> = ({
     } else {
       toast.error("Please fill in all required fields correctly.");
     }
+
+    setFormState({
+      slug: "",
+      selectedWallet: "",
+      minFloorPricePercentage: "",
+      maxFloorPricePercentage: "",
+      selectedMarketplaces: [],
+      running: false,
+      slugValid: false,
+      slugDirty: false,
+      contractAddress: "",
+    });
   };
 
   return (

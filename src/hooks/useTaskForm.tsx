@@ -13,6 +13,7 @@ interface TaskFormState {
   running: boolean;
   slugValid: boolean | null;
   slugDirty: boolean;
+  contractAddress: string;
 }
 
 export const useTaskForm = (
@@ -52,9 +53,18 @@ export const useTaskForm = (
 
     try {
       const response = await fetch(`/api/ethereum/collections?slug=${slug}`);
-      const isValid = response.status === 200;
-      setFormState((prev) => ({ ...prev, slugValid: isValid }));
-      console.log("Slug is valid:", isValid);
+      if (response.status === 200) {
+        const data = await response.json();
+        const contractAddress = data.contracts[0]?.address || "";
+        setFormState((prev) => ({
+          ...prev,
+          slugValid: !!contractAddress,
+          contractAddress,
+        }));
+        console.log("Slug is valid:", !!contractAddress);
+      } else {
+        setFormState((prev) => ({ ...prev, slugValid: false }));
+      }
     } catch (error) {
       console.error("Error validating slug:", error);
       setFormState((prev) => ({ ...prev, slugValid: false }));
@@ -134,13 +144,14 @@ export const useTaskForm = (
       }
 
       const taskData: Omit<Task, "id"> = {
-        slug: formState.slug,
+        slug: formState.slug.toLowerCase(),
         selectedWallet: formState.selectedWallet,
         walletPrivateKey: selectedWallet.privateKey,
         minFloorPricePercentage: Number(formState.minFloorPricePercentage),
         maxFloorPricePercentage: Number(formState.maxFloorPricePercentage),
         selectedMarketplaces: formState.selectedMarketplaces,
         running: formState.running,
+        contractAddress: formState.contractAddress, // Add this line
       };
 
       if (taskId) {

@@ -131,7 +131,14 @@ const TaskTable: React.FC<TaskTableProps> = ({
             </td>
             <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
               <span className="sm:hidden font-bold">Slug</span>
-              <span>{task.slug}</span>
+              <a
+                href={`https://opensea.io/collection/${task.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-Brand/Brand-1 underline"
+              >
+                {task.slug}
+              </a>
             </td>
             <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
               <span className="sm:hidden font-bold">Min Floor Price %</span>

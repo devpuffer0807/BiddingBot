@@ -10,6 +10,7 @@ export interface Task {
   maxFloorPricePercentage: number;
   selectedMarketplaces: string[];
   running: boolean; // Add this line
+  contractAddress: string; // Add this line
 }
 
 interface TaskStore {
