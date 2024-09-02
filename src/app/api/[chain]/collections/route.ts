@@ -14,7 +14,7 @@ export async function GET(
     let apiUrl: string;
     switch (chain.toLowerCase()) {
       case "ethereum":
-        apiUrl = `https://api.nfttools.website/opensea/api/v2/collections/${slug}`;
+        apiUrl = `https://api.nfttools.website/opensea/api/v2/collections/${slug?.toLowerCase()}`;
         break;
       default:
         throw new Error(`Unsupported chain: ${chain}`);
