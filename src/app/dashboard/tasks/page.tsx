@@ -37,19 +37,46 @@ const Tasks = () => {
 
   useEffect(() => {
     const runningTasks = tasks.filter((task) => task.running);
+    let ws: WebSocket | null = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
 
-    const ws = new WebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
+    function connect() {
+      ws = new WebSocket("wss://websocket.nfttools.website");
 
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ endpoint: "tasks", data: runningTasks }));
-    };
+      ws.onopen = () => {
+        console.log("WebSocket connection established");
+        reconnectAttempts = 0;
+        ws?.send(JSON.stringify({ endpoint: "tasks", data: runningTasks }));
+      };
 
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+
+      ws.onclose = (event) => {
+        console.warn("WebSocket connection closed:", event.reason);
+        if (reconnectAttempts < maxReconnectAttempts) {
+          const timeout = Math.pow(2, reconnectAttempts) * 1000;
+          console.log(
+            `Attempting to reconnect in ${timeout / 1000} seconds...`
+          );
+          setTimeout(connect, timeout);
+          reconnectAttempts++;
+        } else {
+          console.error(
+            "Max reconnection attempts reached. Please refresh the page."
+          );
+        }
+      };
+    }
+
+    connect();
 
     return () => {
-      ws.close();
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
     };
   }, [tasks]);
 
