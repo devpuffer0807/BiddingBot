@@ -16,6 +16,11 @@ jobs:
     env:
       MONGODB_URI: ${{secrets.MONGODB_URI}}
       JWT_SECRET: ${{secrets.JWT_SECRET}}
+      EMAIL_USERNAME: ${{secrets.EMAIL_USERNAME}}
+      EMAIL_PASSWORD: ${{secrets.EMAIL_PASSWORD}}
+      CLIENT_URL: ${{secrets.CLIENT_URL}}
+      NEXT_PUBLIC_CLIENT_URL: ${{secrets.NEXT_PUBLIC_CLIENT_URL}}
+      NEXT_PUBLIC_SERVER_WEBSOCKET: ${{secrets.NEXT_PUBLIC_SERVER_WEBSOCKET}}
 
     steps:
       - uses: actions/checkout@v4
@@ -52,10 +57,15 @@ jobs:
         run: | # Secrets needed on the server
           echo "MONGODB_URI=${{secrets.MONGODB_URI}}" >> .env.production
           echo "JWT_SECRET=${{secrets.JWT_SECRET}}" >> .env.production
+          echo "EMAIL_USERNAME=${{secrets.EMAIL_USERNAME}}" >> .env.production
+          echo "EMAIL_PASSWORD=${{secrets.EMAIL_PASSWORD}}" >> .env.production
+          echo "CLIENT_URL=${{secrets.CLIENT_URL}}" >> .env.production
+          echo "NEXT_PUBLIC_CLIENT_URL=${{secrets.NEXT_PUBLIC_CLIENT_URL}}" >> .env.production
+          echo "NEXT_PUBLIC_SERVER_WEBSOCKET=${{secrets.NEXT_PUBLIC_SERVER_WEBSOCKET}}" >> .env.production
 
       - name: Validate .env.production contents
         run: cat .env.production
 
       - name: change directory
         run: cd /home/leo/runners/nfttools-bidding-bot/_work/BiddingBot/BiddingBot
-      - run: pm2 restart 2
+      - run: pm2 restart nfttools-bidding-bot
