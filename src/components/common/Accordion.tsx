@@ -12,7 +12,7 @@ const Accordion: React.FC<AccordionProps> = ({ title, children }) => {
   return (
     <div className="border border-Neutral/Neutral-Border-[night] rounded-lg mb-4">
       <button
-        className="w-full text-left px-4 py-2 text-n-2 rounded-t-2xl flex justify-between items-center"
+        className="w-full text-left p-4 text-n-2 rounded-t-2xl flex justify-between items-center"
         onClick={() => setIsOpen(!isOpen)}
       >
         {title}
@@ -22,7 +22,7 @@ const Accordion: React.FC<AccordionProps> = ({ title, children }) => {
           }`}
         />
       </button>
-      {isOpen && <div className="p-10">{children}</div>}
+      {isOpen && <div className="p-4">{children}</div>}
     </div>
   );
 };
