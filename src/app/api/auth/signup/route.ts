@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { User } from "@/models/user.model";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import * as jose from "jose";
 import nodemailer from "nodemailer";
 import { config } from "dotenv";
 import { emailTemplate } from "@/utils/emails/verification_email";
@@ -31,11 +31,14 @@ export async function POST(request: Request) {
       isVerified: false,
     });
 
-    const verificationToken = jwt.sign(
-      { userId: newUser._id },
-      process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
-    );
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const verificationToken = await new jose.SignJWT({
+      userId: newUser._id.toString(),
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("7d")
+      .sign(secret);
+
     const verificationUrl = `${process.env.CLIENT_URL}/auth/verify?token=${verificationToken}`;
 
     const transporter = nodemailer.createTransport({

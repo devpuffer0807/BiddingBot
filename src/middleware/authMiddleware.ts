@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import jwt, { JsonWebTokenError } from "jsonwebtoken";
+import * as jose from "jose";
 
-export function authMiddleware(request: NextRequest) {
+export async function authMiddleware(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
+
+  console.log({ token });
 
   if (!token) {
     console.log("No token found in cookie");
@@ -11,15 +13,14 @@ export function authMiddleware(request: NextRequest) {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-      userId: string;
-    };
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const { payload } = await jose.jwtVerify(token, secret);
 
-    console.log("Token successfully verified:", decoded);
+    console.log("Token successfully verified:", payload);
 
     // Add the userId to the request headers
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set("X-User-ID", decoded.userId);
+    requestHeaders.set("X-User-ID", payload.userId as string);
 
     return NextResponse.next({
       request: {
@@ -29,8 +30,17 @@ export function authMiddleware(request: NextRequest) {
   } catch (error) {
     console.error("Token verification error:", error);
 
-    // Only clear the token for specific JWT errors
-    if (error instanceof JsonWebTokenError) {
+    if (
+      error instanceof jose.errors.JWTExpired ||
+      error instanceof jose.errors.JWTInvalid ||
+      error instanceof jose.errors.JWTClaimValidationFailed
+    ) {
+      console.log("JWT error details:", {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+      });
+
       console.log("JWT error, clearing token");
       const response = NextResponse.redirect(
         new URL("/auth/signin", request.url)
@@ -39,8 +49,11 @@ export function authMiddleware(request: NextRequest) {
       return response;
     }
 
-    // For other errors, log but don't clear the token
-    console.log("Unknown error, not clearing token");
-    return NextResponse.redirect(new URL("/auth/signin", request.url));
+    // For other errors, log more details and continue without redirecting
+    console.log("Unknown error details:", {
+      name: error instanceof Error ? error.name : "Unknown",
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return NextResponse.next();
   }
 }

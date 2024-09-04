@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { User } from "@/models/user.model";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import * as jose from "jose";
 import { config } from "dotenv";
 import { connect } from "@/utils/mongodb";
 
@@ -22,9 +22,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
-    });
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const token = await new jose.SignJWT({ userId: user._id.toString() })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("7d")
+      .sign(secret);
 
     const response = NextResponse.json({
       success: true,
