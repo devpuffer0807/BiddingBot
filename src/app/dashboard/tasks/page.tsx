@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import TaskModal from "@/components/tasks/TaskModal";
 import { useTaskStore, Task } from "@/store/task.store";
-import React, { useState, useCallback, useEffect } from "react";
+import React from "react";
 import TaskTable from "@/components/tasks/TaskTable";
 import Accordion from "@/components/common/Accordion";
 import RecentBids from "@/components/tasks/RecentBids";
@@ -13,7 +14,7 @@ const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
 
 const Tasks = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { tasks, toggleTaskRunning, toggleMultipleTasksRunning } =
+  const { tasks, setTasks, toggleTaskRunning, toggleMultipleTasksRunning } =
     useTaskStore();
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -23,12 +24,29 @@ const Tasks = () => {
   const [recordsPerPage, setRecordsPerPage] = useState(20);
 
   useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const response = await fetch("/api/tasks", {
+          credentials: "include", // This ensures cookies are sent with the request
+        });
+        if (!response.ok) throw new Error("Failed to fetch tasks");
+        const fetchedTasks = await response.json();
+        setTasks(fetchedTasks);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      }
+    };
+
+    fetchTasks();
+  }, [setTasks]);
+
+  useEffect(() => {
     const lastSession = sessionStorage.getItem("lastSession");
     if (!lastSession) {
       const { tasks, editTask } = useTaskStore.getState();
       tasks.forEach((task) => {
         if (task.running) {
-          editTask(task.id, { running: false });
+          editTask(task._id, { running: false });
         }
       });
       sessionStorage.setItem("lastSession", Date.now().toString());
@@ -42,7 +60,7 @@ const Tasks = () => {
     const maxReconnectAttempts = 5;
 
     function connect() {
-      ws = new WebSocket("wss://websocket.nfttools.website");
+      ws = new WebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
 
       ws.onopen = () => {
         console.log("WebSocket connection established");
@@ -104,19 +122,29 @@ const Tasks = () => {
             collectionSymbol: task.contractAddress.toLowerCase(),
           },
         };
-
         ws.send(JSON.stringify(subscribeMessage));
       });
     };
 
     ws.onmessage = (event) => {
+      if (event.data.startsWith("{")) {
+        handleWebSocketMessage(event.data);
+      } else if (event.data === "ping") {
+        console.log("Received ping message");
+      } else {
+        console.warn("Received non-JSON message:", event.data);
+      }
+    };
+
+    const handleWebSocketMessage = (data: string) => {
       try {
-        const data: WebSocketResponse = JSON.parse(event.data);
-
-        if (data.event === "bid.created" || data.event === "bid.updated") {
-          const bidData = data.data;
+        const parsedData: WebSocketResponse = JSON.parse(data);
+        if (
+          parsedData.event === "bid.created" ||
+          parsedData.event === "bid.updated"
+        ) {
+          const bidData = parsedData.data;
           const marketplace = determineMarketplace(bidData.source.domain);
-
           const task = tasks.find(
             (item) =>
               item.contractAddress.toLowerCase() ===
@@ -128,7 +156,7 @@ const Tasks = () => {
             formattedPrice: bidData.price.amount.decimal.toString(),
             expirationDate: new Date(
               Number(bidData.expiration) * 1000
-            ).toISOString(), // Updated line
+            ).toISOString(),
             paymentToken: {
               symbol: bidData.price.currency.symbol,
               usdPrice: bidData.price.amount.usd.toString(),
@@ -138,7 +166,6 @@ const Tasks = () => {
             marketplace: marketplace,
             eventTimestamp: bidData.updatedAt,
           };
-
           setBids((prevBids) => [bidInfo, ...prevBids]);
         }
       } catch (error) {
@@ -161,21 +188,21 @@ const Tasks = () => {
 
   const toggleSelectAll = () => {
     setSelectAll(!selectAll);
-    setSelectedTasks(selectAll ? [] : tasks.map((task) => task.id));
+    setSelectedTasks(selectAll ? [] : tasks.map((task) => task._id));
   };
 
-  const openEditModal = useCallback((task: Task) => {
+  const openEditModal = React.useCallback((task: Task) => {
     setEditingTask(task);
     setIsModalOpen(true);
   }, []);
 
-  const closeModal = useCallback(() => {
+  const closeModal = React.useCallback(() => {
     setIsModalOpen(false);
     setEditingTask(null);
   }, []);
 
   const toggleMarketplace = (taskId: string, marketplace: string) => {
-    const task = tasks.find((t) => t.id === taskId);
+    const task = tasks.find((t) => t._id === taskId);
     if (task) {
       const updatedMarketplaces = task.selectedMarketplaces.includes(
         marketplace
@@ -195,11 +222,11 @@ const Tasks = () => {
 
   const totalPages = Math.ceil(bids.length / recordsPerPage);
 
-  const paginate = useCallback((pageNumber: number) => {
+  const paginate = React.useCallback((pageNumber: number) => {
     setCurrentPage(pageNumber);
   }, []);
 
-  const renderPageNumbers = useCallback(() => {
+  const renderPageNumbers = React.useCallback(() => {
     const pageNumbers = [];
     const maxVisiblePages = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
@@ -280,7 +307,7 @@ const Tasks = () => {
       <TaskModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        taskId={editingTask?.id}
+        taskId={editingTask?._id}
         initialTask={editingTask}
       />
     </section>

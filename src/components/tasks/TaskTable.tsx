@@ -91,7 +91,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
       <tbody>
         {tasks.map((task) => (
           <tr
-            key={task.id}
+            key={task._id}
             className="border-b border-Neutral/Neutral-Border-[night] flex flex-col sm:table-row mb-4 sm:mb-0"
           >
             <td className="py-2 px-2 sm:px-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
@@ -100,17 +100,17 @@ const TaskTable: React.FC<TaskTableProps> = ({
                 <input
                   type="checkbox"
                   className="sr-only"
-                  checked={selectedTasks.includes(task.id)}
-                  onChange={() => onToggleTaskSelection(task.id)}
+                  checked={selectedTasks.includes(task._id)}
+                  onChange={() => onToggleTaskSelection(task._id)}
                 />
                 <div
                   className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors duration-200 ease-in-out ${
-                    selectedTasks.includes(task.id)
+                    selectedTasks.includes(task._id)
                       ? "bg-[#7F56D9] border-[#7F56D9]"
                       : "bg-transparent border-gray-400"
                   }`}
                 >
-                  {selectedTasks.includes(task.id) && (
+                  {selectedTasks.includes(task._id) && (
                     <svg
                       className="w-3 h-3 text-white"
                       viewBox="0 0 16 16"
@@ -152,7 +152,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
               <span className="sm:hidden font-bold">MagicEden</span>
               <Toggle
                 checked={task.selectedMarketplaces.includes("MagicEden")}
-                onChange={() => onToggleMarketplace(task.id, "MagicEden")}
+                onChange={() => onToggleMarketplace(task._id, "MagicEden")}
                 activeColor="#e42575"
                 inactiveColor="#3F3F46"
               />
@@ -161,7 +161,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
               <span className="sm:hidden font-bold">Blur</span>
               <Toggle
                 checked={task.selectedMarketplaces.includes("Blur")}
-                onChange={() => onToggleMarketplace(task.id, "Blur")}
+                onChange={() => onToggleMarketplace(task._id, "Blur")}
                 activeColor="#FF8700"
                 inactiveColor="#3F3F46"
               />
@@ -170,7 +170,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
               <span className="sm:hidden font-bold">OpenSea</span>
               <Toggle
                 checked={task.selectedMarketplaces.includes("OpenSea")}
-                onChange={() => onToggleMarketplace(task.id, "OpenSea")}
+                onChange={() => onToggleMarketplace(task._id, "OpenSea")}
                 activeColor="#2081e2"
                 inactiveColor="#3F3F46"
               />
@@ -182,7 +182,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                   type="checkbox"
                   className="sr-only"
                   checked={task.running}
-                  onChange={() => onToggleTaskStatus(task.id)}
+                  onChange={() => onToggleTaskStatus(task._id)}
                 />
                 <div
                   className={`relative w-11 h-6 bg-gray-200 rounded-full transition-colors duration-200 ease-in-out ${

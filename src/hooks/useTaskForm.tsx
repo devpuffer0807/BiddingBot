@@ -61,7 +61,6 @@ export const useTaskForm = (
           slugValid: !!contractAddress,
           contractAddress,
         }));
-        console.log("Slug is valid:", !!contractAddress);
       } else {
         setFormState((prev) => ({ ...prev, slugValid: false }));
       }
@@ -133,17 +132,17 @@ export const useTaskForm = (
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
       const selectedWallet = wallets.find(
         (wallet) => wallet.id === formState.selectedWallet
       );
       if (!selectedWallet) {
         console.error("Selected wallet not found");
-        return;
+        return false;
       }
 
-      const taskData: Omit<Task, "id"> = {
+      const taskData: Omit<Task, "_id"> = {
         slug: formState.slug.toLowerCase(),
         selectedWallet: formState.selectedWallet,
         walletPrivateKey: selectedWallet.privateKey,
@@ -151,15 +150,36 @@ export const useTaskForm = (
         maxFloorPricePercentage: Number(formState.maxFloorPricePercentage),
         selectedMarketplaces: formState.selectedMarketplaces,
         running: formState.running,
-        contractAddress: formState.contractAddress, // Add this line
+        contractAddress: formState.contractAddress,
       };
 
-      if (taskId) {
-        editTask(taskId, taskData);
-      } else {
-        addTask(taskData);
+      try {
+        if (taskId) {
+          const response = await fetch(`/api/tasks/${taskId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(taskData),
+            credentials: "include", // This ensures cookies are sent with the request
+          });
+          if (!response.ok) throw new Error("Failed to update task");
+          const updatedTask = await response.json();
+          editTask(taskId, updatedTask);
+        } else {
+          const response = await fetch("/api/tasks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(taskData),
+            credentials: "include", // This ensures cookies are sent with the request
+          });
+          if (!response.ok) throw new Error("Failed to create task");
+          const newTask = await response.json();
+          addTask(newTask);
+        }
+        return true;
+      } catch (error) {
+        console.error("Error submitting task:", error);
+        return false;
       }
-      return true;
     }
     return false;
   };

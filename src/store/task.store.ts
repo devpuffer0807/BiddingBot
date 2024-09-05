@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export interface Task {
-  id: string;
+  _id: string;
   slug: string;
   selectedWallet: string;
   walletPrivateKey: string; // Add this line
@@ -21,7 +21,7 @@ interface TaskStore {
   toggleTaskRunning: (id: string) => void; // Add this line
   toggleMultipleTasksRunning: (ids: string[], running: boolean) => void;
   getLastTaskId: () => string;
-  // Add this line
+  setTasks: (tasks: Task[]) => void; // Add this line
 }
 
 export const useTaskStore = create(
@@ -38,32 +38,33 @@ export const useTaskStore = create(
       editTask: (id, updatedTask) =>
         set((state) => ({
           tasks: state.tasks.map((task) =>
-            task.id === id ? { ...task, ...updatedTask } : task
+            task._id === id ? { ...task, ...updatedTask } : task
           ),
         })),
       deleteTask: (id) =>
         set((state) => ({
-          tasks: state.tasks.filter((task) => task.id !== id),
+          tasks: state.tasks.filter((task) => task._id !== id),
         })),
       toggleTaskRunning: (id) =>
         set((state) => ({
           tasks: state.tasks.map((task) =>
-            task.id === id ? { ...task, running: !task.running } : task
+            task._id === id ? { ...task, running: !task.running } : task
           ),
         })),
       toggleMultipleTasksRunning: (ids, running) =>
         set((state) => ({
           tasks: state.tasks.map((task) =>
-            ids.includes(task.id) ? { ...task, running } : task
+            ids.includes(task._id) ? { ...task, running } : task
           ),
         })),
       getLastTaskId: () => {
         const state = get();
-        return state.tasks[state.tasks.length - 1]?.id;
+        return state.tasks[state.tasks.length - 1]?._id;
       },
+      setTasks: (tasks) => set({ tasks }), // Add this line
     }),
     {
-      name: "task-storage",
+      name: "tasks",
     }
   )
 );

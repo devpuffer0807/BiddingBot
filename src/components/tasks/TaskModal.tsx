@@ -66,17 +66,17 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (handleSubmit()) {
+    const isValid = await handleSubmit(); // Store the result of handleSubmit
+    if (isValid) {
+      const taskStore = useTaskStore.getState(); // Store the task store state
+      const taskData = { running: formState.running };
+
       // Update the task's running state immediately after creation/update
       if (taskId) {
-        useTaskStore
-          .getState()
-          .editTask(taskId, { running: formState.running });
+        taskStore.editTask(taskId, taskData);
       } else {
-        const newTaskId = useTaskStore.getState().getLastTaskId();
-        useTaskStore
-          .getState()
-          .editTask(newTaskId, { running: formState.running });
+        const newTaskId = taskStore.getLastTaskId();
+        taskStore.editTask(newTaskId, taskData);
       }
       toast.success(
         taskId ? "Task updated successfully!" : "Task created successfully!"
@@ -86,6 +86,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       toast.error("Please fill in all required fields correctly.");
     }
 
+    // Reset form state
     setFormState({
       slug: "",
       selectedWallet: "",
