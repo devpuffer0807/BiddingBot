@@ -5,18 +5,13 @@ import * as jose from "jose";
 export async function authMiddleware(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
 
-  console.log({ token });
-
   if (!token) {
-    console.log("No token found in cookie");
     return NextResponse.redirect(new URL("/auth/signin", request.url));
   }
 
   try {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
     const { payload } = await jose.jwtVerify(token, secret);
-
-    console.log("Token successfully verified:", payload);
 
     // Add the userId to the request headers
     const requestHeaders = new Headers(request.headers);
@@ -35,13 +30,6 @@ export async function authMiddleware(request: NextRequest) {
       error instanceof jose.errors.JWTInvalid ||
       error instanceof jose.errors.JWTClaimValidationFailed
     ) {
-      console.log("JWT error details:", {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-      });
-
-      console.log("JWT error, clearing token");
       const response = NextResponse.redirect(
         new URL("/auth/signin", request.url)
       );
