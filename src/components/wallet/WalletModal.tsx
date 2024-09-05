@@ -67,7 +67,13 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
 
       if (newWallet) {
         setWallet(newWallet);
-        addWallet(walletName || generateWalletName(), newWallet);
+        // Update to match the new Wallet interface
+        addWallet({
+          _id: newWallet.address, // Assuming address is used as _id
+          name: walletName || generateWalletName(),
+          address: newWallet.address,
+          privateKey: newWallet.privateKey, // Ensure this is available
+        });
         setStep(2);
         toast.success("Wallet created successfully!");
 

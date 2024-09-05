@@ -1,9 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { ethers, HDNodeWallet } from "ethers";
 
 interface Wallet {
-  id: string;
+  _id: string;
   name: string;
   address: string;
   privateKey: string;
@@ -11,7 +10,7 @@ interface Wallet {
 
 interface WalletState {
   wallets: Wallet[];
-  addWallet: (name: string, wallet: ethers.Wallet | HDNodeWallet) => void;
+  addWallet: (wallet: Omit<Wallet, "id">) => void;
   editWallet: (id: string, name: string) => void;
   deleteWallet: (id: string) => void;
   clearWallets: () => void;
@@ -22,13 +21,13 @@ export const useWalletStore = create<WalletState>()(
   persist(
     (set, get) => ({
       wallets: [],
-      addWallet: (name, wallet) =>
+      addWallet: (wallet) =>
         set((state) => ({
           wallets: [
             ...state.wallets,
             {
-              id: wallet.address,
-              name,
+              _id: wallet.address,
+              name: wallet.name,
               address: wallet.address,
               privateKey: wallet.privateKey,
             },
@@ -37,15 +36,15 @@ export const useWalletStore = create<WalletState>()(
       editWallet: (id, name) =>
         set((state) => ({
           wallets: state.wallets.map((wallet) =>
-            wallet.id === id ? { ...wallet, name } : wallet
+            wallet._id === id ? { ...wallet, name } : wallet
           ),
         })),
       deleteWallet: (id) =>
         set((state) => ({
-          wallets: state.wallets.filter((wallet) => wallet.id !== id),
+          wallets: state.wallets.filter((wallet) => wallet._id !== id),
         })),
       clearWallets: () => set({ wallets: [] }),
-      getWallet: (id) => get().wallets.find((wallet) => wallet.id === id),
+      getWallet: (id) => get().wallets.find((wallet) => wallet._id === id),
     }),
     {
       name: "wallet",
