@@ -9,6 +9,7 @@ interface Wallet {
 
 interface WalletState {
   wallets: Wallet[];
+  setWallets: (wallets: Wallet[]) => void; // New method to set wallets
   addWallet: (wallet: Omit<Wallet, "id">) => void;
   editWallet: (id: string, name: string) => void;
   deleteWallet: (id: string) => void;
@@ -20,6 +21,7 @@ export const useWalletStore = create<WalletState>()(
   // Remove the persist middleware
   (set, get) => ({
     wallets: [],
+    setWallets: (wallets) => set({ wallets }), // Set wallets in state
     addWallet: (wallet) =>
       set((state) => ({
         wallets: [

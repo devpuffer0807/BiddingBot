@@ -36,6 +36,22 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
     setupProvider();
   }, []);
 
+  useEffect(() => {
+    const fetchWallets = async () => {
+      try {
+        const response = await fetch("/api/wallet"); // Fetch wallets from the API
+        if (!response.ok) throw new Error("Failed to fetch wallets");
+        const wallets = await response.json();
+        // Optionally, you can set the fetched wallets to state or store
+      } catch (error) {
+        console.error("Error fetching wallets:", error);
+        toast.error("Error fetching wallets");
+      }
+    };
+
+    fetchWallets();
+  }, []);
+
   const createNewWallet = useCallback(() => {
     try {
       const newWallet = ethers.Wallet.createRandom();
@@ -67,13 +83,28 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
 
       if (newWallet) {
         setWallet(newWallet);
-        // Update to match the new Wallet interface
+        // Add wallet to the database
+        const response = await fetch("/api/wallet", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: walletName || generateWalletName(),
+            address: newWallet.address,
+            privateKey: newWallet.privateKey, // Ensure this is available
+          }),
+        });
+
+        if (!response.ok) throw new Error("Failed to add wallet to database");
+
         addWallet({
-          _id: newWallet.address, // Assuming address is used as _id
+          _id: newWallet.address,
           name: walletName || generateWalletName(),
           address: newWallet.address,
-          privateKey: newWallet.privateKey, // Ensure this is available
+          privateKey: newWallet.privateKey,
         });
+
         setStep(2);
         toast.success("Wallet created successfully!");
 

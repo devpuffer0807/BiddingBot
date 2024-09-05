@@ -8,12 +8,15 @@ import { useGlobal } from "../context/GlobalContext";
 import Sidebar from "@/components/sidebar/Sidebar";
 import BackIcon from "@/assets/svg/BackIcon";
 import DashboardHeader from "@/components/header/DashboardHeader";
+import { useWalletStore } from "@/store";
 
 export default function RootLayout({ children }: any) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
   const { showSideBar, setShowSidebar } = useGlobal();
   const router = useRouter();
+
+  const setWallets = useWalletStore((state) => state.setWallets);
 
   useEffect(() => {
     const handleResize = () => {
@@ -33,6 +36,21 @@ export default function RootLayout({ children }: any) {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchWallets = async () => {
+      try {
+        const response = await fetch("/api/wallet");
+        if (!response.ok) throw new Error("Failed to fetch wallets");
+        const wallets = await response.json();
+        setWallets(wallets); // Store fetched wallets in Zustand state
+      } catch (error) {
+        console.error("Error fetching wallets:", error);
+      }
+    };
+
+    fetchWallets();
+  }, [setWallets]);
 
   return (
     <main>
