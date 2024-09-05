@@ -1,5 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { authMiddleware } from "./middleware/authMiddleware";
+import { type NextRequest } from "next/server";
+import { authMiddleware } from "./middleware/auth.middleware";
 
 export async function middleware(request: NextRequest) {
   return await authMiddleware(request);
