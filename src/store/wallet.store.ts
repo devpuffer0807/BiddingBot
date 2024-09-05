@@ -48,7 +48,7 @@ export const useWalletStore = create<WalletState>()(
       getWallet: (id) => get().wallets.find((wallet) => wallet.id === id),
     }),
     {
-      name: "wallet-storage",
+      name: "wallet",
       storage: {
         getItem: (name) => {
           const str = localStorage.getItem(name);
