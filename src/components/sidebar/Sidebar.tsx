@@ -29,10 +29,11 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
   };
-
   async function signOut() {
     try {
-      const response = await fetch("/api/auth/signout");
+      const response = await fetch("/api/auth/signout", {
+        method: "POST", // Specify the method as POST
+      });
       if (!response.ok) {
         throw new Error("Sign out failed");
       }
