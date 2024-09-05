@@ -10,20 +10,6 @@ export const metadata: Metadata = {
   description:
     "Bidding bot for OpenSea, MagicEden, and Blur. Automate your bids on OpenSea, MagicEden, and Blur using NFTTOOLS.",
   icons: "/logo-256.png",
-  openGraph: {
-    title:
-      "NFTTOOLS - Outbid Competitors, Flip Fast, and Find Profitable Collections for Maximum Profit",
-    description:
-      "Automate your bids on OpenSea, MagicEden, and Blur using NFTTOOLS.",
-    type: "website",
-    url: "https://www.nfttools.pro",
-    siteName: "NFT Tools",
-    images: [
-      {
-        url: "/logo-256.png",
-      },
-    ],
-  },
 };
 
 const inter = Inter({
