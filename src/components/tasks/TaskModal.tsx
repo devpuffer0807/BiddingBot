@@ -59,7 +59,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   );
 
   const walletOptions = wallets.map((wallet) => ({
-    value: wallet.id,
+    value: wallet._id,
     label: wallet.name,
     address: wallet.address,
   }));

@@ -135,7 +135,7 @@ export const useTaskForm = (
   const handleSubmit = async () => {
     if (validateForm()) {
       const selectedWallet = wallets.find(
-        (wallet) => wallet.id === formState.selectedWallet
+        (wallet) => wallet._id === formState.selectedWallet
       );
       if (!selectedWallet) {
         console.error("Selected wallet not found");
