@@ -21,6 +21,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json();
-  const task = await Task.create({ ...body, user: userId });
+  const task = await Task.create({ ...body, user: userId, tags: body.tags }); // Add tags
   return NextResponse.json(task, { status: 201 });
 }

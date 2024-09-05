@@ -56,7 +56,11 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const task = await Task.findByIdAndUpdate(params.id, body, { new: true });
+  const task = await Task.findByIdAndUpdate(
+    params.id,
+    { ...body, tags: body.tags },
+    { new: true }
+  ); // Add tags
   return NextResponse.json(task, { status: 200 });
 }
 
@@ -81,7 +85,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
 
-  await Task.findByIdAndDelete(params.id);
+  await Task.findByIdAndDelete(taskId);
   return NextResponse.json(
     { message: "Task deleted successfully" },
     { status: 200 }
