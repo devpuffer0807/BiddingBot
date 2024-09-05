@@ -13,17 +13,20 @@ interface ITask extends Document {
   contractAddress: string;
 }
 
-const TaskSchema = new Schema<ITask>({
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  slug: { type: String, required: true },
-  selectedWallet: { type: String, required: true },
-  walletPrivateKey: { type: String, required: true },
-  minFloorPricePercentage: { type: String, required: true },
-  maxFloorPricePercentage: { type: String, required: true },
-  selectedMarketplaces: { type: [String], required: true },
-  running: { type: Boolean, default: false },
-  contractAddress: { type: String, required: true },
-});
+const TaskSchema = new Schema<ITask>(
+  {
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    slug: { type: String, required: true },
+    selectedWallet: { type: String, required: true },
+    walletPrivateKey: { type: String, required: true },
+    minFloorPricePercentage: { type: String, required: true },
+    maxFloorPricePercentage: { type: String, required: true },
+    selectedMarketplaces: { type: [String], required: true },
+    running: { type: Boolean, default: false },
+    contractAddress: { type: String, required: true },
+  },
+  { timestamps: true }
+);
 
 const Task =
   (mongoose.models.Task as mongoose.Model<ITask>) ||
