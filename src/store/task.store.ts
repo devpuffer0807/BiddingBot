@@ -11,11 +11,12 @@ export interface Task {
   selectedMarketplaces: string[];
   running: boolean; // Add this line
   contractAddress: string; // Add this line
+  tags: { name: string; color: string }[]; // Add this line
 }
 
 interface TaskStore {
   tasks: Task[];
-  addTask: (task: Omit<Task, "id">) => void;
+  addTask: (task: Omit<Task, "_id">) => void;
   editTask: (id: string, updatedTask: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   toggleTaskRunning: (id: string) => void; // Add this line
@@ -32,7 +33,7 @@ export const useTaskStore = create(
         set((state) => ({
           tasks: [
             ...state.tasks,
-            { ...task, id: Date.now().toString(), running: false },
+            { ...task, _id: Date.now().toString(), running: false },
           ],
         })),
       editTask: (id, updatedTask) =>

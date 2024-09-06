@@ -26,11 +26,12 @@ const Tasks = () => {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await fetch("/api/tasks", {
+        const response = await fetch("/api/task", {
           credentials: "include", // This ensures cookies are sent with the request
         });
         if (!response.ok) throw new Error("Failed to fetch tasks");
         const fetchedTasks = await response.json();
+
         setTasks(fetchedTasks);
       } catch (error) {
         console.error("Error fetching tasks:", error);

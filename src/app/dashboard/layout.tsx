@@ -9,6 +9,7 @@ import Sidebar from "@/components/sidebar/Sidebar";
 import BackIcon from "@/assets/svg/BackIcon";
 import DashboardHeader from "@/components/header/DashboardHeader";
 import { useWalletStore } from "@/store";
+import { useTagStore } from "@/store/tag.store";
 
 export default function RootLayout({ children }: any) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: any) {
   const router = useRouter();
 
   const setWallets = useWalletStore((state) => state.setWallets);
+  const setTags = useTagStore((state) => state.setTags);
 
   useEffect(() => {
     const handleResize = () => {
@@ -40,7 +42,9 @@ export default function RootLayout({ children }: any) {
   useEffect(() => {
     const fetchWallets = async () => {
       try {
-        const response = await fetch("/api/wallet");
+        const response = await fetch("/api/wallet", {
+          credentials: "include", // This ensures cookies are sent with the request
+        });
         if (!response.ok) throw new Error("Failed to fetch wallets");
         const wallets = await response.json();
         setWallets(wallets); // Store fetched wallets in Zustand state
@@ -51,6 +55,23 @@ export default function RootLayout({ children }: any) {
 
     fetchWallets();
   }, [setWallets]);
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const response = await fetch("/api/tag", {
+          credentials: "include", // This ensures cookies are sent with the request
+        });
+        if (!response.ok) throw new Error("Failed to fetch wallets");
+        const tags = await response.json();
+        setTags(tags); // Store fetched tags in Zustand state
+      } catch (error) {
+        console.error("Error fetching tags:", error);
+      }
+    };
+
+    fetchTags();
+  }, [setTags]);
 
   return (
     <main>

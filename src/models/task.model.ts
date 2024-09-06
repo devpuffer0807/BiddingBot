@@ -11,6 +11,7 @@ interface ITask extends Document {
   selectedMarketplaces: string[];
   running: boolean;
   contractAddress: string;
+  tags: { name: string; color: string }[]; // Add this line
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -24,6 +25,7 @@ const TaskSchema = new Schema<ITask>(
     selectedMarketplaces: { type: [String], required: true },
     running: { type: Boolean, default: false },
     contractAddress: { type: String, required: true },
+    tags: { type: [{ name: String, color: String }], default: [] }, // Add this line
   },
   { timestamps: true }
 );

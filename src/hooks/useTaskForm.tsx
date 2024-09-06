@@ -3,6 +3,7 @@ import { useWalletStore } from "@/store/wallet.store";
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import debounce from "lodash/debounce";
 import isEqual from "lodash/isEqual";
+import { toast } from "react-toastify";
 
 interface TaskFormState {
   slug: string;
@@ -14,6 +15,7 @@ interface TaskFormState {
   slugValid: boolean | null;
   slugDirty: boolean;
   contractAddress: string;
+  tags: { name: string; color: string }[];
 }
 
 export const useTaskForm = (
@@ -27,19 +29,20 @@ export const useTaskForm = (
     ...initialState,
     slugValid: taskId ? true : null,
     slugDirty: false,
+    tags: initialState.tags || [],
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
 
   const prevInitialStateRef = useRef(initialState);
 
-  // Add this useEffect to update formState when initialState changes
   useEffect(() => {
     if (!isEqual(initialState, prevInitialStateRef.current)) {
       setFormState((prevState) => ({
         ...initialState,
         slugValid: taskId ? true : prevState.slugValid,
         slugDirty: prevState.slugDirty,
+        tags: initialState.tags || [],
       }));
       prevInitialStateRef.current = initialState;
     }
@@ -135,10 +138,10 @@ export const useTaskForm = (
   const handleSubmit = async () => {
     if (validateForm()) {
       const selectedWallet = wallets.find(
-        (wallet) => wallet._id === formState.selectedWallet
+        (wallet) => wallet.address === formState.selectedWallet
       );
       if (!selectedWallet) {
-        console.error("Selected wallet not found");
+        toast.error("Selected wallet not found");
         return false;
       }
 
@@ -151,25 +154,27 @@ export const useTaskForm = (
         selectedMarketplaces: formState.selectedMarketplaces,
         running: formState.running,
         contractAddress: formState.contractAddress,
+        tags: formState.tags, // Ensure tags are included
       };
 
       try {
         if (taskId) {
-          const response = await fetch(`/api/tasks/${taskId}`, {
+          const response = await fetch(`/api/task/${taskId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(taskData),
-            credentials: "include", // This ensures cookies are sent with the request
+            credentials: "include",
           });
+
           if (!response.ok) throw new Error("Failed to update task");
           const updatedTask = await response.json();
           editTask(taskId, updatedTask);
         } else {
-          const response = await fetch("/api/tasks", {
+          const response = await fetch("/api/task", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(taskData),
-            credentials: "include", // This ensures cookies are sent with the request
+            credentials: "include",
           });
           if (!response.ok) throw new Error("Failed to create task");
           const newTask = await response.json();
@@ -184,6 +189,10 @@ export const useTaskForm = (
     return false;
   };
 
+  const handleTagChange = (selectedTags: { name: string; color: string }[]) => {
+    setFormState((prev) => ({ ...prev, tags: selectedTags }));
+  };
+
   return {
     formState,
     errors,
@@ -192,5 +201,6 @@ export const useTaskForm = (
     handleSubmit,
     validateSlug,
     setFormState,
+    handleTagChange,
   };
 };

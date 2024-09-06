@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Modal from "../common/Modal";
 import { useWalletStore } from "../../store/wallet.store";
 import CustomSelect from "../common/CustomSelect";
@@ -9,6 +9,10 @@ import XIcon from "@/assets/svg/XIcon";
 import { Task, useTaskStore } from "@/store";
 import Link from "next/link";
 import Toggle from "../common/Toggle";
+import TagSelect from "./TagSelect";
+import { useState } from "react";
+import { useTagStore } from "@/store/tag.store";
+import PlusIcon from "@/assets/svg/PlusIcon";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -24,6 +28,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
   initialTask,
 }) => {
   const { wallets } = useWalletStore();
+  const { addTag } = useTagStore();
+  const [newTagName, setNewTagName] = useState("");
+  const [newTagColor, setNewTagColor] = useState("#000000");
+  const [showCreateTag, setShowCreateTag] = useState(false);
 
   const {
     formState,
@@ -33,6 +41,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     handleSubmit,
     validateSlug,
     setFormState,
+    handleTagChange,
   } = useTaskForm(
     initialTask
       ? {
@@ -44,7 +53,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
             initialTask.maxFloorPricePercentage.toString(),
           selectedMarketplaces: initialTask.selectedMarketplaces,
           running: initialTask.running,
-          contractAddress: initialTask.contractAddress, // Add this line
+          contractAddress: initialTask.contractAddress,
+          tags: initialTask.tags,
         }
       : {
           slug: "",
@@ -53,25 +63,55 @@ const TaskModal: React.FC<TaskModalProps> = ({
           maxFloorPricePercentage: "",
           selectedMarketplaces: [],
           running: false,
-          contractAddress: "", // Add this line
+          contractAddress: "",
+          tags: [],
         },
     taskId
   );
 
   const walletOptions = wallets.map((wallet) => ({
-    value: wallet._id,
+    value: wallet.address,
     label: wallet.name,
     address: wallet.address,
   }));
 
+  const handleAddTag = async () => {
+    if (newTagName && newTagColor) {
+      try {
+        const response = await fetch("/api/tag", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            name: newTagName,
+            color: newTagColor,
+          }),
+        });
+
+        if (response.ok) {
+          const newTag = await response.json();
+          addTag(newTag);
+          setNewTagName("");
+          setNewTagColor("#000000");
+          toast.success("Tag added successfully!");
+        } else {
+          toast.error("Failed to add tag.");
+        }
+      } catch (error) {
+        toast.error("Failed to add tag.");
+      }
+    }
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isValid = await handleSubmit(); // Store the result of handleSubmit
+    const isValid = await handleSubmit();
     if (isValid) {
-      const taskStore = useTaskStore.getState(); // Store the task store state
-      const taskData = { running: formState.running };
+      const taskStore = useTaskStore.getState();
+      const taskData = { running: formState.running, tags: formState.tags };
 
-      // Update the task's running state immediately after creation/update
       if (taskId) {
         taskStore.editTask(taskId, taskData);
       } else {
@@ -86,7 +126,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
       toast.error("Please fill in all required fields correctly.");
     }
 
-    // Reset form state
     setFormState({
       slug: "",
       selectedWallet: "",
@@ -97,6 +136,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       slugValid: false,
       slugDirty: false,
       contractAddress: "",
+      tags: [],
     });
   };
 
@@ -104,15 +144,15 @@ const TaskModal: React.FC<TaskModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      className="w-full max-w-[800px] p-4 sm:p-6 md:p-8"
-      key={taskId || "new"} // Add this line
+      className="w-full max-w-[800px] h-full p-4 sm:p-6 md:p-8 overflow-y-auto"
+      key={taskId || "new"}
     >
       <form onSubmit={onSubmit} className="flex flex-col h-full">
         <h2 className="text-center text-xl font-bold mb-6 text-Brand/Brand-1">
           {taskId ? "EDIT TASK" : "CREATE A NEW TASK"}
         </h2>
 
-        <div className="flex-grow overflow-y-auto">
+        <div className="flex-grow overflow-y-auto pr-4 -mr-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="slug" className="block text-sm font-medium mb-2">
@@ -236,70 +276,113 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 </p>
               )}
             </div>
-          </div>
-
-          <div className="mt-6">
-            <h2 className="font-medium mb-4">Select Marketplace</h2>
-            <div className="flex flex-wrap gap-4">
-              {["MagicEden", "Blur", "OpenSea"].map((marketplace) => {
-                const isActive =
-                  formState.selectedMarketplaces.includes(marketplace);
-                const activeColor =
-                  marketplace === "MagicEden"
-                    ? "bg-[#e42575]"
-                    : marketplace === "Blur"
-                    ? "bg-[#FF8700]"
-                    : "bg-[#2081e2]";
-                return (
-                  <button
-                    key={marketplace}
-                    type="button"
-                    onClick={() => handleMarketplaceToggle(marketplace)}
-                    className="flex items-center"
-                  >
-                    <span className="mr-2 text-sm">{marketplace}</span>
-                    <div className="w-10 h-6 flex items-center rounded-full p-1 bg-gray-300">
-                      <div
-                        className={`w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ease-in-out
+            <div className="mt-6">
+              <h2 className="font-medium mb-4">Select Marketplace</h2>
+              <div className="flex flex-wrap gap-4">
+                {["MagicEden", "Blur", "OpenSea"].map((marketplace) => {
+                  const isActive =
+                    formState.selectedMarketplaces.includes(marketplace);
+                  const activeColor =
+                    marketplace === "MagicEden"
+                      ? "bg-[#e42575]"
+                      : marketplace === "Blur"
+                      ? "bg-[#FF8700]"
+                      : "bg-[#2081e2]";
+                  return (
+                    <button
+                      key={marketplace}
+                      type="button"
+                      onClick={() => handleMarketplaceToggle(marketplace)}
+                      className="flex items-center"
+                    >
+                      <span className="mr-2 text-sm">{marketplace}</span>
+                      <div className="w-10 h-6 flex items-center rounded-full p-1 bg-gray-300">
+                        <div
+                          className={`w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ease-in-out
                         ${
                           isActive
                             ? `translate-x-4 ${activeColor}`
                             : "translate-x-0 bg-white"
                         }`}
-                      ></div>
-                    </div>
-                  </button>
-                );
-              })}
+                        ></div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.selectedMarketplaces && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.selectedMarketplaces}
+                </p>
+              )}
             </div>
-            {errors.selectedMarketplaces && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.selectedMarketplaces}
-              </p>
-            )}
-          </div>
 
-          <div className="mt-6">
-            <h2 className="font-medium mb-4">Start Immediately</h2>
-            <div className="flex items-center">
-              <span
-                className="mr-2 text-sm cursor-pointer"
-                onClick={() =>
-                  setFormState((prev) => ({ ...prev, running: !prev.running }))
-                }
-              >
-                Start
-              </span>
-              <Toggle
-                checked={formState.running}
-                onChange={() =>
-                  setFormState((prev) => ({ ...prev, running: !prev.running }))
-                }
+            <div className="mt-6">
+              <h3 className="mb-2">Select Tags</h3>
+              <TagSelect
+                selectedTags={formState.tags}
+                onChange={(tags) => handleTagChange(tags)}
               />
+              <button
+                type="button"
+                className="text-sm text-Brand/Brand-1 mt-0.5 ml-2 block italic cursor-pointer"
+                onClick={() => setShowCreateTag(!showCreateTag)}
+              >
+                create tag
+              </button>
+
+              {showCreateTag && (
+                <div className="mt-6">
+                  <h3 className="text-sm">Create New Tag</h3>
+
+                  <div className="flex items-center gap-2 mt-2">
+                    <input
+                      type="text"
+                      placeholder="Tag Name"
+                      value={newTagName}
+                      onChange={(e) => setNewTagName(e.target.value)}
+                      className="p-2  border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] rounded placeholder:text-sm flex-1"
+                    />
+                    <CustomColorPicker
+                      value={newTagColor}
+                      onChange={setNewTagColor}
+                    />
+
+                    <button type="button" onClick={handleAddTag}>
+                      <PlusIcon width="40" height="40" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <h2 className="font-medium mb-4">Start Immediately</h2>
+              <div className="flex items-center">
+                <span
+                  className="mr-2 text-sm cursor-pointer"
+                  onClick={() =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      running: !prev.running,
+                    }))
+                  }
+                >
+                  Start
+                </span>
+                <Toggle
+                  checked={formState.running}
+                  onChange={() =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      running: !prev.running,
+                    }))
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>
-
         <div className="flex justify-end mt-6">
           <button
             type="submit"
@@ -316,6 +399,31 @@ const TaskModal: React.FC<TaskModalProps> = ({
         </div>
       </form>
     </Modal>
+  );
+};
+
+interface CustomColorPickerProps {
+  value: string;
+  onChange: (color: string) => void;
+}
+
+const CustomColorPicker: React.FC<CustomColorPickerProps> = ({
+  value,
+  onChange,
+}) => {
+  return (
+    <div className="relative">
+      <input
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      />
+      <div
+        className="w-10 h-10 rounded-full"
+        style={{ backgroundColor: value }}
+      ></div>
+    </div>
   );
 };
 
