@@ -17,7 +17,6 @@ let cached: CachedConnection = (global as any).mongoose || {
 
 export const connect = async (): Promise<Connection> => {
   if (cached.conn) {
-    console.log("Using cached database connection");
     return cached.conn;
   }
 
