@@ -8,6 +8,8 @@ import TaskTable from "@/components/tasks/TaskTable";
 import Accordion from "@/components/common/Accordion";
 import RecentBids from "@/components/tasks/RecentBids";
 import { BidInfo, WebSocketResponse } from "@/interface";
+import TagFilter from "@/components/tasks/TagFilter";
+import { Tag } from "@/store/tag.store";
 
 const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
   .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
@@ -22,6 +24,8 @@ const Tasks = () => {
   const [bids, setBids] = useState<BidInfo[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(20);
+  const [filterText, setFilterText] = useState("");
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -268,21 +272,33 @@ const Tasks = () => {
           Create New Task
         </button>
       </div>
-      <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-4 mb-4">
-        <button
-          className="px-4 py-2 bg-Brand/Brand-1 text-white rounded text-sm w-full sm:w-auto"
-          onClick={() => toggleSelectedTasksStatus(true)}
-          disabled={selectedTasks.length === 0}
-        >
-          Start Selected
-        </button>
-        <button
-          className="px-4 py-2 bg-Accents/Red text-white rounded text-sm w-full sm:w-auto"
-          onClick={() => toggleSelectedTasksStatus(false)}
-          disabled={selectedTasks.length === 0}
-        >
-          Stop Selected
-        </button>
+      <div className="flex flex-col sm:flex-row  gap-2 sm:gap-4 mb-4 justify-between items-center">
+        <div className="flex gap-2 sm:gap-4">
+          <input
+            type="text"
+            placeholder="Filter by slug"
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            className="w-full p-3 rounded-lg border border-n-5 bg-Neutral/Neutral-300-[night]"
+          />
+          <TagFilter selectedTags={selectedTags} onChange={setSelectedTags} />
+        </div>
+        <div className="flex items-center gap-2 sm:gap-4">
+          <button
+            className="px-4 py-2 bg-Brand/Brand-1 text-white rounded text-sm w-full sm:w-auto"
+            onClick={() => toggleSelectedTasksStatus(true)}
+            disabled={selectedTasks.length === 0}
+          >
+            Start Selected
+          </button>
+          <button
+            className="px-4 py-2 bg-Accents/Red text-white rounded text-sm w-full sm:w-auto"
+            onClick={() => toggleSelectedTasksStatus(false)}
+            disabled={selectedTasks.length === 0}
+          >
+            Stop Selected
+          </button>
+        </div>
       </div>
       <Accordion title={`Tasks (${tasks.length})`}>
         <TaskTable
@@ -294,6 +310,8 @@ const Tasks = () => {
           onToggleTaskStatus={toggleTaskRunning}
           onToggleMarketplace={toggleMarketplace}
           onEditTask={openEditModal}
+          filterText={filterText}
+          selectedTags={selectedTags}
         />
       </Accordion>
       <RecentBids

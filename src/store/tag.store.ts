@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface Tag {
+export interface Tag {
   name: string;
   color: string;
 }

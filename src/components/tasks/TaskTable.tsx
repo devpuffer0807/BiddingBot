@@ -2,7 +2,7 @@ import React from "react";
 import { Task } from "@/store/task.store";
 import Toggle from "@/components/common/Toggle";
 import EditIcon from "@/assets/svg/EditIcon";
-import { useTagStore } from "@/store/tag.store";
+import { Tag } from "@/store/tag.store";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -13,6 +13,8 @@ interface TaskTableProps {
   onToggleTaskStatus: (taskId: string) => void;
   onToggleMarketplace: (taskId: string, marketplace: string) => void;
   onEditTask: (task: Task) => void;
+  filterText: string;
+  selectedTags: Tag[];
 }
 
 const TaskTable: React.FC<TaskTableProps> = ({
@@ -24,8 +26,20 @@ const TaskTable: React.FC<TaskTableProps> = ({
   onToggleTaskStatus,
   onToggleMarketplace,
   onEditTask,
+  filterText,
+  selectedTags,
 }) => {
-  console.log({ tasks });
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSlug = task.slug
+      .toLowerCase()
+      .includes(filterText.toLowerCase());
+    const matchesTags =
+      selectedTags.length === 0 ||
+      selectedTags.some((tag) =>
+        task.tags.some((taskTag) => taskTag.name === tag.name)
+      );
+    return matchesSlug && matchesTags;
+  });
 
   return (
     <div className="border rounded-2xl py-3 sm:py-5 px-2 sm:px-6 bg-[#1f2129] border-Neutral/Neutral-Border-[night] h-full overflow-x-auto">
@@ -85,10 +99,10 @@ const TaskTable: React.FC<TaskTableProps> = ({
               OS
             </th>
             <th scope="col" className="px-6 py-3 text-center">
-              Start
+              Tags
             </th>
             <th scope="col" className="px-6 py-3 text-center">
-              Tags
+              Start
             </th>
             <th scope="col" className="px-6 py-3 text-center">
               Edit
@@ -96,7 +110,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
           </tr>
         </thead>
         <tbody>
-          {tasks.map((task) => (
+          {filteredTasks.map((task) => (
             <tr
               key={task._id}
               className="border-b border-Neutral/Neutral-Border-[night] flex flex-col sm:table-row mb-4 sm:mb-0"
@@ -182,6 +196,18 @@ const TaskTable: React.FC<TaskTableProps> = ({
                   inactiveColor="#3F3F46"
                 />
               </td>
+              <td className="px-2 sm:px-6 py-2 sm:py-4 sm:text-center flex items-center sm:table-cell text-center justify-center">
+                <span className="sm:hidden font-bold">Tags</span>
+                <div className="flex flex-wrap gap-1 items-center justify-center">
+                  {task.tags.map((tag) => (
+                    <span
+                      key={tag.name}
+                      style={{ backgroundColor: tag.color }}
+                      className="w-5 h-5 rounded-full"
+                    ></span>
+                  ))}
+                </div>
+              </td>
               <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                 <span className="sm:hidden font-bold">Start</span>
                 <label className="inline-flex items-center cursor-pointer">
@@ -203,18 +229,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     ></div>
                   </div>
                 </label>
-              </td>
-              <td className="px-2 sm:px-6 py-2 sm:py-4 sm:text-center flex items-center sm:table-cell text-center justify-center">
-                <span className="sm:hidden font-bold">Tags</span>
-                <div className="flex flex-wrap gap-1 items-center justify-center">
-                  {task.tags.map((tag) => (
-                    <span
-                      key={tag.name}
-                      style={{ backgroundColor: tag.color }}
-                      className="w-5 h-5 rounded-full"
-                    ></span>
-                  ))}
-                </div>
               </td>
               <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                 <span className="sm:hidden font-bold">Edit</span>
