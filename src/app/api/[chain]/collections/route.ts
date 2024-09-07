@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { chain } = params;
     const searchParams = request.nextUrl.searchParams;
-    const slug = searchParams.get("slug");
+    const slug = searchParams.get("slug") as string;
 
     let apiUrl: string;
     switch (chain.toLowerCase()) {
@@ -28,9 +28,19 @@ export async function GET(
       throw new Error("Failed to fetch collection data");
     }
 
-    const data: CollectionData = await response.json();
+    const collection: CollectionData = await response.json();
 
-    if (data.collection_offers_enabled && data.total_supply > 0) {
+    let traits = null;
+    try {
+      traits = await getCollectionTraits(slug);
+    } catch (error) {
+      console.error("Error fetching traits:", error);
+    }
+
+    const data = { ...collection, traits };
+    console.log(JSON.stringify(data));
+
+    if (collection.collection_offers_enabled && collection.total_supply > 0) {
       return NextResponse.json(data, { status: 200 });
     } else {
       return NextResponse.json(
@@ -40,6 +50,26 @@ export async function GET(
     }
   } catch (error) {
     return NextResponse.json({ error: "An error occurred" }, { status: 500 });
+  }
+}
+
+export async function getCollectionTraits(collectionSlug: string) {
+  try {
+    const response = await fetch(
+      `https://api.nfttools.website/opensea/api/v2/traits/${collectionSlug}`,
+      {
+        headers: {
+          accept: "application/json",
+          "X-NFT-API-Key": API_KEY,
+        },
+      }
+    );
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching collection traits:", error);
+    throw error;
   }
 }
 

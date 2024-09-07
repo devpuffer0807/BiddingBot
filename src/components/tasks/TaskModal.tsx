@@ -13,6 +13,7 @@ import TagSelect from "./TagSelect";
 import { useState } from "react";
 import { useTagStore } from "@/store/tag.store";
 import PlusIcon from "@/assets/svg/PlusIcon";
+import TraitSelector from "./TraitSelector";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -42,6 +43,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     validateSlug,
     setFormState,
     handleTagChange,
+    handleTraitChange,
   } = useTaskForm(
     initialTask
       ? {
@@ -55,6 +57,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
           running: initialTask.running,
           contractAddress: initialTask.contractAddress,
           tags: initialTask.tags,
+          selectedTraits: initialTask.selectedTraits,
+          traits: initialTask.traits || { categories: {}, counts: {} },
         }
       : {
           slug: "",
@@ -65,6 +69,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
           running: false,
           contractAddress: "",
           tags: [],
+          selectedTraits: {},
+          traits: { categories: {}, counts: {} },
         },
     taskId
   );
@@ -105,12 +111,20 @@ const TaskModal: React.FC<TaskModalProps> = ({
     }
   };
 
+  const handleTraitSelect = (traits: Record<string, string[]>) => {
+    handleTraitChange(traits);
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const isValid = await handleSubmit();
     if (isValid) {
       const taskStore = useTaskStore.getState();
-      const taskData = { running: formState.running, tags: formState.tags };
+      const taskData = {
+        running: formState.running,
+        tags: formState.tags,
+        selectedTraits: formState.selectedTraits,
+      };
 
       if (taskId) {
         taskStore.editTask(taskId, taskData);
@@ -137,6 +151,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
       slugDirty: false,
       contractAddress: "",
       tags: [],
+      selectedTraits: {},
+      traits: { categories: {}, counts: {} },
     });
   };
 
@@ -382,6 +398,17 @@ const TaskModal: React.FC<TaskModalProps> = ({
               </div>
             </div>
           </div>
+          {formState.traits &&
+            Object.keys(formState.traits.categories).length > 0 && (
+              <div className="mt-6">
+                <h3 className="mb-2">Select Traits</h3>
+                <TraitSelector
+                  traits={formState.traits}
+                  onTraitSelect={handleTraitSelect}
+                  initialSelectedTraits={formState.selectedTraits}
+                />
+              </div>
+            )}
         </div>
         <div className="flex justify-end mt-6">
           <button

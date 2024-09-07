@@ -12,6 +12,11 @@ export interface Task {
   running: boolean; // Add this line
   contractAddress: string; // Add this line
   tags: { name: string; color: string }[]; // Add this line
+  selectedTraits: Record<string, string[]>; // Add this line
+  traits: {
+    categories: Record<string, string>;
+    counts: Record<string, Record<string, number>>;
+  };
 }
 
 interface TaskStore {

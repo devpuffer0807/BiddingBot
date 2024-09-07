@@ -16,6 +16,11 @@ interface TaskFormState {
   slugDirty: boolean;
   contractAddress: string;
   tags: { name: string; color: string }[];
+  selectedTraits: Record<string, string[]>;
+  traits: {
+    categories: Record<string, string>;
+    counts: Record<string, Record<string, number>>;
+  };
 }
 
 export const useTaskForm = (
@@ -30,6 +35,11 @@ export const useTaskForm = (
     slugValid: taskId ? true : null,
     slugDirty: false,
     tags: initialState.tags || [],
+    selectedTraits: initialState.selectedTraits || {},
+    traits: {
+      categories: {},
+      counts: {},
+    },
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
@@ -43,6 +53,7 @@ export const useTaskForm = (
         slugValid: taskId ? true : prevState.slugValid,
         slugDirty: prevState.slugDirty,
         tags: initialState.tags || [],
+        selectedTraits: initialState.selectedTraits || {},
       }));
       prevInitialStateRef.current = initialState;
     }
@@ -64,6 +75,14 @@ export const useTaskForm = (
           slugValid: !!contractAddress,
           contractAddress,
         }));
+
+        // Update the traits in the form state
+        if (data.traits) {
+          setFormState((prev) => ({
+            ...prev,
+            traits: data.traits,
+          }));
+        }
       } else {
         setFormState((prev) => ({ ...prev, slugValid: false }));
       }
@@ -154,7 +173,9 @@ export const useTaskForm = (
         selectedMarketplaces: formState.selectedMarketplaces,
         running: formState.running,
         contractAddress: formState.contractAddress,
-        tags: formState.tags, // Ensure tags are included
+        tags: formState.tags,
+        selectedTraits: formState.selectedTraits,
+        traits: formState.traits, // Add this line to include the traits property
       };
 
       try {
@@ -193,6 +214,10 @@ export const useTaskForm = (
     setFormState((prev) => ({ ...prev, tags: selectedTags }));
   };
 
+  const handleTraitChange = (traits: Record<string, string[]>) => {
+    setFormState((prev) => ({ ...prev, selectedTraits: traits }));
+  };
+
   return {
     formState,
     errors,
@@ -202,5 +227,6 @@ export const useTaskForm = (
     validateSlug,
     setFormState,
     handleTagChange,
+    handleTraitChange,
   };
 };

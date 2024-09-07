@@ -12,6 +12,11 @@ interface ITask extends Document {
   running: boolean;
   contractAddress: string;
   tags: { name: string; color: string }[]; // Add this line
+  selectedTraits: Record<string, string[]>;
+  traits: {
+    categories: Record<string, string>;
+    counts: Record<string, Record<string, number>>;
+  };
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -26,6 +31,11 @@ const TaskSchema = new Schema<ITask>(
     running: { type: Boolean, default: false },
     contractAddress: { type: String, required: true },
     tags: { type: [{ name: String, color: String }], default: [] }, // Add this line
+    selectedTraits: { type: Schema.Types.Mixed, default: {} },
+    traits: {
+      categories: { type: Schema.Types.Mixed, default: {} },
+      counts: { type: Schema.Types.Mixed, default: {} },
+    },
   },
   { timestamps: true }
 );
