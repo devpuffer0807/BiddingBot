@@ -398,17 +398,15 @@ const TaskModal: React.FC<TaskModalProps> = ({
               </div>
             </div>
           </div>
-          {formState.traits &&
-            Object.keys(formState.traits.categories).length > 0 && (
-              <div className="mt-6">
-                <h3 className="mb-2">Select Traits</h3>
-                <TraitSelector
-                  traits={formState.traits}
-                  onTraitSelect={handleTraitSelect}
-                  initialSelectedTraits={formState.selectedTraits}
-                />
-              </div>
-            )}
+
+          <div className="mt-6">
+            <h3 className="mb-2">Select Traits</h3>
+            <TraitSelector
+              traits={formState.traits}
+              onTraitSelect={handleTraitSelect}
+              initialSelectedTraits={formState.selectedTraits}
+            />
+          </div>
         </div>
         <div className="flex justify-end mt-6">
           <button
