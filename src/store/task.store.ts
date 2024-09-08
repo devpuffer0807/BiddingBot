@@ -5,29 +5,29 @@ export interface Task {
   _id: string;
   slug: string;
   selectedWallet: string;
-  walletPrivateKey: string; // Add this line
+  walletPrivateKey: string;
   minFloorPricePercentage: number;
   maxFloorPricePercentage: number;
   selectedMarketplaces: string[];
-  running: boolean; // Add this line
-  contractAddress: string; // Add this line
-  tags: { name: string; color: string }[]; // Add this line
-  selectedTraits: Record<string, string[]>; // Add this line
+  running: boolean;
+  contractAddress: string;
+  tags: { name: string; color: string }[];
+  selectedTraits: Record<string, string[]>;
   traits: {
     categories: Record<string, string>;
     counts: Record<string, Record<string, number>>;
   };
-  outbid: boolean; // Add this line
-  blurOutbidMargin: number | null; // Add this line
-  openseaOutbidMargin: number | null; // Add this line
-  magicedenOutbidMargin: number | null; // Add this line
-  counterbid: boolean; // Add this line
-  minFloorPrice: number; // Add this line
-  minTraitPrice: number; // Add this line
-  maxPurchase: number; // Add this line
-  pauseAllBids: boolean; // Add this line
-  stopAllBids: boolean; // Add this line
-  cancelAllBids: boolean; // Add this line
+  outbid: boolean;
+  blurOutbidMargin: number | null;
+  openseaOutbidMargin: number | null;
+  magicedenOutbidMargin: number | null;
+  counterbid: boolean;
+  minFloorPrice: number;
+  minTraitPrice: number;
+  maxPurchase: number;
+  pauseAllBids: boolean;
+  stopAllBids: boolean;
+  cancelAllBids: boolean;
 }
 
 interface TaskStore {
@@ -35,10 +35,10 @@ interface TaskStore {
   addTask: (task: Omit<Task, "_id">) => void;
   editTask: (id: string, updatedTask: Partial<Task>) => void;
   deleteTask: (id: string) => void;
-  toggleTaskRunning: (id: string) => void; // Add this line
+  toggleTaskRunning: (id: string) => void;
   toggleMultipleTasksRunning: (ids: string[], running: boolean) => void;
   getLastTaskId: () => string;
-  setTasks: (tasks: Task[]) => void; // Add this line
+  setTasks: (tasks: Task[]) => void;
 }
 
 export const useTaskStore = create(
@@ -78,7 +78,7 @@ export const useTaskStore = create(
         const state = get();
         return state.tasks[state.tasks.length - 1]?._id;
       },
-      setTasks: (tasks) => set({ tasks }), // Add this line
+      setTasks: (tasks) => set({ tasks }),
     }),
     {
       name: "tasks",

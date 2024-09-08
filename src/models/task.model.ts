@@ -11,23 +11,23 @@ interface ITask extends Document {
   selectedMarketplaces: string[];
   running: boolean;
   contractAddress: string;
-  tags: { name: string; color: string }[]; // Add this line
+  tags: { name: string; color: string }[];
   selectedTraits: Record<string, string[]>;
   traits: {
     categories: Record<string, string>;
     counts: Record<string, Record<string, number>>;
   };
   outbid: boolean;
-  blurOutbidMargin: number | null; // Add this line
-  openseaOutbidMargin: number | null; // Add this line
-  magicedenOutbidMargin: number | null; // Add this line
-  counterbid: boolean; // Add this line
-  minFloorPrice: number; // Add this line
-  minTraitPrice: number; // Add this line
-  maxPurchase: number; // Add this line
-  pauseAllBids: boolean; // Add this line
-  stopAllBids: boolean; // Add this line
-  cancelAllBids: boolean; // Add this line
+  blurOutbidMargin: number | null;
+  openseaOutbidMargin: number | null;
+  magicedenOutbidMargin: number | null;
+  counterbid: boolean;
+  minFloorPrice: number;
+  minTraitPrice: number;
+  maxPurchase: number;
+  pauseAllBids: boolean;
+  stopAllBids: boolean;
+  cancelAllBids: boolean;
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -41,23 +41,23 @@ const TaskSchema = new Schema<ITask>(
     selectedMarketplaces: { type: [String], required: true },
     running: { type: Boolean, default: false },
     contractAddress: { type: String, required: true },
-    tags: { type: [{ name: String, color: String }], default: [] }, // Add this line
+    tags: { type: [{ name: String, color: String }], default: [] },
     selectedTraits: { type: Schema.Types.Mixed, default: {} },
     traits: {
       categories: { type: Schema.Types.Mixed, default: {} },
       counts: { type: Schema.Types.Mixed, default: {} },
     },
-    outbid: { type: Boolean, default: false }, // Add this line
-    blurOutbidMargin: { type: Number, default: null }, // Add this line
-    openseaOutbidMargin: { type: Number, default: null }, // Add this line
-    magicedenOutbidMargin: { type: Number, default: null }, // Add this line
-    counterbid: { type: Boolean, default: false }, // Add this line
-    minFloorPrice: { type: Number, required: true }, // Add this line
-    minTraitPrice: { type: Number, required: true }, // Add this line
-    maxPurchase: { type: Number, required: true }, // Add this line
-    pauseAllBids: { type: Boolean, default: false }, // Add this line
-    stopAllBids: { type: Boolean, default: false }, // Add this line
-    cancelAllBids: { type: Boolean, default: false }, // Add this line
+    outbid: { type: Boolean, default: false },
+    blurOutbidMargin: { type: Number, default: null },
+    openseaOutbidMargin: { type: Number, default: null },
+    magicedenOutbidMargin: { type: Number, default: null },
+    counterbid: { type: Boolean, default: false },
+    minFloorPrice: { type: Number, required: true },
+    minTraitPrice: { type: Number, required: true },
+    maxPurchase: { type: Number, required: true },
+    pauseAllBids: { type: Boolean, default: false },
+    stopAllBids: { type: Boolean, default: false },
+    cancelAllBids: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

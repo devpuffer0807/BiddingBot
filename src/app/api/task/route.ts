@@ -28,13 +28,13 @@ export async function POST(request: NextRequest) {
     selectedTraits: body.selectedTraits,
     traits: body.traits,
     outbid: body.outbid,
-    blurOutbidMargin: body.outbid ? body.blurOutbidMargin : null, // Add this line
-    openseaOutbidMargin: body.outbid ? body.openseaOutbidMargin : null, // Add this line
-    magicedenOutbidMargin: body.outbid ? body.magicedenOutbidMargin : null, // Add this line
-    counterbid: body.counterbid, // Add this line
-    pauseAllBids: body.pauseAllBids, // Add this line
-    stopAllBids: body.stopAllBids, // Add this line
-    cancelAllBids: body.cancelAllBids, // Add this line
+    blurOutbidMargin: body.outbid ? body.blurOutbidMargin : null,
+    openseaOutbidMargin: body.outbid ? body.openseaOutbidMargin : null,
+    magicedenOutbidMargin: body.outbid ? body.magicedenOutbidMargin : null,
+    counterbid: body.counterbid,
+    pauseAllBids: body.pauseAllBids,
+    stopAllBids: body.stopAllBids,
+    cancelAllBids: body.cancelAllBids,
   });
   return NextResponse.json(task, { status: 201 });
 }

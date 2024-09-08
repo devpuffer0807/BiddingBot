@@ -35,7 +35,7 @@ export const useTagStore = create<TagStore>()(
         return state.tags;
       },
 
-      setTags: (tags) => set({ tags }), // Add this line
+      setTags: (tags) => set({ tags }),
     }),
     {
       name: "tags",

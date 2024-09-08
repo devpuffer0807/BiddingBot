@@ -149,7 +149,7 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
                 placeholder={`Wallet 1`}
                 className="mt-2 block w-full border rounded-lg shadow-sm p-4 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
                 required
-                autoComplete="off" // Add this line
+                autoComplete="off"
               />
             </div>
 
@@ -168,7 +168,7 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
                     onChange={(e) => setImportValue(e.target.value)}
                     placeholder="Enter private key or seed phrase"
                     className="mt-2 block w-full border rounded-lg shadow-sm p-4 pr-10 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
-                    autoComplete="off" // Add this line
+                    autoComplete="off"
                   />
                   <button
                     type="button"

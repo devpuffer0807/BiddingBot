@@ -21,17 +21,17 @@ export interface TaskFormState {
     categories: Record<string, string>;
     counts: Record<string, Record<string, number>>;
   };
-  outbid: boolean; // Add this line
-  blurOutbidMargin: string | null; // Add this line
-  openseaOutbidMargin: string | null; // Add this line
-  magicedenOutbidMargin: string | null; // Add this line
-  counterbid: boolean; // Add this line
-  minFloorPrice: string; // Add this line
-  minTraitPrice: string; // Add this line
-  maxPurchase: string; // Add this line
-  pauseAllBids: boolean; // Add this line
-  stopAllBids: boolean; // Add this line
-  cancelAllBids: boolean; // Add this line
+  outbid: boolean;
+  blurOutbidMargin: string | null;
+  openseaOutbidMargin: string | null;
+  magicedenOutbidMargin: string | null;
+  counterbid: boolean;
+  minFloorPrice: string;
+  minTraitPrice: string;
+  maxPurchase: string;
+  pauseAllBids: boolean;
+  stopAllBids: boolean;
+  cancelAllBids: boolean;
 }
 
 export const useTaskForm = (
@@ -52,16 +52,16 @@ export const useTaskForm = (
       counts: {},
     },
     outbid: initialState.outbid,
-    blurOutbidMargin: initialState.blurOutbidMargin || "", // Add this line
-    openseaOutbidMargin: initialState.openseaOutbidMargin || "", // Add this line
-    magicedenOutbidMargin: initialState.magicedenOutbidMargin || "", // Add this line
-    counterbid: initialState.counterbid, // Add this line
-    minFloorPrice: initialState.minFloorPrice || "", // Add this line
-    minTraitPrice: initialState.minTraitPrice || "", // Add this line
-    maxPurchase: initialState.maxPurchase || "", // Add this line
-    pauseAllBids: initialState.pauseAllBids, // Add this line
-    stopAllBids: initialState.stopAllBids, // Add this line
-    cancelAllBids: initialState.cancelAllBids, // Add this line
+    blurOutbidMargin: initialState.blurOutbidMargin || "",
+    openseaOutbidMargin: initialState.openseaOutbidMargin || "",
+    magicedenOutbidMargin: initialState.magicedenOutbidMargin || "",
+    counterbid: initialState.counterbid,
+    minFloorPrice: initialState.minFloorPrice || "",
+    minTraitPrice: initialState.minTraitPrice || "",
+    maxPurchase: initialState.maxPurchase || "",
+    pauseAllBids: initialState.pauseAllBids,
+    stopAllBids: initialState.stopAllBids,
+    cancelAllBids: initialState.cancelAllBids,
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
@@ -159,11 +159,11 @@ export const useTaskForm = (
         "At least one marketplace must be selected",
       ];
     if (!formState.minFloorPrice)
-      newErrors.minFloorPrice = "Minimum floor price is required"; // Add this line
+      newErrors.minFloorPrice = "Minimum floor price is required";
     if (!formState.minTraitPrice)
-      newErrors.minTraitPrice = "Minimum trait price is required"; // Add this line
+      newErrors.minTraitPrice = "Minimum trait price is required";
     if (!formState.maxPurchase)
-      newErrors.maxPurchase = "Maximum purchase is required"; // Add this line
+      newErrors.maxPurchase = "Maximum purchase is required";
 
     const minPercentage = Number(formState.minFloorPricePercentage);
     const maxPercentage = Number(formState.maxFloorPricePercentage);
@@ -207,20 +207,20 @@ export const useTaskForm = (
         outbid: formState.outbid,
         blurOutbidMargin: formState.outbid
           ? Number(formState.blurOutbidMargin)
-          : null, // Add this line
+          : null,
         openseaOutbidMargin: formState.outbid
           ? Number(formState.openseaOutbidMargin)
-          : null, // Add this line
+          : null,
         magicedenOutbidMargin: formState.outbid
           ? Number(formState.magicedenOutbidMargin)
-          : null, // Add this line
-        counterbid: formState.counterbid, // Add this line
-        minFloorPrice: Number(formState.minFloorPrice), // Add this line
-        minTraitPrice: Number(formState.minTraitPrice), // Add this line
-        maxPurchase: Number(formState.maxPurchase), // Add this line
-        pauseAllBids: formState.pauseAllBids, // Add this line
-        stopAllBids: formState.stopAllBids, // Add this line
-        cancelAllBids: formState.cancelAllBids, // Add this line
+          : null,
+        counterbid: formState.counterbid,
+        minFloorPrice: Number(formState.minFloorPrice),
+        minTraitPrice: Number(formState.minTraitPrice),
+        maxPurchase: Number(formState.maxPurchase),
+        pauseAllBids: formState.pauseAllBids,
+        stopAllBids: formState.stopAllBids,
+        cancelAllBids: formState.cancelAllBids,
       };
 
       try {
