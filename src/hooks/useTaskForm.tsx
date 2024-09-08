@@ -22,6 +22,9 @@ export interface TaskFormState {
     counts: Record<string, Record<string, number>>;
   };
   outbid: boolean; // Add this line
+  blurOutbidMargin: string | null; // Add this line
+  openseaOutbidMargin: string | null; // Add this line
+  magicedenOutbidMargin: string | null; // Add this line
 }
 
 export const useTaskForm = (
@@ -41,6 +44,10 @@ export const useTaskForm = (
       categories: {},
       counts: {},
     },
+    outbid: initialState.outbid,
+    blurOutbidMargin: initialState.blurOutbidMargin || "", // Add this line
+    openseaOutbidMargin: initialState.openseaOutbidMargin || "", // Add this line
+    magicedenOutbidMargin: initialState.magicedenOutbidMargin || "", // Add this line
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
@@ -177,7 +184,16 @@ export const useTaskForm = (
         tags: formState.tags,
         selectedTraits: formState.selectedTraits,
         traits: formState.traits,
-        outbid: formState.outbid, // Add this line
+        outbid: formState.outbid,
+        blurOutbidMargin: formState.outbid
+          ? Number(formState.blurOutbidMargin)
+          : null, // Add this line
+        openseaOutbidMargin: formState.outbid
+          ? Number(formState.openseaOutbidMargin)
+          : null, // Add this line
+        magicedenOutbidMargin: formState.outbid
+          ? Number(formState.magicedenOutbidMargin)
+          : null, // Add this line
       };
 
       try {

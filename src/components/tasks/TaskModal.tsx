@@ -52,6 +52,11 @@ const TaskModal: React.FC<TaskModalProps> = ({
           selectedTraits: initialTask.selectedTraits,
           traits: initialTask.traits || { categories: {}, counts: {} },
           outbid: initialTask.outbid,
+          blurOutbidMargin: initialTask.blurOutbidMargin?.toString() || "", // Add this line
+          openseaOutbidMargin:
+            initialTask.openseaOutbidMargin?.toString() || "", // Add this line
+          magicedenOutbidMargin:
+            initialTask.magicedenOutbidMargin?.toString() || "", // Add this line
         }
       : {
           slug: "",
@@ -65,6 +70,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
           selectedTraits: {},
           traits: { categories: {}, counts: {} },
           outbid: false,
+          blurOutbidMargin: "", // Add this line
+          openseaOutbidMargin: "", // Add this line
+          magicedenOutbidMargin: "", // Add this line
         },
     taskId
   );
@@ -119,6 +127,15 @@ const TaskModal: React.FC<TaskModalProps> = ({
         tags: formState.tags,
         selectedTraits: formState.selectedTraits,
         outbid: formState.outbid,
+        blurOutbidMargin: formState.outbid
+          ? Number(formState.blurOutbidMargin)
+          : null, // Add this line
+        openseaOutbidMargin: formState.outbid
+          ? Number(formState.openseaOutbidMargin)
+          : null, // Add this line
+        magicedenOutbidMargin: formState.outbid
+          ? Number(formState.magicedenOutbidMargin)
+          : null, // Add this line
       };
 
       if (taskId) {
@@ -149,6 +166,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
       selectedTraits: {},
       traits: { categories: {}, counts: {} },
       outbid: false,
+      blurOutbidMargin: "", // Add this line
+      openseaOutbidMargin: "", // Add this line
+      magicedenOutbidMargin: "", // Add this line
     });
   };
 
@@ -156,7 +176,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      className="w-full max-w-[800px] h-full p-4 sm:p-6 md:p-8 overflow-y-auto"
+      className="w-full max-w-[800px] h-full p-4 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar"
       key={taskId || "new"}
     >
       <form onSubmit={onSubmit} className="flex flex-col h-full">
@@ -164,7 +184,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           {taskId ? "EDIT TASK" : "CREATE A NEW TASK"}
         </h2>
 
-        <div className="flex-grow overflow-y-auto pr-4 -mr-4">
+        <div className="flex-grow pr-4 -mr-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormSection
               formState={formState}
@@ -191,25 +211,27 @@ const TaskModal: React.FC<TaskModalProps> = ({
               handleAddTag={handleAddTag}
             />
             <OutbidSection formState={formState} setFormState={setFormState} />
+            {formState.traits &&
+              Object.keys(formState.traits.categories).length > 0 && (
+                <div className="col-span-2 mt-6">
+                  {" "}
+                  {/* Update this line */}
+                  <h3 className="mb-2 font-medium">Select Traits</h3>
+                  <TraitSelector
+                    traits={formState.traits}
+                    onTraitSelect={handleTraitSelect}
+                    initialSelectedTraits={formState.selectedTraits}
+                  />
+                </div>
+              )}
             <StartSection formState={formState} setFormState={setFormState} />
           </div>
-          {formState.traits &&
-            Object.keys(formState.traits.categories).length > 0 && (
-              <div className="mt-6">
-                <h3 className="mb-2">Select Traits</h3>
-                <TraitSelector
-                  traits={formState.traits}
-                  onTraitSelect={handleTraitSelect}
-                  initialSelectedTraits={formState.selectedTraits}
-                />
-              </div>
-            )}
         </div>
         <div className="flex justify-end mt-6">
           <button
             type="submit"
             disabled={!formState.slugValid}
-            className={`w-full sm:w-auto bg-Brand/Brand-1 text-white py-3 px-6 rounded-lg transition-colors
+            className={`w-full sm:w-auto bg-Brand/Brand-1 text-white py-3 px-6 rounded-lg transition-colors mb-8
             ${
               !formState.slugValid
                 ? "opacity-50 cursor-not-allowed"

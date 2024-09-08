@@ -27,7 +27,10 @@ export async function POST(request: NextRequest) {
     tags: body.tags,
     selectedTraits: body.selectedTraits,
     traits: body.traits,
-    outbid: body.outbid, // Add this line
+    outbid: body.outbid,
+    blurOutbidMargin: body.outbid ? body.blurOutbidMargin : null, // Add this line
+    openseaOutbidMargin: body.outbid ? body.openseaOutbidMargin : null, // Add this lin
+    magicedenOutbidMargin: body.outbid ? body.magicedenOutbidMargin : null, // Add this line
   });
   return NextResponse.json(task, { status: 201 });
 }

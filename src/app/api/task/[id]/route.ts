@@ -63,7 +63,10 @@ export async function PUT(
       tags: body.tags,
       selectedTraits: body.selectedTraits,
       traits: body.traits,
-      outbid: body.outbid, // Add this line
+      outbid: body.outbid,
+      blurOutbidMargin: body.outbid ? body.blurOutbidMargin : null, // Add this line
+      openseaOutbidMargin: body.outbid ? body.openseaOutbidMargin : null, // Add this line
+      magicedenOutbidMargin: body.outbid ? body.magicedenOutbidMargin : null, // Add this line
     },
     { new: true }
   );

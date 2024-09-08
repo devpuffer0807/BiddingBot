@@ -18,6 +18,9 @@ interface ITask extends Document {
     counts: Record<string, Record<string, number>>;
   };
   outbid: boolean;
+  blurOutbidMargin: number | null; // Add this line
+  openseaOutbidMargin: number | null; // Add this line
+  magicedenOutbidMargin: number | null; // Add this line
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -38,6 +41,9 @@ const TaskSchema = new Schema<ITask>(
       counts: { type: Schema.Types.Mixed, default: {} },
     },
     outbid: { type: Boolean, default: false }, // Add this line
+    blurOutbidMargin: { type: Number, default: null }, // Add this line
+    openseaOutbidMargin: { type: Number, default: null }, // Add this line
+    magicedenOutbidMargin: { type: Number, default: null }, // Add this line
   },
   { timestamps: true }
 );

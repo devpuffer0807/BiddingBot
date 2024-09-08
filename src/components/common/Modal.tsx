@@ -57,7 +57,7 @@ const Modal: FC<ModalProps> = ({
     <div className={OVERLAY_CLASS}>
       <div
         ref={modalRef}
-        className={`${MODAL_CLASS} ${className}`}
+        className={`${MODAL_CLASS} ${className} custom-scrollbar`} // Add custom-scrollbar class here
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
         <button

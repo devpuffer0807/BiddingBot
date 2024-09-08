@@ -95,7 +95,7 @@ const FormSection: React.FC<FormSectionProps> = ({
         </label>
         <input
           inputMode="numeric"
-          type="text"
+          type="number"
           id="minFloorPricePercentage"
           name="minFloorPricePercentage"
           onChange={handleChange}
@@ -122,7 +122,7 @@ const FormSection: React.FC<FormSectionProps> = ({
         </label>
         <input
           inputMode="numeric"
-          type="text"
+          type="number"
           id="maxFloorPricePercentage"
           name="maxFloorPricePercentage"
           onChange={handleChange}

@@ -18,6 +18,9 @@ export interface Task {
     counts: Record<string, Record<string, number>>;
   };
   outbid: boolean; // Add this line
+  blurOutbidMargin: number | null; // Add this line
+  openseaOutbidMargin: number | null; // Add this line
+  magicedenOutbidMargin: number | null; // Add this line
 }
 
 interface TaskStore {
