@@ -58,6 +58,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
           magicedenOutbidMargin:
             initialTask.magicedenOutbidMargin?.toString() || "", // Add this line
           counterbid: initialTask.counterbid, // Add this line
+          minFloorPrice: initialTask.minFloorPrice.toString(), // Add this line
+          minTraitPrice: initialTask.minTraitPrice.toString(), // Add this line
+          maxPurchase: initialTask.maxPurchase.toString(), // Add this line
+          pauseAllBids: initialTask.pauseAllBids, // Add this line
+          stopAllBids: initialTask.stopAllBids, // Add this line
+          cancelAllBids: initialTask.cancelAllBids, // Add this line
         }
       : {
           slug: "",
@@ -75,6 +81,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
           openseaOutbidMargin: "", // Add this line
           magicedenOutbidMargin: "", // Add this line
           counterbid: false, // Add this line
+          minFloorPrice: "", // Add this line
+          minTraitPrice: "", // Add this line
+          maxPurchase: "", // Add this line
+          pauseAllBids: false, // Add this line
+          stopAllBids: false, // Add this line
+          cancelAllBids: false, // Add this line
         },
     taskId
   );
@@ -139,6 +151,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
           ? Number(formState.magicedenOutbidMargin)
           : null, // Add this line
         counterbid: formState.counterbid, // Add this line
+        minFloorPrice: Number(formState.minFloorPrice), // Add this line
+        minTraitPrice: Number(formState.minTraitPrice), // Add this line
+        maxPurchase: Number(formState.maxPurchase), // Add this line
+        pauseAllBids: formState.pauseAllBids, // Add this line
+        stopAllBids: formState.stopAllBids, // Add this line
+        cancelAllBids: formState.cancelAllBids, // Add this line
       };
 
       if (taskId) {
@@ -173,6 +191,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
       openseaOutbidMargin: "", // Add this line
       magicedenOutbidMargin: "", // Add this line
       counterbid: false, // Add this line
+      minFloorPrice: "", // Add this line
+      minTraitPrice: "", // Add this line
+      maxPurchase: "", // Add this line
+      pauseAllBids: false, // Add this line
+      stopAllBids: false, // Add this line
+      cancelAllBids: false, // Add this line
     });
   };
 
@@ -227,9 +251,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
               setNewTagColor={setNewTagColor}
               handleAddTag={handleAddTag}
             />
-            {/* stop options here */}
-            <StopOption />
             <OutbidSection formState={formState} setFormState={setFormState} />
+            <StopOption formState={formState} setFormState={setFormState} />
             <StartSection formState={formState} setFormState={setFormState} />
           </div>
         </div>

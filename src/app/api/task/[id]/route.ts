@@ -68,6 +68,9 @@ export async function PUT(
       openseaOutbidMargin: body.outbid ? body.openseaOutbidMargin : null, // Add this line
       magicedenOutbidMargin: body.outbid ? body.magicedenOutbidMargin : null, // Add this line
       counterbid: body.counterbid, // Add this line
+      pauseAllBids: body.pauseAllBids, // Add this line
+      stopAllBids: body.stopAllBids, // Add this line
+      cancelAllBids: body.cancelAllBids, // Add this line
     },
     { new: true }
   );

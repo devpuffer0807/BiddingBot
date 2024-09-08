@@ -22,6 +22,12 @@ export interface Task {
   openseaOutbidMargin: number | null; // Add this line
   magicedenOutbidMargin: number | null; // Add this line
   counterbid: boolean; // Add this line
+  minFloorPrice: number; // Add this line
+  minTraitPrice: number; // Add this line
+  maxPurchase: number; // Add this line
+  pauseAllBids: boolean; // Add this line
+  stopAllBids: boolean; // Add this line
+  cancelAllBids: boolean; // Add this line
 }
 
 interface TaskStore {

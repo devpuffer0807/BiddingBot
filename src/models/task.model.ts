@@ -22,6 +22,12 @@ interface ITask extends Document {
   openseaOutbidMargin: number | null; // Add this line
   magicedenOutbidMargin: number | null; // Add this line
   counterbid: boolean; // Add this line
+  minFloorPrice: number; // Add this line
+  minTraitPrice: number; // Add this line
+  maxPurchase: number; // Add this line
+  pauseAllBids: boolean; // Add this line
+  stopAllBids: boolean; // Add this line
+  cancelAllBids: boolean; // Add this line
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -46,6 +52,12 @@ const TaskSchema = new Schema<ITask>(
     openseaOutbidMargin: { type: Number, default: null }, // Add this line
     magicedenOutbidMargin: { type: Number, default: null }, // Add this line
     counterbid: { type: Boolean, default: false }, // Add this line
+    minFloorPrice: { type: Number, required: true }, // Add this line
+    minTraitPrice: { type: Number, required: true }, // Add this line
+    maxPurchase: { type: Number, required: true }, // Add this line
+    pauseAllBids: { type: Boolean, default: false }, // Add this line
+    stopAllBids: { type: Boolean, default: false }, // Add this line
+    cancelAllBids: { type: Boolean, default: false }, // Add this line
   },
   { timestamps: true }
 );

@@ -26,6 +26,12 @@ export interface TaskFormState {
   openseaOutbidMargin: string | null; // Add this line
   magicedenOutbidMargin: string | null; // Add this line
   counterbid: boolean; // Add this line
+  minFloorPrice: string; // Add this line
+  minTraitPrice: string; // Add this line
+  maxPurchase: string; // Add this line
+  pauseAllBids: boolean; // Add this line
+  stopAllBids: boolean; // Add this line
+  cancelAllBids: boolean; // Add this line
 }
 
 export const useTaskForm = (
@@ -50,6 +56,12 @@ export const useTaskForm = (
     openseaOutbidMargin: initialState.openseaOutbidMargin || "", // Add this line
     magicedenOutbidMargin: initialState.magicedenOutbidMargin || "", // Add this line
     counterbid: initialState.counterbid, // Add this line
+    minFloorPrice: initialState.minFloorPrice || "", // Add this line
+    minTraitPrice: initialState.minTraitPrice || "", // Add this line
+    maxPurchase: initialState.maxPurchase || "", // Add this line
+    pauseAllBids: initialState.pauseAllBids, // Add this line
+    stopAllBids: initialState.stopAllBids, // Add this line
+    cancelAllBids: initialState.cancelAllBids, // Add this line
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
@@ -146,6 +158,12 @@ export const useTaskForm = (
       newErrors.selectedMarketplaces = [
         "At least one marketplace must be selected",
       ];
+    if (!formState.minFloorPrice)
+      newErrors.minFloorPrice = "Minimum floor price is required"; // Add this line
+    if (!formState.minTraitPrice)
+      newErrors.minTraitPrice = "Minimum trait price is required"; // Add this line
+    if (!formState.maxPurchase)
+      newErrors.maxPurchase = "Maximum purchase is required"; // Add this line
 
     const minPercentage = Number(formState.minFloorPricePercentage);
     const maxPercentage = Number(formState.maxFloorPricePercentage);
@@ -197,6 +215,12 @@ export const useTaskForm = (
           ? Number(formState.magicedenOutbidMargin)
           : null, // Add this line
         counterbid: formState.counterbid, // Add this line
+        minFloorPrice: Number(formState.minFloorPrice), // Add this line
+        minTraitPrice: Number(formState.minTraitPrice), // Add this line
+        maxPurchase: Number(formState.maxPurchase), // Add this line
+        pauseAllBids: formState.pauseAllBids, // Add this line
+        stopAllBids: formState.stopAllBids, // Add this line
+        cancelAllBids: formState.cancelAllBids, // Add this line
       };
 
       try {
