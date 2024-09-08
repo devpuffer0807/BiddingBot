@@ -27,7 +27,7 @@ const TagSection = ({
         className="text-sm text-Brand/Brand-1 mt-0.5 ml-2 block italic cursor-pointer"
         onClick={() => setShowCreateTag(!showCreateTag)}
       >
-        create tag
+        {showCreateTag ? "" : "create tag"}
       </button>
 
       {showCreateTag && (
@@ -48,6 +48,14 @@ const TagSection = ({
               <PlusIcon width="40" height="40" />
             </button>
           </div>
+
+          <button
+            type="button"
+            className="text-sm text-Brand/Brand-1 mt-0.5 ml-2 block italic cursor-pointer"
+            onClick={() => setShowCreateTag(!showCreateTag)}
+          >
+            {showCreateTag ? "hide" : ""}
+          </button>
         </div>
       )}
     </div>
