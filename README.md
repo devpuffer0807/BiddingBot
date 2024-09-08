@@ -55,7 +55,7 @@ This project is a Next.js application designed to provide an interface for an NF
    bun dev
    ```
 
-3. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
