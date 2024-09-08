@@ -75,6 +75,10 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
     );
   };
 
+  const isCategorySelected = (category: string) => {
+    return selectedTraits[category] && selectedTraits[category].length > 0;
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -103,10 +107,17 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
 
           <div className="max-h-72 overflow-y-auto">
             {Object.keys(traits.categories).map((category) => (
-              <div key={category} className="mb-2">
+              <div
+                key={category}
+                className={`mb-2 ${
+                  isCategorySelected(category) ? "bg-highlight" : ""
+                }`}
+              >
                 <div
                   onClick={() => toggleCategory(category)}
-                  className="cursor-pointer p-3 transition-colors my-2 hover:bg-Neutral/Neutral-400-[night]"
+                  className={`cursor-pointer p-3 transition-colors my-2 hover:bg-Neutral/Neutral-400-[night] ${
+                    isCategorySelected(category) ? "bg-Brand/Brand-1" : ""
+                  }`}
                 >
                   <div className="flex items-center justify-between">
                     <span>{category}</span>

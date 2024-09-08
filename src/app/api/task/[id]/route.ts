@@ -63,6 +63,7 @@ export async function PUT(
       tags: body.tags,
       selectedTraits: body.selectedTraits,
       traits: body.traits,
+      outbid: body.outbid, // Add this line
     },
     { new: true }
   );

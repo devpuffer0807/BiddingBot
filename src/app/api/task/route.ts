@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
     tags: body.tags,
     selectedTraits: body.selectedTraits,
     traits: body.traits,
+    outbid: body.outbid, // Add this line
   });
   return NextResponse.json(task, { status: 201 });
 }

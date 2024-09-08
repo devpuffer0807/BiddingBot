@@ -5,7 +5,7 @@ import debounce from "lodash/debounce";
 import isEqual from "lodash/isEqual";
 import { toast } from "react-toastify";
 
-interface TaskFormState {
+export interface TaskFormState {
   slug: string;
   selectedWallet: string;
   minFloorPricePercentage: string;
@@ -21,6 +21,7 @@ interface TaskFormState {
     categories: Record<string, string>;
     counts: Record<string, Record<string, number>>;
   };
+  outbid: boolean; // Add this line
 }
 
 export const useTaskForm = (
@@ -175,7 +176,8 @@ export const useTaskForm = (
         contractAddress: formState.contractAddress,
         tags: formState.tags,
         selectedTraits: formState.selectedTraits,
-        traits: formState.traits, // Add this line to include the traits property
+        traits: formState.traits,
+        outbid: formState.outbid, // Add this line
       };
 
       try {

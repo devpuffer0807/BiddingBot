@@ -53,11 +53,17 @@ const TagSelect: React.FC<TagSelectProps> = ({ selectedTags, onChange }) => {
         className="w-full border rounded-lg shadow-sm p-3 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] text-left flex justify-between items-center hover:bg-Neutral/Neutral-400-[night] transition-colors"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span>
+        <div className="flex gap-1">
           {selectedTags.length > 0
-            ? selectedTags.map((tag) => tag.name).join(", ")
-            : "Select tags"}
-        </span>
+            ? selectedTags.map((tag, index) => (
+                <div
+                  style={{ backgroundColor: tag.color }}
+                  className={`bg-[${tag.color}] w-5 h-5 rounded-full`}
+                  key={index}
+                ></div>
+              ))
+            : "Select Tags"}
+        </div>
         <ChevronDown />
       </button>
       {isOpen && (

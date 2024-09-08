@@ -47,7 +47,7 @@ const CustomSelect = ({ options, value, onChange }: CustomSelectProps) => {
 
 export default CustomSelect;
 
-type CustomSelectOption = {
+export type CustomSelectOption = {
   value: string;
   label: string;
   address: string;

@@ -17,6 +17,7 @@ interface ITask extends Document {
     categories: Record<string, string>;
     counts: Record<string, Record<string, number>>;
   };
+  outbid: boolean;
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -36,6 +37,7 @@ const TaskSchema = new Schema<ITask>(
       categories: { type: Schema.Types.Mixed, default: {} },
       counts: { type: Schema.Types.Mixed, default: {} },
     },
+    outbid: { type: Boolean, default: false }, // Add this line
   },
   { timestamps: true }
 );

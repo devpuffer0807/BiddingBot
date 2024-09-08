@@ -17,6 +17,7 @@ export interface Task {
     categories: Record<string, string>;
     counts: Record<string, Record<string, number>>;
   };
+  outbid: boolean; // Add this line
 }
 
 interface TaskStore {

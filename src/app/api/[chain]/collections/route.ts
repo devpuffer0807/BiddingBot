@@ -38,7 +38,6 @@ export async function GET(
     }
 
     const data = { ...collection, traits };
-    console.log(JSON.stringify(data));
 
     if (collection.collection_offers_enabled && collection.total_supply > 0) {
       return NextResponse.json(data, { status: 200 });
