@@ -29,8 +29,9 @@ export async function POST(request: NextRequest) {
     traits: body.traits,
     outbid: body.outbid,
     blurOutbidMargin: body.outbid ? body.blurOutbidMargin : null, // Add this line
-    openseaOutbidMargin: body.outbid ? body.openseaOutbidMargin : null, // Add this lin
+    openseaOutbidMargin: body.outbid ? body.openseaOutbidMargin : null, // Add this line
     magicedenOutbidMargin: body.outbid ? body.magicedenOutbidMargin : null, // Add this line
+    counterbid: body.counterbid, // Add this line
   });
   return NextResponse.json(task, { status: 201 });
 }

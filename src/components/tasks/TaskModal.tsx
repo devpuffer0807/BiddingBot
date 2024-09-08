@@ -4,7 +4,6 @@ import { useWalletStore } from "../../store/wallet.store";
 import { toast } from "react-toastify";
 import { useTaskForm } from "@/hooks/useTaskForm";
 import { Task, useTaskStore } from "@/store";
-import Toggle from "../common/Toggle";
 import { useState } from "react";
 import { useTagStore } from "@/store/tag.store";
 import TraitSelector from "./TraitSelector";
@@ -13,6 +12,7 @@ import MarketplaceSection from "./MarketplaceSection";
 import TagSection from "./TagSection";
 import OutbidSection from "./OutbidSection";
 import StartSection from "./StartSection";
+import StopOption from "./StopOptions";
 
 const TaskModal: React.FC<TaskModalProps> = ({
   isOpen,
@@ -57,6 +57,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
             initialTask.openseaOutbidMargin?.toString() || "", // Add this line
           magicedenOutbidMargin:
             initialTask.magicedenOutbidMargin?.toString() || "", // Add this line
+          counterbid: initialTask.counterbid, // Add this line
         }
       : {
           slug: "",
@@ -73,6 +74,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           blurOutbidMargin: "", // Add this line
           openseaOutbidMargin: "", // Add this line
           magicedenOutbidMargin: "", // Add this line
+          counterbid: false, // Add this line
         },
     taskId
   );
@@ -136,6 +138,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         magicedenOutbidMargin: formState.outbid
           ? Number(formState.magicedenOutbidMargin)
           : null, // Add this line
+        counterbid: formState.counterbid, // Add this line
       };
 
       if (taskId) {
@@ -169,6 +172,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       blurOutbidMargin: "", // Add this line
       openseaOutbidMargin: "", // Add this line
       magicedenOutbidMargin: "", // Add this line
+      counterbid: false, // Add this line
     });
   };
 
@@ -194,6 +198,19 @@ const TaskModal: React.FC<TaskModalProps> = ({
               walletOptions={walletOptions}
               setFormState={setFormState}
             />
+            {formState.traits &&
+              Object.keys(formState.traits.categories).length > 0 && (
+                <div className="col-span-2 mt-6">
+                  {" "}
+                  {/* Update this line */}
+                  <h3 className="mb-2 font-medium">Select Traits</h3>
+                  <TraitSelector
+                    traits={formState.traits}
+                    onTraitSelect={handleTraitSelect}
+                    initialSelectedTraits={formState.selectedTraits}
+                  />
+                </div>
+              )}
             <MarketplaceSection
               formState={formState}
               errors={errors}
@@ -210,20 +227,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
               setNewTagColor={setNewTagColor}
               handleAddTag={handleAddTag}
             />
+            {/* stop options here */}
+            <StopOption />
             <OutbidSection formState={formState} setFormState={setFormState} />
-            {formState.traits &&
-              Object.keys(formState.traits.categories).length > 0 && (
-                <div className="col-span-2 mt-6">
-                  {" "}
-                  {/* Update this line */}
-                  <h3 className="mb-2 font-medium">Select Traits</h3>
-                  <TraitSelector
-                    traits={formState.traits}
-                    onTraitSelect={handleTraitSelect}
-                    initialSelectedTraits={formState.selectedTraits}
-                  />
-                </div>
-              )}
             <StartSection formState={formState} setFormState={setFormState} />
           </div>
         </div>

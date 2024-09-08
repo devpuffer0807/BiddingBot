@@ -21,6 +21,7 @@ export interface Task {
   blurOutbidMargin: number | null; // Add this line
   openseaOutbidMargin: number | null; // Add this line
   magicedenOutbidMargin: number | null; // Add this line
+  counterbid: boolean; // Add this line
 }
 
 interface TaskStore {

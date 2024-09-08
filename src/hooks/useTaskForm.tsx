@@ -25,6 +25,7 @@ export interface TaskFormState {
   blurOutbidMargin: string | null; // Add this line
   openseaOutbidMargin: string | null; // Add this line
   magicedenOutbidMargin: string | null; // Add this line
+  counterbid: boolean; // Add this line
 }
 
 export const useTaskForm = (
@@ -48,6 +49,7 @@ export const useTaskForm = (
     blurOutbidMargin: initialState.blurOutbidMargin || "", // Add this line
     openseaOutbidMargin: initialState.openseaOutbidMargin || "", // Add this line
     magicedenOutbidMargin: initialState.magicedenOutbidMargin || "", // Add this line
+    counterbid: initialState.counterbid, // Add this line
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
@@ -194,6 +196,7 @@ export const useTaskForm = (
         magicedenOutbidMargin: formState.outbid
           ? Number(formState.magicedenOutbidMargin)
           : null, // Add this line
+        counterbid: formState.counterbid, // Add this line
       };
 
       try {

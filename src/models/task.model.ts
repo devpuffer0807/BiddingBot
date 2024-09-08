@@ -21,6 +21,7 @@ interface ITask extends Document {
   blurOutbidMargin: number | null; // Add this line
   openseaOutbidMargin: number | null; // Add this line
   magicedenOutbidMargin: number | null; // Add this line
+  counterbid: boolean; // Add this line
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -44,6 +45,7 @@ const TaskSchema = new Schema<ITask>(
     blurOutbidMargin: { type: Number, default: null }, // Add this line
     openseaOutbidMargin: { type: Number, default: null }, // Add this line
     magicedenOutbidMargin: { type: Number, default: null }, // Add this line
+    counterbid: { type: Boolean, default: false }, // Add this line
   },
   { timestamps: true }
 );

@@ -7,21 +7,7 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
     <>
       <div className="mt-6">
         <h2 className="font-medium mb-4">Outbid Option</h2>
-        <div className="flex items-center">
-          <span
-            className="mr-2 text-sm cursor-pointer"
-            onClick={() =>
-              setFormState((prev) => ({
-                ...prev,
-                outbid: !prev.outbid,
-                blurOutbidMargin: !prev.outbid ? "" : null,
-                openseaOutbidMargin: !prev.outbid ? "" : null,
-                magicedenOutbidMargin: !prev.outbid ? "" : null,
-              }))
-            }
-          >
-            {formState.outbid ? "Disable Outbidding" : "Enable Outbidding"}
-          </span>
+        <div className="flex items-center mb-8 gap-2">
           <Toggle
             checked={formState.outbid}
             onChange={() =>
@@ -34,15 +20,64 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
               }))
             }
           />
+          <span
+            className="text-sm cursor-pointer"
+            onClick={() =>
+              setFormState((prev) => ({
+                ...prev,
+                outbid: !prev.outbid,
+                blurOutbidMargin: !prev.outbid ? "" : null,
+                openseaOutbidMargin: !prev.outbid ? "" : null,
+                magicedenOutbidMargin: !prev.outbid ? "" : null,
+              }))
+            }
+          >
+            {formState.outbid ? "Disable Outbidding" : "Enable Outbidding"}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Toggle
+            checked={formState.counterbid}
+            onChange={() =>
+              setFormState((prev) => ({
+                ...prev,
+                counterbid: !prev.counterbid,
+                blurOutbidMargin: !prev.outbid && !prev.counterbid ? "" : null,
+                openseaOutbidMargin:
+                  !prev.outbid && !prev.counterbid ? "" : null,
+                magicedenOutbidMargin:
+                  !prev.outbid && !prev.counterbid ? "" : null,
+              }))
+            }
+          />
+          <span
+            className="text-sm cursor-pointer"
+            onClick={() =>
+              setFormState((prev) => ({
+                ...prev,
+                counterbid: !prev.counterbid,
+                blurOutbidMargin: !prev.outbid && !prev.counterbid ? "" : null,
+                openseaOutbidMargin:
+                  !prev.outbid && !prev.counterbid ? "" : null,
+                magicedenOutbidMargin:
+                  !prev.outbid && !prev.counterbid ? "" : null,
+              }))
+            }
+          >
+            {formState.counterbid
+              ? "Disable Counterbidding"
+              : "Enable Counterbidding"}
+          </span>
         </div>
       </div>
 
       <div className="mt-6">
-        {formState.outbid ? (
+        {formState.outbid || formState.counterbid ? (
           <div className="flex flex-col gap-4">
             <div>
               <label htmlFor="blurOutbidMargin" className="block text-sm mb-1">
-                Blur Margin
+                Blur Outbid/Counterbid Margin
               </label>
               <input
                 inputMode="numeric"
@@ -68,7 +103,7 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
                 htmlFor="openseaOutbidMargin"
                 className="block text-sm mb-1"
               >
-                Opensea Margin
+                Opensea Outbid/Counterbid Margin
               </label>
               <input
                 inputMode="numeric"
@@ -94,7 +129,7 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
                 htmlFor="magicedenOutbidMargin"
                 className="block text-sm mb-1"
               >
-                Magiceden Margin
+                Magiceden Outbid/Counterbid Margin
               </label>
               <input
                 inputMode="numeric"
