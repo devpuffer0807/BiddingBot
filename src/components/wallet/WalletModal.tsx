@@ -166,15 +166,17 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
                     htmlFor="walletName"
                     className="block text-sm text-Neutral/Neutral-1100-[night] font-sans"
                   >
-                    Wallet Name
+                    Private Key / Seed Phrase
                   </label>
                   <div className="relative">
                     <input
-                      type={visible ? "text" : "password"}
+                      type="text"
                       value={importValue}
                       onChange={(e) => setImportValue(e.target.value)}
                       placeholder="Enter private key or seed phrase"
-                      className="mt-2 block w-full border rounded-lg shadow-sm p-4 pr-10 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
+                      className={`mt-2 block w-full border rounded-lg shadow-sm p-4 pr-10 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
+                        !visible ? "text-security" : ""
+                      }`}
                       autoComplete="off"
                     />
                     <button
@@ -193,7 +195,9 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
                   className="text-sm font-sans cursor-pointer text-Brand/Brand-1"
                   onClick={() => setShowImportInput(!showImportInput)}
                 >
-                  Import from private key or phrase
+                  {showImportInput
+                    ? "hide"
+                    : "Import from private key or phrase"}
                 </p>
               </div>
             </>
