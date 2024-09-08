@@ -126,122 +126,131 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
     }
   }, [showImportInput, importValue, createNewWallet, walletName, addWallet]);
 
+  const handleContentClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      {step === 1 ? (
-        <>
-          <h2 className="text-center text-xl font-bold my-4 text-Brand/Brand-1">
-            {showImportInput ? "IMPORT EXISTING WALLET" : "CREATE A NEW WALLET"}
-          </h2>
+      <div onClick={handleContentClick}>
+        {step === 1 ? (
           <>
-            <div className="my-4 w-full">
-              <label
-                htmlFor="walletName"
-                className="block text-sm text-Neutral/Neutral-1100-[night] font-sans"
-              >
-                Wallet Name
-              </label>
-              <input
-                maxLength={64}
-                type="text"
-                value={walletName}
-                onChange={(e) => setWalletName(e.target.value)}
-                placeholder={`Wallet 1`}
-                className="mt-2 block w-full border rounded-lg shadow-sm p-4 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
-                required
-                autoComplete="off"
-              />
-            </div>
-
-            {showImportInput && (
-              <div className="mt-8 mb-4 w-full">
+            <h2 className="text-center text-xl font-bold my-4 text-Brand/Brand-1">
+              {showImportInput
+                ? "IMPORT EXISTING WALLET"
+                : "CREATE A NEW WALLET"}
+            </h2>
+            <>
+              <div className="my-4 w-full">
                 <label
                   htmlFor="walletName"
                   className="block text-sm text-Neutral/Neutral-1100-[night] font-sans"
                 >
                   Wallet Name
                 </label>
-                <div className="relative">
-                  <input
-                    type={visible ? "text" : "password"}
-                    value={importValue}
-                    onChange={(e) => setImportValue(e.target.value)}
-                    placeholder="Enter private key or seed phrase"
-                    className="mt-2 block w-full border rounded-lg shadow-sm p-4 pr-10 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
-                    autoComplete="off"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setVisible(!visible)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  >
-                    {visible ? <VisibleIcon /> : <InvisibleIcon />}
-                  </button>
-                </div>
+                <input
+                  maxLength={64}
+                  type="text"
+                  value={walletName}
+                  onChange={(e) => setWalletName(e.target.value)}
+                  placeholder={`Wallet 1`}
+                  className="mt-2 block w-full border rounded-lg shadow-sm p-4 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
+                  required
+                  autoComplete="off"
+                />
               </div>
-            )}
 
-            <div className="flex justify-end">
-              <p
-                className="text-sm font-sans cursor-pointer text-Brand/Brand-1"
-                onClick={() => setShowImportInput(!showImportInput)}
-              >
-                Import from private key or phrase
-              </p>
-            </div>
-          </>
+              {showImportInput && (
+                <div className="mt-8 mb-4 w-full">
+                  <label
+                    htmlFor="walletName"
+                    className="block text-sm text-Neutral/Neutral-1100-[night] font-sans"
+                  >
+                    Wallet Name
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={visible ? "text" : "password"}
+                      value={importValue}
+                      onChange={(e) => setImportValue(e.target.value)}
+                      placeholder="Enter private key or seed phrase"
+                      className="mt-2 block w-full border rounded-lg shadow-sm p-4 pr-10 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
+                      autoComplete="off"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setVisible(!visible)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      {visible ? <VisibleIcon /> : <InvisibleIcon />}
+                    </button>
+                  </div>
+                </div>
+              )}
 
-          <div className="flex justify-end mt-8">
-            <button
-              className="px-12 rounded py-3 bg-Brand/Brand-1 text-white text-sm font-bold"
-              onClick={handleSubmit}
-            >
-              {showImportInput ? "IMPORT" : "CREATE"}
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <h2 className="text-center text-xl font-bold my-4 text-Brand/Brand-1">
-            Wallet Details
-          </h2>
-          <div className="flex flex-col space-y-4">
-            <p>Address: {wallet?.address}</p>
-            <div>
-              <p>Private Key:</p>
-              <p className="break-all">
-                {visible
-                  ? wallet?.privateKey
-                  : "••••••••••••••••••••••••••••••••••••••••••••"}
-              </p>
-              <button
-                onClick={() => setVisible(!visible)}
-                className="text-sm text-Brand/Brand-1 mt-1"
-              >
-                {visible ? "Hide" : "Show"} Private Key
-              </button>
-            </div>
-            <div
-              className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4"
-              role="alert"
-            >
-              <p className="font-bold">Warning</p>
-              <p>
-                Please copy and securely store your private key or seed phrase.
-                This is the only way to recover your wallet if you lose access.
-              </p>
-            </div>
-            <div className="flex justify-between">
+              <div className="flex justify-end">
+                <p
+                  className="text-sm font-sans cursor-pointer text-Brand/Brand-1"
+                  onClick={() => setShowImportInput(!showImportInput)}
+                >
+                  Import from private key or phrase
+                </p>
+              </div>
+            </>
+
+            <div className="flex justify-end mt-8">
               <button
                 className="px-12 rounded py-3 bg-Brand/Brand-1 text-white text-sm font-bold"
-                onClick={() => setStep(1)}
+                onClick={handleSubmit}
               >
-                Back
+                {showImportInput ? "IMPORT" : "CREATE"}
               </button>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        ) : (
+          <>
+            <h2 className="text-center text-xl font-bold my-4 text-Brand/Brand-1">
+              Wallet Details
+            </h2>
+            <div className="flex flex-col space-y-4">
+              <p>Address: {wallet?.address}</p>
+              <div>
+                <p>Private Key:</p>
+                <p className="break-all">
+                  {visible
+                    ? wallet?.privateKey
+                    : "••••••••••••••••••••••••••••••••••••••••••••"}
+                </p>
+                <button
+                  onClick={() => setVisible(!visible)}
+                  className="text-sm text-Brand/Brand-1 mt-1"
+                >
+                  {visible ? "Hide" : "Show"} Private Key
+                </button>
+              </div>
+              <div
+                className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4"
+                role="alert"
+              >
+                <p className="font-bold">Warning</p>
+                <p>
+                  Please copy and securely store your private key or seed
+                  phrase. This is the only way to recover your wallet if you
+                  lose access.
+                </p>
+              </div>
+              <div className="flex justify-between">
+                <button
+                  className="px-12 rounded py-3 bg-Brand/Brand-1 text-white text-sm font-bold"
+                  onClick={() => setStep(1)}
+                >
+                  Back
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
     </Modal>
   );
 };

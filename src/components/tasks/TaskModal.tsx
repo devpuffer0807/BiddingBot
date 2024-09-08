@@ -13,6 +13,7 @@ import TagSection from "./TagSection";
 import OutbidSection from "./OutbidSection";
 import StartSection from "./StartSection";
 import StopOption from "./StopOptions";
+import WalletModal from "../wallet/WalletModal";
 
 const TaskModal: React.FC<TaskModalProps> = ({
   isOpen,
@@ -25,6 +26,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("#000000");
   const [showCreateTag, setShowCreateTag] = useState(false);
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
   const {
     formState,
@@ -200,10 +202,24 @@ const TaskModal: React.FC<TaskModalProps> = ({
     });
   };
 
+  const handleWalletModalOpen = () => {
+    setIsWalletModalOpen(true);
+  };
+
+  const handleWalletModalClose = () => {
+    setIsWalletModalOpen(false);
+  };
+
+  const handleTaskModalClose = () => {
+    if (!isWalletModalOpen) {
+      onClose();
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleTaskModalClose}
       className="w-full max-w-[800px] h-full p-4 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar"
       key={taskId || "new"}
     >
@@ -221,6 +237,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               validateSlug={validateSlug}
               walletOptions={walletOptions}
               setFormState={setFormState}
+              onWalletModalOpen={handleWalletModalOpen}
             />
             {formState.traits &&
               Object.keys(formState.traits.categories).length > 0 && (
@@ -271,6 +288,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
           </button>
         </div>
       </form>
+
+      {isWalletModalOpen && (
+        <WalletModal
+          isOpen={isWalletModalOpen}
+          onClose={handleWalletModalClose}
+        />
+      )}
     </Modal>
   );
 };

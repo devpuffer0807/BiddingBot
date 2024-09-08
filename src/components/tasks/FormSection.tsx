@@ -12,6 +12,7 @@ interface FormSectionProps {
   validateSlug: (slug: string) => void;
   walletOptions: CustomSelectOption[];
   setFormState: React.Dispatch<React.SetStateAction<TaskFormState>>;
+  onWalletModalOpen: () => void;
 }
 
 const FormSection: React.FC<FormSectionProps> = ({
@@ -21,6 +22,7 @@ const FormSection: React.FC<FormSectionProps> = ({
   validateSlug,
   walletOptions,
   setFormState,
+  onWalletModalOpen,
 }) => {
   return (
     <>
@@ -75,12 +77,12 @@ const FormSection: React.FC<FormSectionProps> = ({
               }))
             }
           />
-          <Link
-            href={"/dashboard/wallet"}
+          <button
+            onClick={onWalletModalOpen}
             className="text-sm text-Brand/Brand-1 mt-0.5 ml-2 block italic"
           >
             create wallet
-          </Link>
+          </button>
         </div>
         {errors.selectedWallet && (
           <p className="text-red-500 text-sm mt-1">{errors.selectedWallet}</p>
