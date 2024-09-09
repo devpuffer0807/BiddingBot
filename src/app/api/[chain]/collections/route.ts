@@ -39,7 +39,11 @@ export async function GET(
 
     const data = { ...collection, traits };
 
-    if (collection.collection_offers_enabled && collection.total_supply > 0) {
+    if (
+      collection.collection_offers_enabled &&
+      collection.total_supply > 0 &&
+      collection.contracts[0].chain.toLowerCase() === "ethereum"
+    ) {
       return NextResponse.json(data, { status: 200 });
     } else {
       return NextResponse.json(

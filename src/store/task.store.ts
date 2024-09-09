@@ -28,7 +28,7 @@ export interface Task {
   };
   bidPrice: {
     min: number;
-    max: number;
+    max: number | null;
     minType: "percentage" | "eth";
     maxType: "percentage" | "eth";
   };

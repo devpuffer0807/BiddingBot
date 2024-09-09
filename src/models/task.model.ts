@@ -28,7 +28,7 @@ interface ITask extends Document {
   };
   bidPrice: {
     min: number;
-    max: number;
+    max: number | null;
     minType: "percentage" | "eth";
     maxType: "percentage" | "eth";
   };
@@ -72,7 +72,7 @@ const TaskSchema: Schema = new Schema(
     },
     bidPrice: {
       min: { type: Number, required: true },
-      max: { type: Number, required: true },
+      max: { type: Number, required: false, default: null },
       minType: { type: String, enum: ["percentage", "eth"], required: true },
       maxType: { type: String, enum: ["percentage", "eth"], required: true },
     },

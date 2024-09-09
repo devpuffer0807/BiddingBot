@@ -3,11 +3,11 @@ import CheckIcon from "@/assets/svg/CheckIcon";
 import XIcon from "@/assets/svg/XIcon";
 import { TaskFormState } from "@/hooks/useTaskForm";
 import CustomSelect, { CustomSelectOption } from "../common/CustomSelect";
+import Toggle from "../common/Toggle";
 
 interface FormSectionProps {
   formState: TaskFormState;
   errors: Partial<TaskFormState>;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   validateSlug: (slug: string) => void;
   walletOptions: CustomSelectOption[];
   setFormState: React.Dispatch<React.SetStateAction<TaskFormState>>;
@@ -17,7 +17,6 @@ interface FormSectionProps {
 const FormSection: React.FC<FormSectionProps> = ({
   formState,
   errors,
-  handleChange,
   validateSlug,
   walletOptions,
   setFormState,
@@ -27,6 +26,28 @@ const FormSection: React.FC<FormSectionProps> = ({
     { value: "percentage", label: "%" },
     { value: "eth", label: "ETH" },
   ];
+
+  const updateOutbidOptions = (
+    updatedOptions: Partial<typeof formState.outbidOptions>
+  ) => {
+    setFormState((prev) => {
+      const newOutbidOptions = {
+        ...prev.outbidOptions,
+        ...updatedOptions,
+      };
+
+      if (!newOutbidOptions.outbid && !newOutbidOptions.counterbid) {
+        newOutbidOptions.blurOutbidMargin = null;
+        newOutbidOptions.openseaOutbidMargin = null;
+        newOutbidOptions.magicedenOutbidMargin = null;
+      }
+
+      return {
+        ...prev,
+        outbidOptions: newOutbidOptions,
+      };
+    });
+  };
 
   const handlePriceTypeChange = (selectedValue: string) => {
     setFormState((prev) => ({
@@ -147,9 +168,14 @@ const FormSection: React.FC<FormSectionProps> = ({
           <p className="text-red-500 text-sm mt-1">{errors.wallet.address}</p>
         )}
       </div>
+
       <div>
         <label htmlFor="minPrice" className="block text-sm font-medium mb-2">
-          Min Bid Price <span className="text-red-500">*</span>
+          {formState.outbidOptions.outbid || formState.outbidOptions.counterbid
+            ? "Min Bid Price "
+            : "Bid Price"}
+
+          <span className="text-red-500">*</span>
         </label>
         <div className="flex items-center">
           <input
@@ -177,35 +203,61 @@ const FormSection: React.FC<FormSectionProps> = ({
           <p className="text-red-500 text-sm mt-1">{errors.bidPrice.min}</p>
         )}
       </div>
-      <div>
-        <label htmlFor="maxPrice" className="block text-sm font-medium mb-2">
-          Max Bid Price <span className="text-red-500">*</span>
-        </label>
-        <div className="flex items-center">
-          <input
-            inputMode="numeric"
-            type="number"
-            id="maxPrice"
-            name={"bidPrice.max"}
-            onChange={handleBidPriceChange}
-            value={formState.bidPrice.max}
-            placeholder={
-              formState.bidPrice.maxType === "percentage" ? "80" : "1"
-            }
-            className={`w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]`}
-            required
-            autoComplete="off"
-          />
-          <CustomSelect
-            options={priceTypeOptions}
-            value={formState.bidPrice.maxType}
-            onChange={(value) => handlePriceTypeChange(value)}
-            className="w-20 ml-2"
-          />
+
+      {formState.outbidOptions.outbid || formState.outbidOptions.counterbid ? (
+        <div>
+          <label htmlFor="maxPrice" className="block text-sm font-medium mb-2">
+            Max Bid Price
+            <span className="text-red-500">*</span>
+          </label>
+          <div className="flex items-center">
+            <input
+              inputMode="numeric"
+              type="number"
+              id="maxPrice"
+              name={"bidPrice.max"}
+              onChange={handleBidPriceChange}
+              value={formState.bidPrice.max}
+              placeholder={
+                formState.bidPrice.maxType === "percentage" ? "80" : "1"
+              }
+              className={`w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]`}
+              autoComplete="off"
+            />
+            <CustomSelect
+              options={priceTypeOptions}
+              value={formState.bidPrice.maxType}
+              onChange={(value) => handlePriceTypeChange(value)}
+              className="w-20 ml-2"
+            />
+          </div>
+          {errors.bidPrice?.max && (
+            <p className="text-red-500 text-sm mt-1">{errors.bidPrice.max}</p>
+          )}
         </div>
-        {errors.bidPrice?.max && (
-          <p className="text-red-500 text-sm mt-1">{errors.bidPrice.max}</p>
-        )}
+      ) : (
+        <div></div>
+      )}
+
+      <div className="col-span-2 flex items-center mb-8 gap-2">
+        <Toggle
+          checked={formState.outbidOptions.outbid}
+          onChange={() =>
+            updateOutbidOptions({ outbid: !formState.outbidOptions.outbid })
+          }
+        />
+        <span
+          className="text-sm cursor-pointer"
+          onClick={() =>
+            updateOutbidOptions({
+              outbid: !formState.outbidOptions.outbid,
+            })
+          }
+        >
+          {formState.outbidOptions.outbid
+            ? "Disable Outbidding"
+            : "Enable Outbidding"}
+        </span>
       </div>
     </>
   );

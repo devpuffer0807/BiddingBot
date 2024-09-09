@@ -170,7 +170,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
       contract.contractAddress &&
       wallet.address &&
       bidPrice.min &&
-      bidPrice.max &&
       selectedMarketplaces.length > 0
     );
   };
@@ -304,7 +303,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
             <FormSection
               formState={formState}
               errors={errors}
-              handleChange={handleChange}
               validateSlug={validateSlug}
               walletOptions={walletOptions}
               setFormState={setFormState}
