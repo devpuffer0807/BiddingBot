@@ -8,7 +8,9 @@ const MarketplaceSection = ({
 }: IMarketplaceSection) => {
   return (
     <div className="mt-6">
-      <h2 className="font-medium mb-4">Select Marketplace</h2>
+      <h2 className="font-medium mb-4">
+        Select Marketplace <span className="text-red-500">*</span>
+      </h2>
       <div className="flex flex-wrap gap-4">
         {["MagicEden", "Blur", "OpenSea"].map((marketplace) => {
           const isActive = formState.selectedMarketplaces.includes(marketplace);

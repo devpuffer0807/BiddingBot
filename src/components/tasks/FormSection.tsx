@@ -84,7 +84,7 @@ const FormSection: React.FC<FormSectionProps> = ({
     <>
       <div>
         <label htmlFor="slug" className="block text-sm font-medium mb-2">
-          Collection slug
+          Collection slug <span className="text-red-500">*</span>
         </label>
         <div className="relative">
           <input
@@ -119,7 +119,7 @@ const FormSection: React.FC<FormSectionProps> = ({
           htmlFor="walletSelection"
           className="block text-sm font-medium mb-2"
         >
-          Select Wallet
+          Select Wallet <span className="text-red-500">*</span>
         </label>
         <div className="relative">
           <CustomSelect
@@ -149,7 +149,7 @@ const FormSection: React.FC<FormSectionProps> = ({
       </div>
       <div>
         <label htmlFor="minPrice" className="block text-sm font-medium mb-2">
-          Min Bid Price
+          Min Bid Price <span className="text-red-500">*</span>
         </label>
         <div className="flex items-center">
           <input
@@ -179,7 +179,7 @@ const FormSection: React.FC<FormSectionProps> = ({
       </div>
       <div>
         <label htmlFor="maxPrice" className="block text-sm font-medium mb-2">
-          Max Bid Price
+          Max Bid Price <span className="text-red-500">*</span>
         </label>
         <div className="flex items-center">
           <input

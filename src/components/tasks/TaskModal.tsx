@@ -163,6 +163,18 @@ const TaskModal: React.FC<TaskModalProps> = ({
     handleTraitChange(traits);
   };
 
+  const isFormValid = () => {
+    const { contract, wallet, bidPrice, selectedMarketplaces } = formState;
+    return (
+      contract.slug &&
+      contract.contractAddress &&
+      wallet.address &&
+      bidPrice.min &&
+      bidPrice.max &&
+      selectedMarketplaces.length > 0
+    );
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const isValid = await handleSubmit();
@@ -301,8 +313,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
             {formState.traits &&
               Object.keys(formState.traits.categories).length > 0 && (
                 <div className="col-span-2 mt-6">
-                  {" "}
-                  {/* Update this line */}
                   <h3 className="mb-2 font-medium">Select Traits</h3>
                   <TraitSelector
                     traits={formState.traits}
@@ -335,10 +345,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
         <div className="flex justify-end mt-6">
           <button
             type="submit"
-            disabled={!formState.slugValid}
+            disabled={!isFormValid()}
             className={`w-full sm:w-auto bg-Brand/Brand-1 text-white py-3 px-6 rounded-lg transition-colors mb-8
             ${
-              !formState.slugValid
+              !isFormValid()
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-Brand/Brand-2"
             }`}
