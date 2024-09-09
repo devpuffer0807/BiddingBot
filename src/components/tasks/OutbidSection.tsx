@@ -124,6 +124,7 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
               <input
                 inputMode="numeric"
                 type="number"
+                step={0.0001}
                 id="openseaOutbidMargin"
                 name="openseaOutbidMargin"
                 onChange={(e) =>
@@ -155,6 +156,7 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
                 type="number"
                 id="magicedenOutbidMargin"
                 name="magicedenOutbidMargin"
+                step={0.0001}
                 onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,

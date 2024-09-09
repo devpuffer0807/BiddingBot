@@ -104,7 +104,7 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
                     })
                   }
                 >
-                  Stop All Bids
+                  Stop bidding Task (requires manual restart)
                 </label>
               </div>
 
@@ -129,7 +129,8 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
                     })
                   }
                 >
-                  Pause All Bids
+                  Pause bidding Task (automatically restarts when price is
+                  within range)
                 </label>
               </div>
             </>
@@ -147,6 +148,7 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
                 inputMode="numeric"
                 type="number"
                 id="minFloorPrice"
+                step={0.0001}
                 name="minFloorPrice"
                 onChange={(e) =>
                   setFormState((prev) => ({
@@ -173,6 +175,7 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
                 type="number"
                 id="minTraitPrice"
                 name="minTraitPrice"
+                step={0.0001}
                 onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,
@@ -199,6 +202,7 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
                 type="number"
                 id="maxPurchase"
                 name="maxPurchase"
+                step={1}
                 onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,
