@@ -62,10 +62,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
           pauseAllBids: initialTask.pauseAllBids,
           stopAllBids: initialTask.stopAllBids,
           cancelAllBids: initialTask.cancelAllBids,
-          minPrice: initialTask.minPrice?.toString() || "",
-          maxPrice: initialTask.maxPrice?.toString() || "",
-          minPriceType: initialTask.minPriceType || "percentage",
-          maxPriceType: initialTask.maxPriceType || "percentage",
+          bidPrice: {
+            min: initialTask.bidPrice.min?.toString() || "",
+            max: initialTask.bidPrice.max?.toString() || "",
+            minType: initialTask.bidPrice.minType || "percentage",
+            maxType: initialTask.bidPrice.maxType || "percentage",
+          },
         }
       : {
           slug: "",
@@ -87,10 +89,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
           pauseAllBids: false,
           stopAllBids: false,
           cancelAllBids: false,
-          minPrice: "",
-          maxPrice: "",
-          minPriceType: "percentage",
-          maxPriceType: "percentage",
+          bidPrice: {
+            min: "",
+            max: "",
+            minType: "percentage",
+            maxType: "percentage",
+          },
         },
     taskId
   );
@@ -161,10 +165,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
         pauseAllBids: formState.pauseAllBids,
         stopAllBids: formState.stopAllBids,
         cancelAllBids: formState.cancelAllBids,
-        minPrice: Number(formState.minPrice),
-        maxPrice: Number(formState.maxPrice),
-        minPriceType: formState.minPriceType,
-        maxPriceType: formState.maxPriceType,
+        bidPrice: {
+          min: Number(formState.bidPrice.min),
+          max: Number(formState.bidPrice.max),
+          minType: formState.bidPrice.minType,
+          maxType: formState.bidPrice.maxType,
+        },
       };
 
       if (taskId) {
@@ -203,10 +209,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
       pauseAllBids: false,
       stopAllBids: false,
       cancelAllBids: false,
-      minPrice: "",
-      maxPrice: "",
-      minPriceType: "percentage",
-      maxPriceType: "percentage",
+      bidPrice: {
+        min: "",
+        max: "",
+        minType: "percentage",
+        maxType: "percentage",
+      },
     });
   };
 

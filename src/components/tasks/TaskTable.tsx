@@ -84,10 +84,10 @@ const TaskTable: React.FC<TaskTableProps> = ({
               Slug
             </th>
             <th scope="col" className="px-6 py-3 text-center">
-              Min %
+              Min Price
             </th>
             <th scope="col" className="px-6 py-3 text-center">
-              Max %
+              Max Price
             </th>
             <th scope="col" className="px-6 py-3 text-center">
               MagicEden
@@ -163,11 +163,15 @@ const TaskTable: React.FC<TaskTableProps> = ({
               </td>
               <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                 <span className="sm:hidden font-bold">Min Floor Price %</span>
-                <span>{task.minPrice}%</span>
+                <span>
+                  {task.bidPrice.min} {task.bidPrice.minType}
+                </span>
               </td>
               <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                 <span className="sm:hidden font-bold">Max Floor Price %</span>
-                <span>{task.maxPrice}%</span>
+                <span>
+                  {task.bidPrice.max} {task.bidPrice.maxType}
+                </span>
               </td>
               <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                 <span className="sm:hidden font-bold">MagicEden</span>

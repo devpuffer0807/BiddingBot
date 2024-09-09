@@ -31,8 +31,22 @@ const FormSection: React.FC<FormSectionProps> = ({
   const handlePriceTypeChange = (selectedValue: string) => {
     setFormState((prev) => ({
       ...prev,
-      minPriceType: selectedValue as "percentage" | "eth",
-      maxPriceType: selectedValue as "percentage" | "eth",
+      bidPrice: {
+        ...prev.bidPrice,
+        minType: selectedValue as "percentage" | "eth",
+        maxType: selectedValue as "percentage" | "eth",
+      },
+    }));
+  };
+
+  const handleBidPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormState((prev) => ({
+      ...prev,
+      bidPrice: {
+        ...prev.bidPrice,
+        [name.split(".")[1]]: value,
+      },
     }));
   };
 
@@ -110,23 +124,25 @@ const FormSection: React.FC<FormSectionProps> = ({
             inputMode="numeric"
             type="number"
             id="minPrice"
-            name={"minPrice"}
-            onChange={handleChange}
-            value={formState.minPrice}
-            placeholder={formState.minPriceType === "percentage" ? "10" : "0.1"}
+            name={"bidPrice.min"}
+            onChange={handleBidPriceChange}
+            value={formState.bidPrice.min}
+            placeholder={
+              formState.bidPrice.minType === "percentage" ? "10" : "0.1"
+            }
             className={`w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] `}
             required
             autoComplete="off"
           />
           <CustomSelect
             options={priceTypeOptions}
-            value={formState.minPriceType}
-            onChange={handlePriceTypeChange}
+            value={formState.bidPrice.minType}
+            onChange={(value) => handlePriceTypeChange(value)}
             className="w-20 ml-2"
           />
         </div>
-        {errors.minPrice && (
-          <p className="text-red-500 text-sm mt-1">{errors.minPrice}</p>
+        {errors.bidPrice?.min && (
+          <p className="text-red-500 text-sm mt-1">{errors.bidPrice.min}</p>
         )}
       </div>
       <div>
@@ -138,26 +154,25 @@ const FormSection: React.FC<FormSectionProps> = ({
             inputMode="numeric"
             type="number"
             id="maxPrice"
-            name={"maxPrice"}
-            onChange={handleChange}
-            value={formState.maxPrice}
-            placeholder={formState.maxPriceType === "percentage" ? "80" : "1"}
+            name={"bidPrice.max"}
+            onChange={handleBidPriceChange}
+            value={formState.bidPrice.max}
+            placeholder={
+              formState.bidPrice.maxType === "percentage" ? "80" : "1"
+            }
             className={`w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]`}
             required
             autoComplete="off"
           />
           <CustomSelect
             options={priceTypeOptions}
-            value={formState.maxPriceType}
-            onChange={handlePriceTypeChange}
+            value={formState.bidPrice.maxType}
+            onChange={(value) => handlePriceTypeChange(value)}
             className="w-20 ml-2"
           />
         </div>
-        {errors.maxPrice && (
-          <p className="text-red-500 text-sm mt-1">{errors.maxPrice}</p>
-        )}
-        {errors.maxPriceType && (
-          <p className="text-red-500 text-sm mt-1">{errors.maxPriceType}</p>
+        {errors.bidPrice?.max && (
+          <p className="text-red-500 text-sm mt-1">{errors.bidPrice.max}</p>
         )}
       </div>
     </>

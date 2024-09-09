@@ -30,10 +30,12 @@ export interface TaskFormState {
   pauseAllBids: boolean;
   stopAllBids: boolean;
   cancelAllBids: boolean;
-  minPrice: string;
-  maxPrice: string;
-  minPriceType: "percentage" | "eth";
-  maxPriceType: "percentage" | "eth";
+  bidPrice: {
+    min: string;
+    max: string;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
 }
 
 export const useTaskForm = (
@@ -64,10 +66,12 @@ export const useTaskForm = (
     pauseAllBids: initialState.pauseAllBids,
     stopAllBids: initialState.stopAllBids,
     cancelAllBids: initialState.cancelAllBids,
-    minPrice: initialState.minPrice || "",
-    maxPrice: initialState.maxPrice || "",
-    minPriceType: initialState.minPriceType || "percentage",
-    maxPriceType: initialState.maxPriceType || "percentage",
+    bidPrice: {
+      min: initialState.bidPrice.min,
+      max: initialState.bidPrice.max,
+      minType: initialState.bidPrice?.minType || "percentage",
+      maxType: initialState.bidPrice?.maxType || "percentage",
+    },
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
@@ -82,6 +86,13 @@ export const useTaskForm = (
         slugDirty: prevState.slugDirty,
         tags: initialState.tags || [],
         selectedTraits: initialState.selectedTraits || {},
+        traits: initialState.traits || { categories: {}, counts: {} },
+        bidPrice: {
+          min: initialState.bidPrice.min,
+          max: initialState.bidPrice.max,
+          minType: initialState.bidPrice.minType,
+          maxType: initialState.bidPrice.maxType,
+        },
       }));
       prevInitialStateRef.current = initialState;
     }
@@ -165,16 +176,6 @@ export const useTaskForm = (
     if (!formState.maxPurchase)
       newErrors.maxPurchase = "Maximum purchase is required";
 
-    if (!formState.minPrice)
-      newErrors.minPrice = "Min price in ETH is required";
-    if (Number(formState.minPrice) <= 0)
-      newErrors.minPrice = "Min price in ETH must be greater than 0";
-
-    if (!formState.maxPrice)
-      newErrors.maxPrice = "Max price in ETH is required";
-    if (Number(formState.maxPrice) <= 0)
-      newErrors.maxPrice = "Max price in ETH must be greater than 0";
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -193,10 +194,12 @@ export const useTaskForm = (
         slug: formState.slug.toLowerCase(),
         selectedWallet: formState.selectedWallet,
         walletPrivateKey: selectedWallet.privateKey,
-        minPrice: Number(formState.minPrice),
-        maxPrice: Number(formState.maxPrice),
-        minPriceType: formState.minPriceType,
-        maxPriceType: formState.maxPriceType,
+        bidPrice: {
+          min: Number(formState.bidPrice.min),
+          max: Number(formState.bidPrice.max),
+          minType: formState.bidPrice.minType,
+          maxType: formState.bidPrice.maxType,
+        },
         selectedMarketplaces: formState.selectedMarketplaces,
         running: formState.running,
         contractAddress: formState.contractAddress,

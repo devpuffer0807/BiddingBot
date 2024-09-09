@@ -23,6 +23,12 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const task = await Task.create({
     ...body,
+    bidPrice: {
+      min: body.bidPrice.min,
+      max: body.bidPrice.max,
+      minType: body.bidPrice.minType,
+      maxType: body.bidPrice.maxType,
+    },
     user: userId,
     minPrice: body.minPrice,
     maxPrice: body.maxPrice,

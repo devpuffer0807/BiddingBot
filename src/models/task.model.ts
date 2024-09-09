@@ -26,10 +26,12 @@ interface ITask extends Document {
   pauseAllBids: boolean;
   stopAllBids: boolean;
   cancelAllBids: boolean;
-  minPrice: number | null;
-  maxPrice: number | null;
-  minPriceType: "percentage" | "eth";
-  maxPriceType: "percentage" | "eth";
+  bidPrice: {
+    min: number;
+    max: number;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -58,10 +60,12 @@ const TaskSchema = new Schema<ITask>(
     pauseAllBids: { type: Boolean, default: false },
     stopAllBids: { type: Boolean, default: false },
     cancelAllBids: { type: Boolean, default: false },
-    minPrice: { type: Number, required: true },
-    maxPrice: { type: Number, required: true },
-    minPriceType: { type: String, enum: ["percentage", "eth"], required: true },
-    maxPriceType: { type: String, enum: ["percentage", "eth"], required: true },
+    bidPrice: {
+      min: { type: Number, required: true },
+      max: { type: Number, required: true },
+      minType: { type: String, enum: ["percentage", "eth"], required: true },
+      maxType: { type: String, enum: ["percentage", "eth"], required: true },
+    },
   },
   { timestamps: true }
 );

@@ -60,10 +60,12 @@ export async function PUT(
     params.id,
     {
       ...body,
-      minPrice: body.minPrice,
-      maxPrice: body.maxPrice,
-      minPriceType: body.minPriceType,
-      maxPriceType: body.maxPriceType,
+      bidPrice: {
+        min: body.bidPrice.min,
+        max: body.bidPrice.max,
+        minType: body.bidPrice.minType,
+        maxType: body.bidPrice.maxType,
+      },
       tags: body.tags,
       selectedTraits: body.selectedTraits,
       traits: body.traits,

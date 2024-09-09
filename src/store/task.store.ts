@@ -26,10 +26,12 @@ export interface Task {
   pauseAllBids: boolean;
   stopAllBids: boolean;
   cancelAllBids: boolean;
-  minPrice: number | null; // Add this line
-  maxPrice: number | null; // Add this line
-  minPriceType: "percentage" | "eth"; // Add this line
-  maxPriceType: "percentage" | "eth"; // Add this line
+  bidPrice: {
+    min: number;
+    max: number;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
 }
 
 interface TaskStore {
@@ -55,10 +57,7 @@ export const useTaskStore = create(
               ...task,
               _id: Date.now().toString(),
               running: false,
-              minPrice: task.minPrice,
-              maxPrice: task.maxPrice,
-              minPriceType: task.minPriceType,
-              maxPriceType: task.maxPriceType,
+              bidPrice: task.bidPrice,
             },
           ],
         })),
@@ -69,10 +68,14 @@ export const useTaskStore = create(
               ? {
                   ...task,
                   ...updatedTask,
-                  minPrice: updatedTask.minPrice ?? task.minPrice,
-                  maxPrice: updatedTask.maxPrice ?? task.maxPrice,
-                  minPriceType: updatedTask.minPriceType ?? task.minPriceType,
-                  maxPriceType: updatedTask.maxPriceType ?? task.maxPriceType,
+                  bidPrice: {
+                    min: updatedTask.bidPrice?.min ?? task.bidPrice.min,
+                    max: updatedTask.bidPrice?.max ?? task.bidPrice.max,
+                    minType:
+                      updatedTask.bidPrice?.minType ?? task.bidPrice.minType,
+                    maxType:
+                      updatedTask.bidPrice?.maxType ?? task.bidPrice.maxType,
+                  },
                 }
               : task
           ),
