@@ -51,13 +51,30 @@ export const useTaskStore = create(
         set((state) => ({
           tasks: [
             ...state.tasks,
-            { ...task, _id: Date.now().toString(), running: false },
+            {
+              ...task,
+              _id: Date.now().toString(),
+              running: false,
+              minPrice: task.minPrice,
+              maxPrice: task.maxPrice,
+              minPriceType: task.minPriceType,
+              maxPriceType: task.maxPriceType,
+            },
           ],
         })),
       editTask: (id, updatedTask) =>
         set((state) => ({
           tasks: state.tasks.map((task) =>
-            task._id === id ? { ...task, ...updatedTask } : task
+            task._id === id
+              ? {
+                  ...task,
+                  ...updatedTask,
+                  minPrice: updatedTask.minPrice ?? task.minPrice,
+                  maxPrice: updatedTask.maxPrice ?? task.maxPrice,
+                  minPriceType: updatedTask.minPriceType ?? task.minPriceType,
+                  maxPriceType: updatedTask.maxPriceType ?? task.maxPriceType,
+                }
+              : task
           ),
         })),
       deleteTask: (id) =>

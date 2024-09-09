@@ -24,6 +24,10 @@ export async function POST(request: NextRequest) {
   const task = await Task.create({
     ...body,
     user: userId,
+    minPrice: body.minPrice,
+    maxPrice: body.maxPrice,
+    minPriceType: body.minPriceType,
+    maxPriceType: body.maxPriceType,
     tags: body.tags,
     selectedTraits: body.selectedTraits,
     traits: body.traits,

@@ -161,10 +161,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
         pauseAllBids: formState.pauseAllBids,
         stopAllBids: formState.stopAllBids,
         cancelAllBids: formState.cancelAllBids,
-        minPrice:
-          formState.minPriceType === "eth" ? Number(formState.minPrice) : null,
-        maxPrice:
-          formState.maxPriceType === "eth" ? Number(formState.maxPrice) : null,
+        minPrice: Number(formState.minPrice),
+        maxPrice: Number(formState.maxPrice),
         minPriceType: formState.minPriceType,
         maxPriceType: formState.maxPriceType,
       };

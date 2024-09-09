@@ -72,7 +72,6 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
               type="number"
               id="minFloorPrice"
               name="minFloorPrice"
-              min={0.01}
               onChange={(e) =>
                 setFormState((prev) => ({
                   ...prev,

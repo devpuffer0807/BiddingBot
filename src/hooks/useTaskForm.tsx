@@ -193,10 +193,8 @@ export const useTaskForm = (
         slug: formState.slug.toLowerCase(),
         selectedWallet: formState.selectedWallet,
         walletPrivateKey: selectedWallet.privateKey,
-        minPrice:
-          formState.minPriceType === "eth" ? Number(formState.minPrice) : null,
-        maxPrice:
-          formState.maxPriceType === "eth" ? Number(formState.maxPrice) : null,
+        minPrice: Number(formState.minPrice),
+        maxPrice: Number(formState.maxPrice),
         minPriceType: formState.minPriceType,
         maxPriceType: formState.maxPriceType,
         selectedMarketplaces: formState.selectedMarketplaces,
