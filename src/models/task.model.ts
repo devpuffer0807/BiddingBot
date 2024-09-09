@@ -26,18 +26,22 @@ interface ITask extends Document {
     magicedenOutbidMargin: number | null;
     counterbid: boolean;
   };
-  pauseAllBids: boolean;
-  stopAllBids: boolean;
-  cancelAllBids: boolean;
   bidPrice: {
     min: number;
     max: number;
     minType: "percentage" | "eth";
     maxType: "percentage" | "eth";
   };
-  minFloorPrice: number;
-  minTraitPrice: number;
-  maxPurchase: number;
+
+  stopOptions: {
+    pauseAllBids: boolean;
+    stopAllBids: boolean;
+    cancelAllBids: boolean;
+    minFloorPrice: number;
+    minTraitPrice: number;
+    maxPurchase: number;
+    triggerStopOptions: boolean;
+  };
 }
 
 const TaskSchema: Schema = new Schema(
@@ -66,18 +70,21 @@ const TaskSchema: Schema = new Schema(
       magicedenOutbidMargin: { type: Number, default: null },
       counterbid: { type: Boolean, default: false },
     },
-    pauseAllBids: { type: Boolean, default: false },
-    stopAllBids: { type: Boolean, default: false },
-    cancelAllBids: { type: Boolean, default: false },
     bidPrice: {
       min: { type: Number, required: true },
       max: { type: Number, required: true },
       minType: { type: String, enum: ["percentage", "eth"], required: true },
       maxType: { type: String, enum: ["percentage", "eth"], required: true },
     },
-    minFloorPrice: { type: Number, required: true },
-    minTraitPrice: { type: Number, required: true },
-    maxPurchase: { type: Number, required: true },
+    stopOptions: {
+      minFloorPrice: { type: Number, required: true },
+      minTraitPrice: { type: Number, required: true },
+      maxPurchase: { type: Number, required: true },
+      pauseAllBids: { type: Boolean, default: false },
+      stopAllBids: { type: Boolean, default: false },
+      cancelAllBids: { type: Boolean, default: false },
+      triggerStopOptions: { type: Boolean, default: false },
+    },
   },
   { timestamps: true }
 );

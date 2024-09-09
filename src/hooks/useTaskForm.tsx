@@ -27,12 +27,15 @@ export interface TaskFormState {
     magicedenOutbidMargin: string | null;
     counterbid: boolean;
   };
-  minFloorPrice: string;
-  minTraitPrice: string;
-  maxPurchase: string;
-  pauseAllBids: boolean;
-  stopAllBids: boolean;
-  cancelAllBids: boolean;
+  stopOptions: {
+    minFloorPrice: string | null;
+    minTraitPrice: string | null;
+    maxPurchase: string | null;
+    pauseAllBids: boolean;
+    stopAllBids: boolean;
+    cancelAllBids: boolean;
+    triggerStopOptions: boolean;
+  };
   bidPrice: {
     min: string;
     max: string;
@@ -70,12 +73,15 @@ export const useTaskForm = (
         initialState.outbidOptions.magicedenOutbidMargin || "",
       counterbid: initialState.outbidOptions.counterbid,
     },
-    minFloorPrice: initialState.minFloorPrice || "",
-    minTraitPrice: initialState.minTraitPrice || "",
-    maxPurchase: initialState.maxPurchase || "",
-    pauseAllBids: initialState.pauseAllBids,
-    stopAllBids: initialState.stopAllBids,
-    cancelAllBids: initialState.cancelAllBids,
+    stopOptions: {
+      minFloorPrice: initialState.stopOptions.minFloorPrice || null,
+      minTraitPrice: initialState.stopOptions.minTraitPrice || null,
+      maxPurchase: initialState.stopOptions.maxPurchase || null,
+      pauseAllBids: initialState.stopOptions.pauseAllBids || false,
+      stopAllBids: initialState.stopOptions.stopAllBids || false,
+      cancelAllBids: initialState.stopOptions.cancelAllBids || false,
+      triggerStopOptions: initialState.stopOptions.triggerStopOptions || false,
+    },
     bidPrice: {
       min: initialState.bidPrice.min,
       max: initialState.bidPrice.max,
@@ -105,6 +111,16 @@ export const useTaskForm = (
           magicedenOutbidMargin:
             initialState.outbidOptions.magicedenOutbidMargin || "",
           counterbid: initialState.outbidOptions.counterbid,
+        },
+        stopOptions: {
+          minFloorPrice: initialState.stopOptions.minFloorPrice || "",
+          minTraitPrice: initialState.stopOptions.minTraitPrice || "",
+          maxPurchase: initialState.stopOptions.maxPurchase || "",
+          pauseAllBids: initialState.stopOptions.pauseAllBids || false,
+          stopAllBids: initialState.stopOptions.stopAllBids || false,
+          cancelAllBids: initialState.stopOptions.cancelAllBids || false,
+          triggerStopOptions:
+            initialState.stopOptions.triggerStopOptions || false,
         },
         bidPrice: {
           min: initialState.bidPrice.min,
@@ -194,13 +210,6 @@ export const useTaskForm = (
       newErrors.selectedMarketplaces = [
         "At least one marketplace must be selected",
       ];
-    if (!formState.minFloorPrice)
-      newErrors.minFloorPrice = "Minimum floor price is required";
-    if (!formState.minTraitPrice)
-      newErrors.minTraitPrice = "Minimum trait price is required";
-    if (!formState.maxPurchase)
-      newErrors.maxPurchase = "Maximum purchase is required";
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -242,12 +251,15 @@ export const useTaskForm = (
             : null,
           counterbid: formState.outbidOptions.counterbid,
         },
-        minFloorPrice: Number(formState.minFloorPrice),
-        minTraitPrice: Number(formState.minTraitPrice),
-        maxPurchase: Number(formState.maxPurchase),
-        pauseAllBids: formState.pauseAllBids,
-        stopAllBids: formState.stopAllBids,
-        cancelAllBids: formState.cancelAllBids,
+        stopOptions: {
+          minFloorPrice: Number(formState.stopOptions.minFloorPrice),
+          minTraitPrice: Number(formState.stopOptions.minTraitPrice),
+          maxPurchase: Number(formState.stopOptions.maxPurchase),
+          pauseAllBids: formState.stopOptions.pauseAllBids,
+          stopAllBids: formState.stopOptions.stopAllBids,
+          cancelAllBids: formState.stopOptions.cancelAllBids,
+          triggerStopOptions: formState.stopOptions.triggerStopOptions,
+        },
         bidPrice: {
           min: Number(formState.bidPrice.min),
           max: Number(formState.bidPrice.max),

@@ -50,9 +50,15 @@ export async function POST(request: NextRequest) {
         : null,
       counterbid: body.outbidOptions.counterbid,
     },
-    pauseAllBids: body.pauseAllBids,
-    stopAllBids: body.stopAllBids,
-    cancelAllBids: body.cancelAllBids,
+    stopOptions: {
+      minFloorPrice: body.stopOptions.minFloorPrice,
+      minTraitPrice: body.stopOptions.minTraitPrice,
+      maxPurchase: body.stopOptions.maxPurchase,
+      pauseAllBids: body.stopOptions.pauseAllBids,
+      stopAllBids: body.stopOptions.stopAllBids,
+      cancelAllBids: body.stopOptions.cancelAllBids,
+      triggerStopOptions: body.stopOptions.triggerStopOptions,
+    },
   });
   return NextResponse.json(task, { status: 201 });
 }

@@ -26,17 +26,20 @@ export interface Task {
     magicedenOutbidMargin: number | null;
     counterbid: boolean;
   };
-  minFloorPrice: number;
-  minTraitPrice: number;
-  maxPurchase: number;
-  pauseAllBids: boolean;
-  stopAllBids: boolean;
-  cancelAllBids: boolean;
   bidPrice: {
     min: number;
     max: number;
     minType: "percentage" | "eth";
     maxType: "percentage" | "eth";
+  };
+  stopOptions: {
+    minFloorPrice: number | null;
+    minTraitPrice: number | null;
+    maxPurchase: number | null;
+    pauseAllBids: boolean;
+    stopAllBids: boolean;
+    cancelAllBids: boolean;
+    triggerStopOptions: boolean;
   };
 }
 
@@ -66,6 +69,8 @@ export const useTaskStore = create(
               wallet: task.wallet,
               bidPrice: task.bidPrice,
               outbidOptions: task.outbidOptions,
+              stopOptions: task.stopOptions,
+              triggerStopOptions: false,
             },
           ],
         })),
@@ -104,6 +109,29 @@ export const useTaskStore = create(
                     counterbid:
                       updatedTask.outbidOptions?.counterbid ??
                       task.outbidOptions.counterbid,
+                  },
+                  stopOptions: {
+                    minFloorPrice:
+                      updatedTask.stopOptions?.minFloorPrice ??
+                      task.stopOptions.minFloorPrice,
+                    minTraitPrice:
+                      updatedTask.stopOptions?.minTraitPrice ??
+                      task.stopOptions.minTraitPrice,
+                    maxPurchase:
+                      updatedTask.stopOptions?.maxPurchase ??
+                      task.stopOptions.maxPurchase,
+                    pauseAllBids:
+                      updatedTask.stopOptions?.pauseAllBids ??
+                      task.stopOptions.pauseAllBids,
+                    stopAllBids:
+                      updatedTask.stopOptions?.stopAllBids ??
+                      task.stopOptions.stopAllBids,
+                    cancelAllBids:
+                      updatedTask.stopOptions?.cancelAllBids ??
+                      task.stopOptions.cancelAllBids,
+                    triggerStopOptions:
+                      updatedTask.stopOptions?.triggerStopOptions ??
+                      task.stopOptions.triggerStopOptions,
                   },
                 }
               : task

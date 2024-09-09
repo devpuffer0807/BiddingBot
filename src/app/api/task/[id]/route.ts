@@ -60,6 +60,15 @@ export async function PUT(
     params.id,
     {
       ...body,
+      stopOptions: {
+        minFloorPrice: body.stopOptions.minFloorPrice,
+        minTraitPrice: body.stopOptions.minTraitPrice,
+        maxPurchase: body.stopOptions.maxPurchase,
+        pauseAllBids: body.stopOptions.pauseAllBids,
+        stopAllBids: body.stopOptions.stopAllBids,
+        cancelAllBids: body.stopOptions.cancelAllBids,
+        triggerStopOptions: body.stopOptions.triggerStopOptions,
+      },
       bidPrice: {
         min: body.bidPrice.min,
         max: body.bidPrice.max,
@@ -86,9 +95,6 @@ export async function PUT(
           : null,
         counterbid: body.outbidOptions.counterbid,
       },
-      pauseAllBids: body.pauseAllBids,
-      stopAllBids: body.stopAllBids,
-      cancelAllBids: body.cancelAllBids,
     },
     { new: true }
   );

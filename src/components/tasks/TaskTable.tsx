@@ -164,13 +164,19 @@ const TaskTable: React.FC<TaskTableProps> = ({
               <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                 <span className="sm:hidden font-bold">Min Floor Price %</span>
                 <span>
-                  {task.bidPrice.min} {task.bidPrice.minType}
+                  {task.bidPrice.min}{" "}
+                  {task.bidPrice.minType === "percentage"
+                    ? "%"
+                    : task.bidPrice.minType.toUpperCase()}
                 </span>
               </td>
               <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                 <span className="sm:hidden font-bold">Max Floor Price %</span>
                 <span>
-                  {task.bidPrice.max} {task.bidPrice.maxType}
+                  {task.bidPrice.max}{" "}
+                  {task.bidPrice.maxType === "percentage"
+                    ? "%"
+                    : task.bidPrice.maxType.toUpperCase()}
                 </span>
               </td>
               <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
