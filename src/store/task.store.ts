@@ -45,7 +45,7 @@ export interface Task {
 
 interface TaskStore {
   tasks: Task[];
-  addTask: (task: Omit<Task, "_id">) => void;
+  addTask: (task: Task) => void;
   editTask: (id: string, updatedTask: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   toggleTaskRunning: (id: string) => void;
@@ -64,7 +64,6 @@ export const useTaskStore = create(
             ...state.tasks,
             {
               ...task,
-              _id: Date.now().toString(),
               running: false,
               wallet: task.wallet,
               bidPrice: task.bidPrice,

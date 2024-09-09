@@ -289,7 +289,10 @@ export const useTaskForm = (
           });
           if (!response.ok) throw new Error("Failed to create task");
           const newTask = await response.json();
-          addTask(newTask);
+          const fetchResponse = await fetch(`/api/task/${newTask._id}`);
+          if (!fetchResponse.ok) throw new Error("Failed to fetch new task");
+          const fetchedTask = await fetchResponse.json();
+          addTask(fetchedTask);
         }
         return true;
       } catch (error) {
