@@ -45,7 +45,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
             slug: initialTask.contract.slug,
             contractAddress: initialTask.contract.contractAddress,
           },
-          selectedWallet: initialTask.selectedWallet,
           selectedMarketplaces: initialTask.selectedMarketplaces,
           running: initialTask.running,
           tags: initialTask.tags,
@@ -73,13 +72,17 @@ const TaskModal: React.FC<TaskModalProps> = ({
             minType: initialTask.bidPrice.minType || "percentage",
             maxType: initialTask.bidPrice.maxType || "percentage",
           },
+
+          wallet: {
+            address: initialTask.wallet.address || "",
+            privateKey: initialTask.wallet.privateKey || "",
+          },
         }
       : {
           contract: {
             slug: "",
             contractAddress: "",
           },
-          selectedWallet: "",
           selectedMarketplaces: [],
           running: false,
           tags: [],
@@ -103,6 +106,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
             max: "",
             minType: "percentage",
             maxType: "percentage",
+          },
+          wallet: {
+            address: "",
+            privateKey: "",
           },
         },
     taskId
@@ -207,7 +214,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
         slug: "",
         contractAddress: "",
       },
-      selectedWallet: "",
+      wallet: {
+        address: "",
+        privateKey: "",
+      },
       selectedMarketplaces: [],
       running: false,
       slugValid: false,

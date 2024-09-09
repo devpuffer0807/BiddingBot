@@ -7,8 +7,10 @@ export interface Task {
     slug: string;
     contractAddress: string;
   };
-  selectedWallet: string;
-  walletPrivateKey: string;
+  wallet: {
+    address: string;
+    privateKey: string;
+  };
   selectedMarketplaces: string[];
   running: boolean;
   tags: { name: string; color: string }[];
@@ -61,6 +63,7 @@ export const useTaskStore = create(
               ...task,
               _id: Date.now().toString(),
               running: false,
+              wallet: task.wallet,
               bidPrice: task.bidPrice,
               outbidOptions: task.outbidOptions,
             },
@@ -73,6 +76,10 @@ export const useTaskStore = create(
               ? {
                   ...task,
                   ...updatedTask,
+                  wallet: {
+                    ...task.wallet,
+                    ...updatedTask.wallet,
+                  },
                   bidPrice: {
                     min: updatedTask.bidPrice?.min ?? task.bidPrice.min,
                     max: updatedTask.bidPrice?.max ?? task.bidPrice.max,

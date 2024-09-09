@@ -10,7 +10,6 @@ export interface TaskFormState {
     slug: string;
     contractAddress: string;
   };
-  selectedWallet: string;
   selectedMarketplaces: string[];
   running: boolean;
   slugValid: boolean | null;
@@ -39,6 +38,10 @@ export interface TaskFormState {
     max: string;
     minType: "percentage" | "eth";
     maxType: "percentage" | "eth";
+  };
+  wallet: {
+    address: string;
+    privateKey: string;
   };
 }
 
@@ -181,8 +184,12 @@ export const useTaskForm = (
   const validateForm = () => {
     const newErrors: Partial<TaskFormState> = {};
 
-    if (!formState.selectedWallet)
-      newErrors.selectedWallet = "Wallet selection is required";
+    if (!formState.wallet.address) {
+      newErrors.wallet = {
+        address: "Wallet selection is required",
+        privateKey: "", // Add this line
+      };
+    }
     if (formState.selectedMarketplaces.length === 0)
       newErrors.selectedMarketplaces = [
         "At least one marketplace must be selected",
@@ -201,7 +208,7 @@ export const useTaskForm = (
   const handleSubmit = async () => {
     if (validateForm()) {
       const selectedWallet = wallets.find(
-        (wallet) => wallet.address === formState.selectedWallet
+        (wallet) => wallet.address === formState.wallet.address
       );
       if (!selectedWallet) {
         toast.error("Selected wallet not found");
@@ -213,13 +220,9 @@ export const useTaskForm = (
           slug: formState.contract.slug.toLowerCase(),
           contractAddress: formState.contract.contractAddress,
         },
-        selectedWallet: formState.selectedWallet,
-        walletPrivateKey: selectedWallet.privateKey,
-        bidPrice: {
-          min: Number(formState.bidPrice.min),
-          max: Number(formState.bidPrice.max),
-          minType: formState.bidPrice.minType,
-          maxType: formState.bidPrice.maxType,
+        wallet: {
+          address: formState.wallet.address,
+          privateKey: selectedWallet.privateKey,
         },
         selectedMarketplaces: formState.selectedMarketplaces,
         running: formState.running,
@@ -245,6 +248,12 @@ export const useTaskForm = (
         pauseAllBids: formState.pauseAllBids,
         stopAllBids: formState.stopAllBids,
         cancelAllBids: formState.cancelAllBids,
+        bidPrice: {
+          min: Number(formState.bidPrice.min),
+          max: Number(formState.bidPrice.max),
+          minType: formState.bidPrice.minType,
+          maxType: formState.bidPrice.maxType,
+        },
       };
 
       try {

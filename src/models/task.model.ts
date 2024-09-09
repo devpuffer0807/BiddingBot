@@ -7,8 +7,10 @@ interface ITask extends Document {
     slug: string;
     contractAddress: string;
   };
-  selectedWallet: string;
-  walletPrivateKey: string;
+  wallet: {
+    address: string;
+    privateKey: string;
+  };
   selectedMarketplaces: string[];
   running: boolean;
   tags: { name: string; color: string }[];
@@ -45,8 +47,10 @@ const TaskSchema: Schema = new Schema(
       slug: { type: String, required: true },
       contractAddress: { type: String, required: true },
     },
-    selectedWallet: { type: String, required: true },
-    walletPrivateKey: { type: String, required: true },
+    wallet: {
+      address: { type: String, required: true },
+      privateKey: { type: String, required: true },
+    },
     selectedMarketplaces: { type: [String], required: true },
     running: { type: Boolean, default: false },
     tags: [{ name: String, color: String }],

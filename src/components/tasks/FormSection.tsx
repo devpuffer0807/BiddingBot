@@ -124,11 +124,14 @@ const FormSection: React.FC<FormSectionProps> = ({
         <div className="relative">
           <CustomSelect
             options={walletOptions}
-            value={formState.selectedWallet}
+            value={formState.wallet?.address || ""}
             onChange={(selectedValue) =>
               setFormState((prev) => ({
                 ...prev,
-                selectedWallet: selectedValue,
+                wallet: {
+                  ...prev.wallet,
+                  address: selectedValue,
+                },
               }))
             }
             placeholder="Select a wallet"
@@ -140,8 +143,8 @@ const FormSection: React.FC<FormSectionProps> = ({
             create wallet
           </button>
         </div>
-        {errors.selectedWallet && (
-          <p className="text-red-500 text-sm mt-1">{errors.selectedWallet}</p>
+        {errors.wallet?.address && (
+          <p className="text-red-500 text-sm mt-1">{errors.wallet.address}</p>
         )}
       </div>
       <div>
