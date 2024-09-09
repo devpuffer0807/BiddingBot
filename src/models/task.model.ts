@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
 interface ITask extends Document {
   _id: mongoose.Types.ObjectId;
@@ -6,8 +6,6 @@ interface ITask extends Document {
   slug: string;
   selectedWallet: string;
   walletPrivateKey: string;
-  minFloorPricePercentage: string;
-  maxFloorPricePercentage: string;
   selectedMarketplaces: string[];
   running: boolean;
   contractAddress: string;
@@ -28,6 +26,10 @@ interface ITask extends Document {
   pauseAllBids: boolean;
   stopAllBids: boolean;
   cancelAllBids: boolean;
+  minPrice: number | null;
+  maxPrice: number | null;
+  minPriceType: "percentage" | "eth";
+  maxPriceType: "percentage" | "eth";
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -36,8 +38,6 @@ const TaskSchema = new Schema<ITask>(
     slug: { type: String, required: true },
     selectedWallet: { type: String, required: true },
     walletPrivateKey: { type: String, required: true },
-    minFloorPricePercentage: { type: String, required: true },
-    maxFloorPricePercentage: { type: String, required: true },
     selectedMarketplaces: { type: [String], required: true },
     running: { type: Boolean, default: false },
     contractAddress: { type: String, required: true },
@@ -58,11 +58,13 @@ const TaskSchema = new Schema<ITask>(
     pauseAllBids: { type: Boolean, default: false },
     stopAllBids: { type: Boolean, default: false },
     cancelAllBids: { type: Boolean, default: false },
+    minPrice: { type: Number, required: false, default: null },
+    maxPrice: { type: Number, required: false, default: null },
+    minPriceType: { type: String, enum: ["percentage", "eth"], required: true },
+    maxPriceType: { type: String, enum: ["percentage", "eth"], required: true },
   },
   { timestamps: true }
 );
 
-const Task =
-  (mongoose.models.Task as mongoose.Model<ITask>) ||
-  mongoose.model<ITask>("Task", TaskSchema);
+const Task = mongoose.models.Task || mongoose.model<ITask>("Task", TaskSchema);
 export default Task;

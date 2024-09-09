@@ -8,8 +8,6 @@ import { toast } from "react-toastify";
 export interface TaskFormState {
   slug: string;
   selectedWallet: string;
-  minFloorPricePercentage: string;
-  maxFloorPricePercentage: string;
   selectedMarketplaces: string[];
   running: boolean;
   slugValid: boolean | null;
@@ -32,6 +30,10 @@ export interface TaskFormState {
   pauseAllBids: boolean;
   stopAllBids: boolean;
   cancelAllBids: boolean;
+  minPrice: string;
+  maxPrice: string;
+  minPriceType: "percentage" | "eth";
+  maxPriceType: "percentage" | "eth";
 }
 
 export const useTaskForm = (
@@ -62,6 +64,10 @@ export const useTaskForm = (
     pauseAllBids: initialState.pauseAllBids,
     stopAllBids: initialState.stopAllBids,
     cancelAllBids: initialState.cancelAllBids,
+    minPrice: initialState.minPrice || "",
+    maxPrice: initialState.maxPrice || "",
+    minPriceType: initialState.minPriceType || "percentage",
+    maxPriceType: initialState.maxPriceType || "percentage",
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
@@ -148,12 +154,6 @@ export const useTaskForm = (
     if (!formState.slug) newErrors.slug = "Collection slug is required";
     if (!formState.selectedWallet)
       newErrors.selectedWallet = "Wallet selection is required";
-    if (!formState.minFloorPricePercentage)
-      newErrors.minFloorPricePercentage =
-        "Min floor price percentage is required";
-    if (!formState.maxFloorPricePercentage)
-      newErrors.maxFloorPricePercentage =
-        "Max floor price percentage is required";
     if (formState.selectedMarketplaces.length === 0)
       newErrors.selectedMarketplaces = [
         "At least one marketplace must be selected",
@@ -165,18 +165,15 @@ export const useTaskForm = (
     if (!formState.maxPurchase)
       newErrors.maxPurchase = "Maximum purchase is required";
 
-    const minPercentage = Number(formState.minFloorPricePercentage);
-    const maxPercentage = Number(formState.maxFloorPricePercentage);
+    if (!formState.minPrice)
+      newErrors.minPrice = "Min price in ETH is required";
+    if (Number(formState.minPrice) <= 0)
+      newErrors.minPrice = "Min price in ETH must be greater than 0";
 
-    if (minPercentage < 0 || minPercentage > 100)
-      newErrors.minFloorPricePercentage =
-        "Min percentage must be between 0 and 100";
-    if (maxPercentage < 0 || maxPercentage > 100)
-      newErrors.maxFloorPricePercentage =
-        "Max percentage must be between 0 and 100";
-    if (maxPercentage <= minPercentage)
-      newErrors.maxFloorPricePercentage =
-        "Max percentage must be greater than min percentage";
+    if (!formState.maxPrice)
+      newErrors.maxPrice = "Max price in ETH is required";
+    if (Number(formState.maxPrice) <= 0)
+      newErrors.maxPrice = "Max price in ETH must be greater than 0";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -196,8 +193,12 @@ export const useTaskForm = (
         slug: formState.slug.toLowerCase(),
         selectedWallet: formState.selectedWallet,
         walletPrivateKey: selectedWallet.privateKey,
-        minFloorPricePercentage: Number(formState.minFloorPricePercentage),
-        maxFloorPricePercentage: Number(formState.maxFloorPricePercentage),
+        minPrice:
+          formState.minPriceType === "eth" ? Number(formState.minPrice) : null,
+        maxPrice:
+          formState.maxPriceType === "eth" ? Number(formState.maxPrice) : null,
+        minPriceType: formState.minPriceType,
+        maxPriceType: formState.maxPriceType,
         selectedMarketplaces: formState.selectedMarketplaces,
         running: formState.running,
         contractAddress: formState.contractAddress,

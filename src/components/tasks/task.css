@@ -47,7 +47,10 @@
   top: 4px;
   width: 6px;
   height: 12px;
-  border: solid white;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
+}
+
+.checkbox-container input:not(:checked) + .checkmark {
+  background-color: #d1d5db;
 }

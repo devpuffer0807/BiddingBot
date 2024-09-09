@@ -1,23 +1,39 @@
 import ChevronDown from "@/assets/svg/ChevronDown";
 import { useState } from "react";
 
-const CustomSelect = ({ options, value, onChange }: CustomSelectProps) => {
+export type CustomSelectOption = {
+  value: string;
+  label: string;
+  address?: string;
+};
+
+interface CustomSelectProps {
+  options: CustomSelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+}
+
+const CustomSelect = ({
+  options,
+  value,
+  onChange,
+  placeholder = "Select an option",
+  className = "",
+}: CustomSelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const selectedOption = options.find((opt) => opt.value === value);
 
   return (
-    <div className="relative">
+    <div className={`relative ${className}`}>
       <button
         type="button"
-        className="w-full border rounded-lg shadow-sm p-3 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] text-left flex justify-between items-center hover:bg-Neutral/Neutral-400-[night] transition-colors"
+        className="w-full min-w-20 border rounded-lg shadow-sm p-3 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] text-left flex justify-between items-center hover:bg-Neutral/Neutral-400-[night] transition-colors"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {selectedOption ? (
-          <span>{selectedOption.label}</span>
-        ) : (
-          "Select a wallet"
-        )}
+        {selectedOption ? <span>{selectedOption.label}</span> : placeholder}
         <ChevronDown />
       </button>
       {isOpen && (
@@ -33,9 +49,11 @@ const CustomSelect = ({ options, value, onChange }: CustomSelectProps) => {
             >
               <div className="hover:text-Primary-500-[night] transition-colors">
                 <div className="text-sm">{option.label}</div>
-                <div className="text-xs text-Neutral/Neutral-600-[night]">
-                  {option.address}
-                </div>
+                {option.address && (
+                  <div className="text-xs text-Neutral/Neutral-600-[night]">
+                    {option.address}
+                  </div>
+                )}
               </div>
             </li>
           ))}
@@ -46,16 +64,3 @@ const CustomSelect = ({ options, value, onChange }: CustomSelectProps) => {
 };
 
 export default CustomSelect;
-
-export type CustomSelectOption = {
-  value: string;
-  label: string;
-  address: string;
-};
-
-// Update the CustomSelectProps import if it doesn't exist
-interface CustomSelectProps {
-  options: CustomSelectOption[];
-  value: string;
-  onChange: (value: string) => void;
-}

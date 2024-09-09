@@ -6,8 +6,6 @@ export interface Task {
   slug: string;
   selectedWallet: string;
   walletPrivateKey: string;
-  minFloorPricePercentage: number;
-  maxFloorPricePercentage: number;
   selectedMarketplaces: string[];
   running: boolean;
   contractAddress: string;
@@ -28,6 +26,10 @@ export interface Task {
   pauseAllBids: boolean;
   stopAllBids: boolean;
   cancelAllBids: boolean;
+  minPrice: number | null; // Add this line
+  maxPrice: number | null; // Add this line
+  minPriceType: "percentage" | "eth"; // Add this line
+  maxPriceType: "percentage" | "eth"; // Add this line
 }
 
 interface TaskStore {

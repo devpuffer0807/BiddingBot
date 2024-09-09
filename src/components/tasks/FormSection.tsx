@@ -3,7 +3,6 @@ import CheckIcon from "@/assets/svg/CheckIcon";
 import XIcon from "@/assets/svg/XIcon";
 import { TaskFormState } from "@/hooks/useTaskForm";
 import CustomSelect, { CustomSelectOption } from "../common/CustomSelect";
-import Link from "next/link";
 
 interface FormSectionProps {
   formState: TaskFormState;
@@ -24,6 +23,19 @@ const FormSection: React.FC<FormSectionProps> = ({
   setFormState,
   onWalletModalOpen,
 }) => {
+  const priceTypeOptions: CustomSelectOption[] = [
+    { value: "percentage", label: "%" },
+    { value: "eth", label: "ETH" },
+  ];
+
+  const handlePriceTypeChange = (selectedValue: string) => {
+    setFormState((prev) => ({
+      ...prev,
+      minPriceType: selectedValue as "percentage" | "eth",
+      maxPriceType: selectedValue as "percentage" | "eth",
+    }));
+  };
+
   return (
     <>
       <div>
@@ -70,12 +82,13 @@ const FormSection: React.FC<FormSectionProps> = ({
           <CustomSelect
             options={walletOptions}
             value={formState.selectedWallet}
-            onChange={(selectedOption) =>
+            onChange={(selectedValue) =>
               setFormState((prev) => ({
                 ...prev,
-                selectedWallet: selectedOption,
+                selectedWallet: selectedValue,
               }))
             }
+            placeholder="Select a wallet"
           />
           <button
             onClick={onWalletModalOpen}
@@ -89,57 +102,62 @@ const FormSection: React.FC<FormSectionProps> = ({
         )}
       </div>
       <div>
-        <label
-          htmlFor="minFloorPricePercentage"
-          className="block text-sm font-medium mb-2"
-        >
-          Min Bid Floor Price Percentage (%)
+        <label htmlFor="minPrice" className="block text-sm font-medium mb-2">
+          Min Bid Price
         </label>
-        <input
-          inputMode="numeric"
-          type="number"
-          id="minFloorPricePercentage"
-          name="minFloorPricePercentage"
-          onChange={handleChange}
-          value={formState.minFloorPricePercentage}
-          placeholder="10"
-          className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
-            errors.minFloorPricePercentage ? "border-red-500" : ""
-          }`}
-          required
-          autoComplete="off"
-        />
-        {errors.minFloorPricePercentage && (
-          <p className="text-red-500 text-sm mt-1">
-            {errors.minFloorPricePercentage}
-          </p>
+        <div className="flex items-center">
+          <input
+            inputMode="numeric"
+            type="number"
+            id="minPrice"
+            name={"minPrice"}
+            onChange={handleChange}
+            value={formState.minPrice}
+            placeholder={formState.minPriceType === "percentage" ? "10" : "0.1"}
+            className={`w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] `}
+            required
+            autoComplete="off"
+          />
+          <CustomSelect
+            options={priceTypeOptions}
+            value={formState.minPriceType}
+            onChange={handlePriceTypeChange}
+            className="w-20 ml-2"
+          />
+        </div>
+        {errors.minPrice && (
+          <p className="text-red-500 text-sm mt-1">{errors.minPrice}</p>
         )}
       </div>
       <div>
-        <label
-          htmlFor="maxFloorPricePercentage"
-          className="block text-sm font-medium mb-2"
-        >
-          Max Bid Floor Price Percentage (%)
+        <label htmlFor="maxPrice" className="block text-sm font-medium mb-2">
+          Max Bid Price
         </label>
-        <input
-          inputMode="numeric"
-          type="number"
-          id="maxFloorPricePercentage"
-          name="maxFloorPricePercentage"
-          onChange={handleChange}
-          value={formState.maxFloorPricePercentage}
-          placeholder="80"
-          className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
-            errors.maxFloorPricePercentage ? "border-red-500" : ""
-          }`}
-          required
-          autoComplete="off"
-        />
-        {errors.maxFloorPricePercentage && (
-          <p className="text-red-500 text-sm mt-1">
-            {errors.maxFloorPricePercentage}
-          </p>
+        <div className="flex items-center">
+          <input
+            inputMode="numeric"
+            type="number"
+            id="maxPrice"
+            name={"maxPrice"}
+            onChange={handleChange}
+            value={formState.maxPrice}
+            placeholder={formState.maxPriceType === "percentage" ? "80" : "1"}
+            className={`w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]`}
+            required
+            autoComplete="off"
+          />
+          <CustomSelect
+            options={priceTypeOptions}
+            value={formState.maxPriceType}
+            onChange={handlePriceTypeChange}
+            className="w-20 ml-2"
+          />
+        </div>
+        {errors.maxPrice && (
+          <p className="text-red-500 text-sm mt-1">{errors.maxPrice}</p>
+        )}
+        {errors.maxPriceType && (
+          <p className="text-red-500 text-sm mt-1">{errors.maxPriceType}</p>
         )}
       </div>
     </>

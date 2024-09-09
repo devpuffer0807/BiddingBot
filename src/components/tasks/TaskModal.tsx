@@ -43,10 +43,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
       ? {
           slug: initialTask.slug,
           selectedWallet: initialTask.selectedWallet,
-          minFloorPricePercentage:
-            initialTask.minFloorPricePercentage.toString(),
-          maxFloorPricePercentage:
-            initialTask.maxFloorPricePercentage.toString(),
           selectedMarketplaces: initialTask.selectedMarketplaces,
           running: initialTask.running,
           contractAddress: initialTask.contractAddress,
@@ -66,12 +62,14 @@ const TaskModal: React.FC<TaskModalProps> = ({
           pauseAllBids: initialTask.pauseAllBids,
           stopAllBids: initialTask.stopAllBids,
           cancelAllBids: initialTask.cancelAllBids,
+          minPrice: initialTask.minPrice?.toString() || "",
+          maxPrice: initialTask.maxPrice?.toString() || "",
+          minPriceType: initialTask.minPriceType || "percentage",
+          maxPriceType: initialTask.maxPriceType || "percentage",
         }
       : {
           slug: "",
           selectedWallet: "",
-          minFloorPricePercentage: "",
-          maxFloorPricePercentage: "",
           selectedMarketplaces: [],
           running: false,
           contractAddress: "",
@@ -89,6 +87,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
           pauseAllBids: false,
           stopAllBids: false,
           cancelAllBids: false,
+          minPrice: "",
+          maxPrice: "",
+          minPriceType: "percentage",
+          maxPriceType: "percentage",
         },
     taskId
   );
@@ -159,6 +161,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
         pauseAllBids: formState.pauseAllBids,
         stopAllBids: formState.stopAllBids,
         cancelAllBids: formState.cancelAllBids,
+        minPrice:
+          formState.minPriceType === "eth" ? Number(formState.minPrice) : null,
+        maxPrice:
+          formState.maxPriceType === "eth" ? Number(formState.maxPrice) : null,
+        minPriceType: formState.minPriceType,
+        maxPriceType: formState.maxPriceType,
       };
 
       if (taskId) {
@@ -178,8 +186,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
     setFormState({
       slug: "",
       selectedWallet: "",
-      minFloorPricePercentage: "",
-      maxFloorPricePercentage: "",
       selectedMarketplaces: [],
       running: false,
       slugValid: false,
@@ -199,6 +205,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
       pauseAllBids: false,
       stopAllBids: false,
       cancelAllBids: false,
+      minPrice: "",
+      maxPrice: "",
+      minPriceType: "percentage",
+      maxPriceType: "percentage",
     });
   };
 
