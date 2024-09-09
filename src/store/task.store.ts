@@ -3,12 +3,14 @@ import { persist } from "zustand/middleware";
 
 export interface Task {
   _id: string;
-  slug: string;
+  contract: {
+    slug: string;
+    contractAddress: string;
+  };
   selectedWallet: string;
   walletPrivateKey: string;
   selectedMarketplaces: string[];
   running: boolean;
-  contractAddress: string;
   tags: { name: string; color: string }[];
   selectedTraits: Record<string, string[]>;
   traits: {

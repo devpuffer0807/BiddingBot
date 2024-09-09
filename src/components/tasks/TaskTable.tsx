@@ -30,7 +30,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
   selectedTags,
 }) => {
   const filteredTasks = tasks.filter((task) => {
-    const matchesSlug = task.slug
+    const matchesSlug = task.contract.slug
       .toLowerCase()
       .includes(filterText.toLowerCase());
     const matchesTags =
@@ -153,12 +153,12 @@ const TaskTable: React.FC<TaskTableProps> = ({
               <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                 <span className="sm:hidden font-bold">Slug</span>
                 <a
-                  href={`https://opensea.io/collection/${task.slug}`}
+                  href={`https://opensea.io/collection/${task.contract.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-Brand/Brand-1 underline"
                 >
-                  {task.slug}
+                  {task.contract.slug}
                 </a>
               </td>
               <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">

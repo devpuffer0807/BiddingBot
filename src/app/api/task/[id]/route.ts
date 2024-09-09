@@ -66,14 +66,26 @@ export async function PUT(
         minType: body.bidPrice.minType,
         maxType: body.bidPrice.maxType,
       },
+      contract: {
+        slug: body.contract.slug,
+        contractAddress: body.contract.contractAddress,
+      },
       tags: body.tags,
       selectedTraits: body.selectedTraits,
       traits: body.traits,
-      outbid: body.outbid,
-      blurOutbidMargin: body.outbid ? body.blurOutbidMargin : null,
-      openseaOutbidMargin: body.outbid ? body.openseaOutbidMargin : null,
-      magicedenOutbidMargin: body.outbid ? body.magicedenOutbidMargin : null,
-      counterbid: body.counterbid,
+      outbidOptions: {
+        outbid: body.outbidOptions.outbid,
+        blurOutbidMargin: body.outbidOptions.outbid
+          ? body.outbidOptions.blurOutbidMargin
+          : null,
+        openseaOutbidMargin: body.outbidOptions.outbid
+          ? body.outbidOptions.openseaOutbidMargin
+          : null,
+        magicedenOutbidMargin: body.outbidOptions.outbid
+          ? body.outbidOptions.magicedenOutbidMargin
+          : null,
+        counterbid: body.outbidOptions.counterbid,
+      },
       pauseAllBids: body.pauseAllBids,
       stopAllBids: body.stopAllBids,
       cancelAllBids: body.cancelAllBids,

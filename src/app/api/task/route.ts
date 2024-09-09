@@ -23,6 +23,10 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const task = await Task.create({
     ...body,
+    contract: {
+      slug: body.contract.slug,
+      contractAddress: body.contract.contractAddress,
+    },
     bidPrice: {
       min: body.bidPrice.min,
       max: body.bidPrice.max,
@@ -30,18 +34,22 @@ export async function POST(request: NextRequest) {
       maxType: body.bidPrice.maxType,
     },
     user: userId,
-    minPrice: body.minPrice,
-    maxPrice: body.maxPrice,
-    minPriceType: body.minPriceType,
-    maxPriceType: body.maxPriceType,
     tags: body.tags,
     selectedTraits: body.selectedTraits,
     traits: body.traits,
-    outbid: body.outbid,
-    blurOutbidMargin: body.outbid ? body.blurOutbidMargin : null,
-    openseaOutbidMargin: body.outbid ? body.openseaOutbidMargin : null,
-    magicedenOutbidMargin: body.outbid ? body.magicedenOutbidMargin : null,
-    counterbid: body.counterbid,
+    outbidOptions: {
+      outbid: body.outbidOptions.outbid,
+      blurOutbidMargin: body.outbidOptions.outbid
+        ? body.outbidOptions.blurOutbidMargin
+        : null,
+      openseaOutbidMargin: body.outbidOptions.outbid
+        ? body.outbidOptions.openseaOutbidMargin
+        : null,
+      magicedenOutbidMargin: body.outbidOptions.outbid
+        ? body.outbidOptions.magicedenOutbidMargin
+        : null,
+      counterbid: body.outbidOptions.counterbid,
+    },
     pauseAllBids: body.pauseAllBids,
     stopAllBids: body.stopAllBids,
     cancelAllBids: body.cancelAllBids,

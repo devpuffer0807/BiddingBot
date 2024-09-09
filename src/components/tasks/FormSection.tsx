@@ -50,6 +50,36 @@ const FormSection: React.FC<FormSectionProps> = ({
     }));
   };
 
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setFormState((prev) => ({
+      ...prev,
+      contract: {
+        ...prev.contract,
+        slug: value,
+      },
+      slugDirty: true,
+    }));
+    if (value.length >= 3) {
+      validateSlug(value);
+    } else {
+      setFormState((prev) => ({ ...prev, slugValid: false }));
+    }
+  };
+
+  const handleContractAddressChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { value } = e.target;
+    setFormState((prev) => ({
+      ...prev,
+      contract: {
+        ...prev.contract,
+        contractAddress: value,
+      },
+    }));
+  };
+
   return (
     <>
       <div>
@@ -60,28 +90,27 @@ const FormSection: React.FC<FormSectionProps> = ({
           <input
             type="text"
             id="slug"
-            name="slug"
-            onChange={(e) => {
-              handleChange(e);
-              if (e.target.value) {
-                validateSlug(e.target.value);
-              }
-            }}
-            value={formState.slug}
+            name="contract.slug"
+            onChange={handleSlugChange}
+            value={formState.contract.slug}
             placeholder="collection slug"
             className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
-              errors.slug ? "border-red-500" : ""
+              errors.contract?.slug ? "border-red-500" : ""
             }`}
             required
             autoComplete="off"
           />
-          {formState.slugDirty && formState.slug.length > 0 && (
+          {formState.slugDirty && formState.contract.slug.length > 0 && (
             <div className="absolute right-3 top-[50%] transform -translate-y-1/2">
-              {errors.slug || !formState.slugValid ? <XIcon /> : <CheckIcon />}
+              {errors.contract?.slug || !formState.slugValid ? (
+                <XIcon />
+              ) : (
+                <CheckIcon />
+              )}
             </div>
           )}
-          {errors.slug && (
-            <p className="text-red-500 text-sm mt-1">{errors.slug}</p>
+          {errors.contract?.slug && (
+            <p className="text-red-500 text-sm mt-1">{errors.contract.slug}</p>
           )}
         </div>
       </div>

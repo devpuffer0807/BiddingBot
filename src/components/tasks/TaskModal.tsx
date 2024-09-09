@@ -41,11 +41,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
   } = useTaskForm(
     initialTask
       ? {
-          slug: initialTask.slug,
+          contract: {
+            slug: initialTask.contract.slug,
+            contractAddress: initialTask.contract.contractAddress,
+          },
           selectedWallet: initialTask.selectedWallet,
           selectedMarketplaces: initialTask.selectedMarketplaces,
           running: initialTask.running,
-          contractAddress: initialTask.contractAddress,
           tags: initialTask.tags,
           selectedTraits: initialTask.selectedTraits,
           traits: initialTask.traits || { categories: {}, counts: {} },
@@ -73,11 +75,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
           },
         }
       : {
-          slug: "",
+          contract: {
+            slug: "",
+            contractAddress: "",
+          },
           selectedWallet: "",
           selectedMarketplaces: [],
           running: false,
-          contractAddress: "",
           tags: [],
           selectedTraits: {},
           traits: { categories: {}, counts: {} },
@@ -150,6 +154,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
     if (isValid) {
       const taskStore = useTaskStore.getState();
       const taskData = {
+        contract: {
+          slug: formState.contract.slug,
+          contractAddress: formState.contract.contractAddress,
+        },
         running: formState.running,
         tags: formState.tags,
         selectedTraits: formState.selectedTraits,
@@ -166,7 +174,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
             : null,
           counterbid: formState.outbidOptions.counterbid,
         },
-        counterbid: formState.outbidOptions.counterbid,
         minFloorPrice: Number(formState.minFloorPrice),
         minTraitPrice: Number(formState.minTraitPrice),
         maxPurchase: Number(formState.maxPurchase),
@@ -196,13 +203,15 @@ const TaskModal: React.FC<TaskModalProps> = ({
     }
 
     setFormState({
-      slug: "",
+      contract: {
+        slug: "",
+        contractAddress: "",
+      },
       selectedWallet: "",
       selectedMarketplaces: [],
       running: false,
       slugValid: false,
       slugDirty: false,
-      contractAddress: "",
       tags: [],
       selectedTraits: {},
       traits: { categories: {}, counts: {} },

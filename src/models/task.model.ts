@@ -3,12 +3,14 @@ import mongoose, { Schema, Document } from "mongoose";
 interface ITask extends Document {
   _id: mongoose.Types.ObjectId;
   user: mongoose.Types.ObjectId;
-  slug: string;
+  contract: {
+    slug: string;
+    contractAddress: string;
+  };
   selectedWallet: string;
   walletPrivateKey: string;
   selectedMarketplaces: string[];
   running: boolean;
-  contractAddress: string;
   tags: { name: string; color: string }[];
   selectedTraits: Record<string, string[]>;
   traits: {
@@ -36,20 +38,22 @@ interface ITask extends Document {
   maxPurchase: number;
 }
 
-const TaskSchema = new Schema<ITask>(
+const TaskSchema: Schema = new Schema(
   {
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    slug: { type: String, required: true },
+    contract: {
+      slug: { type: String, required: true },
+      contractAddress: { type: String, required: true },
+    },
     selectedWallet: { type: String, required: true },
     walletPrivateKey: { type: String, required: true },
     selectedMarketplaces: { type: [String], required: true },
     running: { type: Boolean, default: false },
-    contractAddress: { type: String, required: true },
-    tags: { type: [{ name: String, color: String }], default: [] },
-    selectedTraits: { type: Schema.Types.Mixed, default: {} },
+    tags: [{ name: String, color: String }],
+    selectedTraits: { type: Schema.Types.Mixed },
     traits: {
-      categories: { type: Schema.Types.Mixed, default: {} },
-      counts: { type: Schema.Types.Mixed, default: {} },
+      categories: { type: Schema.Types.Mixed },
+      counts: { type: Schema.Types.Mixed },
     },
     outbidOptions: {
       outbid: { type: Boolean, default: false },
@@ -58,9 +62,6 @@ const TaskSchema = new Schema<ITask>(
       magicedenOutbidMargin: { type: Number, default: null },
       counterbid: { type: Boolean, default: false },
     },
-    minFloorPrice: { type: Number, required: true },
-    minTraitPrice: { type: Number, required: true },
-    maxPurchase: { type: Number, required: true },
     pauseAllBids: { type: Boolean, default: false },
     stopAllBids: { type: Boolean, default: false },
     cancelAllBids: { type: Boolean, default: false },
@@ -70,6 +71,9 @@ const TaskSchema = new Schema<ITask>(
       minType: { type: String, enum: ["percentage", "eth"], required: true },
       maxType: { type: String, enum: ["percentage", "eth"], required: true },
     },
+    minFloorPrice: { type: Number, required: true },
+    minTraitPrice: { type: Number, required: true },
+    maxPurchase: { type: Number, required: true },
   },
   { timestamps: true }
 );

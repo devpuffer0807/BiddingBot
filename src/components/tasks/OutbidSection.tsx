@@ -3,6 +3,28 @@ import Toggle from "../common/Toggle";
 import { TaskFormState } from "@/hooks/useTaskForm";
 
 const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
+  const updateOutbidOptions = (
+    updatedOptions: Partial<typeof formState.outbidOptions>
+  ) => {
+    setFormState((prev) => {
+      const newOutbidOptions = {
+        ...prev.outbidOptions,
+        ...updatedOptions,
+      };
+
+      if (!newOutbidOptions.outbid && !newOutbidOptions.counterbid) {
+        newOutbidOptions.blurOutbidMargin = null;
+        newOutbidOptions.openseaOutbidMargin = null;
+        newOutbidOptions.magicedenOutbidMargin = null;
+      }
+
+      return {
+        ...prev,
+        outbidOptions: newOutbidOptions,
+      };
+    });
+  };
+
   return (
     <>
       <div className="mt-6">
@@ -11,31 +33,13 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
           <Toggle
             checked={formState.outbidOptions.outbid}
             onChange={() =>
-              setFormState((prev) => ({
-                ...prev,
-                outbidOptions: {
-                  ...prev.outbidOptions,
-                  outbid: !prev.outbidOptions.outbid,
-                  blurOutbidMargin: !prev.outbidOptions.outbid ? "" : null,
-                  openseaOutbidMargin: !prev.outbidOptions.outbid ? "" : null,
-                  magicedenOutbidMargin: !prev.outbidOptions.outbid ? "" : null,
-                },
-              }))
+              updateOutbidOptions({ outbid: !formState.outbidOptions.outbid })
             }
           />
           <span
             className="text-sm cursor-pointer"
             onClick={() =>
-              setFormState((prev) => ({
-                ...prev,
-                outbidOptions: {
-                  ...prev.outbidOptions,
-                  outbid: !prev.outbidOptions.outbid,
-                  blurOutbidMargin: !prev.outbidOptions.outbid ? "" : null,
-                  openseaOutbidMargin: !prev.outbidOptions.outbid ? "" : null,
-                  magicedenOutbidMargin: !prev.outbidOptions.outbid ? "" : null,
-                },
-              }))
+              updateOutbidOptions({ outbid: !formState.outbidOptions.outbid })
             }
           >
             {formState.outbidOptions.outbid
@@ -48,49 +52,17 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
           <Toggle
             checked={formState.outbidOptions.counterbid}
             onChange={() =>
-              setFormState((prev) => ({
-                ...prev,
-                outbidOptions: {
-                  ...prev.outbidOptions,
-                  counterbid: !prev.outbidOptions.counterbid,
-                  blurOutbidMargin:
-                    !prev.outbidOptions.outbid && !prev.outbidOptions.counterbid
-                      ? ""
-                      : null,
-                  openseaOutbidMargin:
-                    !prev.outbidOptions.outbid && !prev.outbidOptions.counterbid
-                      ? ""
-                      : null,
-                  magicedenOutbidMargin:
-                    !prev.outbidOptions.outbid && !prev.outbidOptions.counterbid
-                      ? ""
-                      : null,
-                },
-              }))
+              updateOutbidOptions({
+                counterbid: !formState.outbidOptions.counterbid,
+              })
             }
           />
           <span
             className="text-sm cursor-pointer"
             onClick={() =>
-              setFormState((prev) => ({
-                ...prev,
-                outbidOptions: {
-                  ...prev.outbidOptions,
-                  counterbid: !prev.outbidOptions.counterbid,
-                  blurOutbidMargin:
-                    !prev.outbidOptions.outbid && !prev.outbidOptions.counterbid
-                      ? ""
-                      : null,
-                  openseaOutbidMargin:
-                    !prev.outbidOptions.outbid && !prev.outbidOptions.counterbid
-                      ? ""
-                      : null,
-                  magicedenOutbidMargin:
-                    !prev.outbidOptions.outbid && !prev.outbidOptions.counterbid
-                      ? ""
-                      : null,
-                },
-              }))
+              updateOutbidOptions({
+                counterbid: !formState.outbidOptions.counterbid,
+              })
             }
           >
             {formState.outbidOptions.counterbid
@@ -114,16 +86,28 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
                 id="blurOutbidMargin"
                 name="blurOutbidMargin"
                 min={0.01}
-                onChange={(e) =>
+                step={0.01}
+                onChange={(e) => {
+                  const value = e.target.value;
                   setFormState((prev) => ({
                     ...prev,
                     outbidOptions: {
                       ...prev.outbidOptions,
-                      blurOutbidMargin: e.target.value,
+                      blurOutbidMargin: value,
                     },
-                  }))
-                }
-                value={formState.outbidOptions.blurOutbidMargin?.toString()}
+                  }));
+                }}
+                onBlur={(e) => {
+                  const value = Math.max(0.01, parseFloat(e.target.value) || 0);
+                  setFormState((prev) => ({
+                    ...prev,
+                    outbidOptions: {
+                      ...prev.outbidOptions,
+                      blurOutbidMargin: value.toString(),
+                    },
+                  }));
+                }}
+                value={formState.outbidOptions.blurOutbidMargin || ""}
                 placeholder="0.01"
                 className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] `}
                 required

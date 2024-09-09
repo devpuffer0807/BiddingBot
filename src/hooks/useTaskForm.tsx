@@ -6,13 +6,15 @@ import isEqual from "lodash/isEqual";
 import { toast } from "react-toastify";
 
 export interface TaskFormState {
-  slug: string;
+  contract: {
+    slug: string;
+    contractAddress: string;
+  };
   selectedWallet: string;
   selectedMarketplaces: string[];
   running: boolean;
   slugValid: boolean | null;
   slugDirty: boolean;
-  contractAddress: string;
   tags: { name: string; color: string }[];
   selectedTraits: Record<string, string[]>;
   traits: {
@@ -126,7 +128,10 @@ export const useTaskForm = (
         setFormState((prev) => ({
           ...prev,
           slugValid: !!contractAddress,
-          contractAddress,
+          contract: {
+            ...prev.contract,
+            contractAddress,
+          },
         }));
 
         // Update the traits in the form state
@@ -154,7 +159,7 @@ export const useTaskForm = (
     const { name, value } = e.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
 
-    if (name === "slug") {
+    if (name === "contract.slug") {
       setFormState((prev) => ({ ...prev, slugDirty: true }));
       if (value.length >= 3) {
         debouncedValidateSlug(value);
@@ -176,7 +181,6 @@ export const useTaskForm = (
   const validateForm = () => {
     const newErrors: Partial<TaskFormState> = {};
 
-    if (!formState.slug) newErrors.slug = "Collection slug is required";
     if (!formState.selectedWallet)
       newErrors.selectedWallet = "Wallet selection is required";
     if (formState.selectedMarketplaces.length === 0)
@@ -205,7 +209,10 @@ export const useTaskForm = (
       }
 
       const taskData: Omit<Task, "_id"> = {
-        slug: formState.slug.toLowerCase(),
+        contract: {
+          slug: formState.contract.slug.toLowerCase(),
+          contractAddress: formState.contract.contractAddress,
+        },
         selectedWallet: formState.selectedWallet,
         walletPrivateKey: selectedWallet.privateKey,
         bidPrice: {
@@ -216,7 +223,6 @@ export const useTaskForm = (
         },
         selectedMarketplaces: formState.selectedMarketplaces,
         running: formState.running,
-        contractAddress: formState.contractAddress,
         tags: formState.tags,
         selectedTraits: formState.selectedTraits,
         traits: formState.traits,
