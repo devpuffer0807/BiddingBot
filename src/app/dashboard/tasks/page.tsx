@@ -124,7 +124,7 @@ const Tasks = () => {
           type: "subscribeCollection",
           constraint: {
             chain: "ethereum",
-            collectionSymbol: task.contractAddress.toLowerCase(),
+            collectionSymbol: task.contract.contractAddress.toLowerCase(),
           },
         };
         ws.send(JSON.stringify(subscribeMessage));
@@ -152,11 +152,11 @@ const Tasks = () => {
           const marketplace = determineMarketplace(bidData.source.domain);
           const task = tasks.find(
             (item) =>
-              item.contractAddress.toLowerCase() ===
+              item.contract.contractAddress.toLowerCase() ===
               bidData.contract.toLowerCase()
           );
           const bidInfo: BidInfo = {
-            collectionSlug: task?.slug || "",
+            collectionSlug: task?.contract.slug || "",
             basePrice: bidData.price.amount.raw,
             formattedPrice: bidData.price.amount.decimal.toString(),
             expirationDate: new Date(
