@@ -9,14 +9,17 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
         <h2 className="font-medium mb-4">Outbid Option</h2>
         <div className="flex items-center mb-8 gap-2">
           <Toggle
-            checked={formState.outbid}
+            checked={formState.outbidOptions.outbid}
             onChange={() =>
               setFormState((prev) => ({
                 ...prev,
-                outbid: !prev.outbid,
-                blurOutbidMargin: !prev.outbid ? "" : null,
-                openseaOutbidMargin: !prev.outbid ? "" : null,
-                magicedenOutbidMargin: !prev.outbid ? "" : null,
+                outbidOptions: {
+                  ...prev.outbidOptions,
+                  outbid: !prev.outbidOptions.outbid,
+                  blurOutbidMargin: !prev.outbidOptions.outbid ? "" : null,
+                  openseaOutbidMargin: !prev.outbidOptions.outbid ? "" : null,
+                  magicedenOutbidMargin: !prev.outbidOptions.outbid ? "" : null,
+                },
               }))
             }
           />
@@ -25,29 +28,44 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
             onClick={() =>
               setFormState((prev) => ({
                 ...prev,
-                outbid: !prev.outbid,
-                blurOutbidMargin: !prev.outbid ? "" : null,
-                openseaOutbidMargin: !prev.outbid ? "" : null,
-                magicedenOutbidMargin: !prev.outbid ? "" : null,
+                outbidOptions: {
+                  ...prev.outbidOptions,
+                  outbid: !prev.outbidOptions.outbid,
+                  blurOutbidMargin: !prev.outbidOptions.outbid ? "" : null,
+                  openseaOutbidMargin: !prev.outbidOptions.outbid ? "" : null,
+                  magicedenOutbidMargin: !prev.outbidOptions.outbid ? "" : null,
+                },
               }))
             }
           >
-            {formState.outbid ? "Disable Outbidding" : "Enable Outbidding"}
+            {formState.outbidOptions.outbid
+              ? "Disable Outbidding"
+              : "Enable Outbidding"}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
           <Toggle
-            checked={formState.counterbid}
+            checked={formState.outbidOptions.counterbid}
             onChange={() =>
               setFormState((prev) => ({
                 ...prev,
-                counterbid: !prev.counterbid,
-                blurOutbidMargin: !prev.outbid && !prev.counterbid ? "" : null,
-                openseaOutbidMargin:
-                  !prev.outbid && !prev.counterbid ? "" : null,
-                magicedenOutbidMargin:
-                  !prev.outbid && !prev.counterbid ? "" : null,
+                outbidOptions: {
+                  ...prev.outbidOptions,
+                  counterbid: !prev.outbidOptions.counterbid,
+                  blurOutbidMargin:
+                    !prev.outbidOptions.outbid && !prev.outbidOptions.counterbid
+                      ? ""
+                      : null,
+                  openseaOutbidMargin:
+                    !prev.outbidOptions.outbid && !prev.outbidOptions.counterbid
+                      ? ""
+                      : null,
+                  magicedenOutbidMargin:
+                    !prev.outbidOptions.outbid && !prev.outbidOptions.counterbid
+                      ? ""
+                      : null,
+                },
               }))
             }
           />
@@ -56,16 +74,26 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
             onClick={() =>
               setFormState((prev) => ({
                 ...prev,
-                counterbid: !prev.counterbid,
-                blurOutbidMargin: !prev.outbid && !prev.counterbid ? "" : null,
-                openseaOutbidMargin:
-                  !prev.outbid && !prev.counterbid ? "" : null,
-                magicedenOutbidMargin:
-                  !prev.outbid && !prev.counterbid ? "" : null,
+                outbidOptions: {
+                  ...prev.outbidOptions,
+                  counterbid: !prev.outbidOptions.counterbid,
+                  blurOutbidMargin:
+                    !prev.outbidOptions.outbid && !prev.outbidOptions.counterbid
+                      ? ""
+                      : null,
+                  openseaOutbidMargin:
+                    !prev.outbidOptions.outbid && !prev.outbidOptions.counterbid
+                      ? ""
+                      : null,
+                  magicedenOutbidMargin:
+                    !prev.outbidOptions.outbid && !prev.outbidOptions.counterbid
+                      ? ""
+                      : null,
+                },
               }))
             }
           >
-            {formState.counterbid
+            {formState.outbidOptions.counterbid
               ? "Disable Counterbidding"
               : "Enable Counterbidding"}
           </span>
@@ -73,7 +101,8 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
       </div>
 
       <div className="mt-6">
-        {formState.outbid || formState.counterbid ? (
+        {formState.outbidOptions.outbid ||
+        formState.outbidOptions.counterbid ? (
           <div className="flex flex-col gap-4">
             <div>
               <label htmlFor="blurOutbidMargin" className="block text-sm mb-1">
@@ -88,10 +117,13 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
                 onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,
-                    blurOutbidMargin: e.target.value,
+                    outbidOptions: {
+                      ...prev.outbidOptions,
+                      blurOutbidMargin: e.target.value,
+                    },
                   }))
                 }
-                value={formState.blurOutbidMargin?.toString()}
+                value={formState.outbidOptions.blurOutbidMargin?.toString()}
                 placeholder="0.01"
                 className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] `}
                 required
@@ -113,10 +145,13 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
                 onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,
-                    openseaOutbidMargin: e.target.value,
+                    outbidOptions: {
+                      ...prev.outbidOptions,
+                      openseaOutbidMargin: e.target.value,
+                    },
                   }))
                 }
-                value={formState.openseaOutbidMargin?.toString()}
+                value={formState.outbidOptions.openseaOutbidMargin?.toString()}
                 placeholder="0.0001"
                 className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] `}
                 required
@@ -139,10 +174,13 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
                 onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,
-                    magicedenOutbidMargin: e.target.value,
+                    outbidOptions: {
+                      ...prev.outbidOptions,
+                      magicedenOutbidMargin: e.target.value,
+                    },
                   }))
                 }
-                value={formState.magicedenOutbidMargin?.toString()}
+                value={formState.outbidOptions.magicedenOutbidMargin?.toString()}
                 placeholder="0.0001"
                 className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] `}
                 required

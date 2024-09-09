@@ -19,11 +19,13 @@ export interface TaskFormState {
     categories: Record<string, string>;
     counts: Record<string, Record<string, number>>;
   };
-  outbid: boolean;
-  blurOutbidMargin: string | null;
-  openseaOutbidMargin: string | null;
-  magicedenOutbidMargin: string | null;
-  counterbid: boolean;
+  outbidOptions: {
+    outbid: boolean;
+    blurOutbidMargin: string | null;
+    openseaOutbidMargin: string | null;
+    magicedenOutbidMargin: string | null;
+    counterbid: boolean;
+  };
   minFloorPrice: string;
   minTraitPrice: string;
   maxPurchase: string;
@@ -55,11 +57,14 @@ export const useTaskForm = (
       categories: {},
       counts: {},
     },
-    outbid: initialState.outbid,
-    blurOutbidMargin: initialState.blurOutbidMargin || "",
-    openseaOutbidMargin: initialState.openseaOutbidMargin || "",
-    magicedenOutbidMargin: initialState.magicedenOutbidMargin || "",
-    counterbid: initialState.counterbid,
+    outbidOptions: {
+      outbid: initialState.outbidOptions.outbid,
+      blurOutbidMargin: initialState.outbidOptions.blurOutbidMargin || "",
+      openseaOutbidMargin: initialState.outbidOptions.openseaOutbidMargin || "",
+      magicedenOutbidMargin:
+        initialState.outbidOptions.magicedenOutbidMargin || "",
+      counterbid: initialState.outbidOptions.counterbid,
+    },
     minFloorPrice: initialState.minFloorPrice || "",
     minTraitPrice: initialState.minTraitPrice || "",
     maxPurchase: initialState.maxPurchase || "",
@@ -87,6 +92,15 @@ export const useTaskForm = (
         tags: initialState.tags || [],
         selectedTraits: initialState.selectedTraits || {},
         traits: initialState.traits || { categories: {}, counts: {} },
+        outbidOptions: {
+          outbid: initialState.outbidOptions.outbid,
+          blurOutbidMargin: initialState.outbidOptions.blurOutbidMargin || "",
+          openseaOutbidMargin:
+            initialState.outbidOptions.openseaOutbidMargin || "",
+          magicedenOutbidMargin:
+            initialState.outbidOptions.magicedenOutbidMargin || "",
+          counterbid: initialState.outbidOptions.counterbid,
+        },
         bidPrice: {
           min: initialState.bidPrice.min,
           max: initialState.bidPrice.max,
@@ -206,17 +220,19 @@ export const useTaskForm = (
         tags: formState.tags,
         selectedTraits: formState.selectedTraits,
         traits: formState.traits,
-        outbid: formState.outbid,
-        blurOutbidMargin: formState.outbid
-          ? Number(formState.blurOutbidMargin)
-          : null,
-        openseaOutbidMargin: formState.outbid
-          ? Number(formState.openseaOutbidMargin)
-          : null,
-        magicedenOutbidMargin: formState.outbid
-          ? Number(formState.magicedenOutbidMargin)
-          : null,
-        counterbid: formState.counterbid,
+        outbidOptions: {
+          outbid: formState.outbidOptions.outbid,
+          blurOutbidMargin: formState.outbidOptions.outbid
+            ? Number(formState.outbidOptions.blurOutbidMargin)
+            : null,
+          openseaOutbidMargin: formState.outbidOptions.outbid
+            ? Number(formState.outbidOptions.openseaOutbidMargin)
+            : null,
+          magicedenOutbidMargin: formState.outbidOptions.outbid
+            ? Number(formState.outbidOptions.magicedenOutbidMargin)
+            : null,
+          counterbid: formState.outbidOptions.counterbid,
+        },
         minFloorPrice: Number(formState.minFloorPrice),
         minTraitPrice: Number(formState.minTraitPrice),
         maxPurchase: Number(formState.maxPurchase),

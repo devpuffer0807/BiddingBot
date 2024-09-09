@@ -49,13 +49,16 @@ const TaskModal: React.FC<TaskModalProps> = ({
           tags: initialTask.tags,
           selectedTraits: initialTask.selectedTraits,
           traits: initialTask.traits || { categories: {}, counts: {} },
-          outbid: initialTask.outbid,
-          blurOutbidMargin: initialTask.blurOutbidMargin?.toString() || "",
-          openseaOutbidMargin:
-            initialTask.openseaOutbidMargin?.toString() || "",
-          magicedenOutbidMargin:
-            initialTask.magicedenOutbidMargin?.toString() || "",
-          counterbid: initialTask.counterbid,
+          outbidOptions: {
+            outbid: initialTask.outbidOptions.outbid,
+            blurOutbidMargin:
+              initialTask.outbidOptions.blurOutbidMargin?.toString() || "",
+            openseaOutbidMargin:
+              initialTask.outbidOptions.openseaOutbidMargin?.toString() || "",
+            magicedenOutbidMargin:
+              initialTask.outbidOptions.magicedenOutbidMargin?.toString() || "",
+            counterbid: initialTask.outbidOptions.counterbid,
+          },
           minFloorPrice: initialTask.minFloorPrice.toString(),
           minTraitPrice: initialTask.minTraitPrice.toString(),
           maxPurchase: initialTask.maxPurchase.toString(),
@@ -78,11 +81,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
           tags: [],
           selectedTraits: {},
           traits: { categories: {}, counts: {} },
-          outbid: false,
-          blurOutbidMargin: "",
-          openseaOutbidMargin: "",
-          magicedenOutbidMargin: "",
-          counterbid: false,
+          outbidOptions: {
+            outbid: false,
+            blurOutbidMargin: "",
+            openseaOutbidMargin: "",
+            magicedenOutbidMargin: "",
+            counterbid: false,
+          },
           minFloorPrice: "",
           minTraitPrice: "",
           maxPurchase: "",
@@ -148,17 +153,20 @@ const TaskModal: React.FC<TaskModalProps> = ({
         running: formState.running,
         tags: formState.tags,
         selectedTraits: formState.selectedTraits,
-        outbid: formState.outbid,
-        blurOutbidMargin: formState.outbid
-          ? Number(formState.blurOutbidMargin)
-          : null,
-        openseaOutbidMargin: formState.outbid
-          ? Number(formState.openseaOutbidMargin)
-          : null,
-        magicedenOutbidMargin: formState.outbid
-          ? Number(formState.magicedenOutbidMargin)
-          : null,
-        counterbid: formState.counterbid,
+        outbidOptions: {
+          outbid: formState.outbidOptions.outbid,
+          blurOutbidMargin: formState.outbidOptions.outbid
+            ? Number(formState.outbidOptions.blurOutbidMargin)
+            : null,
+          openseaOutbidMargin: formState.outbidOptions.outbid
+            ? Number(formState.outbidOptions.openseaOutbidMargin)
+            : null,
+          magicedenOutbidMargin: formState.outbidOptions.outbid
+            ? Number(formState.outbidOptions.magicedenOutbidMargin)
+            : null,
+          counterbid: formState.outbidOptions.counterbid,
+        },
+        counterbid: formState.outbidOptions.counterbid,
         minFloorPrice: Number(formState.minFloorPrice),
         minTraitPrice: Number(formState.minTraitPrice),
         maxPurchase: Number(formState.maxPurchase),
@@ -198,11 +206,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
       tags: [],
       selectedTraits: {},
       traits: { categories: {}, counts: {} },
-      outbid: false,
-      blurOutbidMargin: "",
-      openseaOutbidMargin: "",
-      magicedenOutbidMargin: "",
-      counterbid: false,
+      outbidOptions: {
+        outbid: false,
+        blurOutbidMargin: "",
+        openseaOutbidMargin: "",
+        magicedenOutbidMargin: "",
+        counterbid: false,
+      },
       minFloorPrice: "",
       minTraitPrice: "",
       maxPurchase: "",

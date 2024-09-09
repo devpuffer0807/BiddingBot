@@ -15,14 +15,13 @@ interface ITask extends Document {
     categories: Record<string, string>;
     counts: Record<string, Record<string, number>>;
   };
-  outbid: boolean;
-  blurOutbidMargin: number | null;
-  openseaOutbidMargin: number | null;
-  magicedenOutbidMargin: number | null;
-  counterbid: boolean;
-  minFloorPrice: number;
-  minTraitPrice: number;
-  maxPurchase: number;
+  outbidOptions: {
+    outbid: boolean;
+    blurOutbidMargin: number | null;
+    openseaOutbidMargin: number | null;
+    magicedenOutbidMargin: number | null;
+    counterbid: boolean;
+  };
   pauseAllBids: boolean;
   stopAllBids: boolean;
   cancelAllBids: boolean;
@@ -32,6 +31,9 @@ interface ITask extends Document {
     minType: "percentage" | "eth";
     maxType: "percentage" | "eth";
   };
+  minFloorPrice: number;
+  minTraitPrice: number;
+  maxPurchase: number;
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -49,11 +51,13 @@ const TaskSchema = new Schema<ITask>(
       categories: { type: Schema.Types.Mixed, default: {} },
       counts: { type: Schema.Types.Mixed, default: {} },
     },
-    outbid: { type: Boolean, default: false },
-    blurOutbidMargin: { type: Number, default: null },
-    openseaOutbidMargin: { type: Number, default: null },
-    magicedenOutbidMargin: { type: Number, default: null },
-    counterbid: { type: Boolean, default: false },
+    outbidOptions: {
+      outbid: { type: Boolean, default: false },
+      blurOutbidMargin: { type: Number, default: null },
+      openseaOutbidMargin: { type: Number, default: null },
+      magicedenOutbidMargin: { type: Number, default: null },
+      counterbid: { type: Boolean, default: false },
+    },
     minFloorPrice: { type: Number, required: true },
     minTraitPrice: { type: Number, required: true },
     maxPurchase: { type: Number, required: true },

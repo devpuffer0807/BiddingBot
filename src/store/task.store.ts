@@ -15,11 +15,13 @@ export interface Task {
     categories: Record<string, string>;
     counts: Record<string, Record<string, number>>;
   };
-  outbid: boolean;
-  blurOutbidMargin: number | null;
-  openseaOutbidMargin: number | null;
-  magicedenOutbidMargin: number | null;
-  counterbid: boolean;
+  outbidOptions: {
+    outbid: boolean;
+    blurOutbidMargin: number | null;
+    openseaOutbidMargin: number | null;
+    magicedenOutbidMargin: number | null;
+    counterbid: boolean;
+  };
   minFloorPrice: number;
   minTraitPrice: number;
   maxPurchase: number;
@@ -58,6 +60,7 @@ export const useTaskStore = create(
               _id: Date.now().toString(),
               running: false,
               bidPrice: task.bidPrice,
+              outbidOptions: task.outbidOptions,
             },
           ],
         })),
@@ -75,6 +78,23 @@ export const useTaskStore = create(
                       updatedTask.bidPrice?.minType ?? task.bidPrice.minType,
                     maxType:
                       updatedTask.bidPrice?.maxType ?? task.bidPrice.maxType,
+                  },
+                  outbidOptions: {
+                    outbid:
+                      updatedTask.outbidOptions?.outbid ??
+                      task.outbidOptions.outbid,
+                    blurOutbidMargin:
+                      updatedTask.outbidOptions?.blurOutbidMargin ??
+                      task.outbidOptions.blurOutbidMargin,
+                    openseaOutbidMargin:
+                      updatedTask.outbidOptions?.openseaOutbidMargin ??
+                      task.outbidOptions.openseaOutbidMargin,
+                    magicedenOutbidMargin:
+                      updatedTask.outbidOptions?.magicedenOutbidMargin ??
+                      task.outbidOptions.magicedenOutbidMargin,
+                    counterbid:
+                      updatedTask.outbidOptions?.counterbid ??
+                      task.outbidOptions.counterbid,
                   },
                 }
               : task
