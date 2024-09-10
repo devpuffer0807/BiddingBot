@@ -12,6 +12,10 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
         ...updatedOptions,
       };
 
+      if (!newOutbidOptions.outbid) {
+        newOutbidOptions.counterbid = false; // Disable counterbidding if outbidding is not true
+      }
+
       if (!newOutbidOptions.outbid && !newOutbidOptions.counterbid) {
         newOutbidOptions.blurOutbidMargin = null;
         newOutbidOptions.openseaOutbidMargin = null;
@@ -29,25 +33,6 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
     <>
       <div className="mt-6">
         <h2 className="font-medium mb-4">Outbid Option</h2>
-        <div className="flex items-center mb-8 gap-2">
-          <Toggle
-            checked={formState.outbidOptions.outbid}
-            onChange={() =>
-              updateOutbidOptions({ outbid: !formState.outbidOptions.outbid })
-            }
-          />
-          <span
-            className="text-sm cursor-pointer"
-            onClick={() =>
-              updateOutbidOptions({ outbid: !formState.outbidOptions.outbid })
-            }
-          >
-            {formState.outbidOptions.outbid
-              ? "Disable Outbidding"
-              : "Enable Outbidding"}
-          </span>
-        </div>
-
         <div className="flex items-center gap-2">
           <Toggle
             checked={formState.outbidOptions.counterbid}

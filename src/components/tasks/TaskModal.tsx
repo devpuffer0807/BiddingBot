@@ -335,7 +335,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
               setNewTagColor={setNewTagColor}
               handleAddTag={handleAddTag}
             />
-            <OutbidSection formState={formState} setFormState={setFormState} />
+
+            {formState.outbidOptions.outbid ? (
+              <OutbidSection
+                formState={formState}
+                setFormState={setFormState}
+              />
+            ) : null}
             <StopOption formState={formState} setFormState={setFormState} />
             <StartSection formState={formState} setFormState={setFormState} />
           </div>

@@ -36,6 +36,10 @@ const FormSection: React.FC<FormSectionProps> = ({
         ...updatedOptions,
       };
 
+      if (!newOutbidOptions.outbid) {
+        newOutbidOptions.counterbid = false; // Disable counterbidding if outbidding is not true
+      }
+
       if (!newOutbidOptions.outbid && !newOutbidOptions.counterbid) {
         newOutbidOptions.blurOutbidMargin = null;
         newOutbidOptions.openseaOutbidMargin = null;
