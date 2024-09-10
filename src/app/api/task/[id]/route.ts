@@ -62,6 +62,7 @@ export async function PUT(
       ...body,
       stopOptions: {
         minFloorPrice: body.stopOptions.minFloorPrice,
+        maxFloorPrice: body.stopOptions.maxFloorPrice,
         minTraitPrice: body.stopOptions.minTraitPrice,
         maxTraitPrice: body.stopOptions.maxTraitPrice,
         maxPurchase: body.stopOptions.maxPurchase,
