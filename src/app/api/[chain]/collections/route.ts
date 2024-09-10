@@ -1,11 +1,17 @@
+import Wallet from "@/models/wallet.model";
+import { getUserIdFromCookies } from "@/utils";
+import { connect } from "@/utils/mongodb";
+import axios from "axios";
+import { ethers, Wallet as Web3Wallet } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 
-const API_KEY = "3c64906d-8b8c-418b-bd65-1285ec085b44";
+const API_KEY = "8a73f6c4-5f93-40fc-b50d-74d865b1cbf9";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { chain: string } }
 ) {
+  await connect();
   try {
     const { chain } = params;
     const searchParams = request.nextUrl.searchParams;
@@ -37,7 +43,42 @@ export async function GET(
       console.error("Error fetching traits:", error);
     }
 
-    const data = { ...collection, traits };
+    let magicEdenValid = false;
+    let blurValid = false;
+    try {
+      // magicEdenValid = await checkMagicEden(collection.contracts[0].address);
+    } catch (error) {
+      console.error("Error checking Magic Eden:", error);
+    }
+
+    try {
+      const userId = await getUserIdFromCookies(request);
+
+      if (!userId) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      const wallet = await Wallet.findOne({ user: userId });
+
+      if (!wallet) {
+        return NextResponse.json(
+          { error: "You need to create a wallet first" },
+          { status: 400 }
+        );
+      }
+
+      blurValid = await checkBlur(
+        collection.contracts[0].address,
+        wallet.address,
+        wallet.privateKey
+      );
+    } catch (error) {
+      console.error("Error checking Blur:", error);
+    }
+
+    console.log({ magicEdenValid, blurValid });
+
+    const data = { ...collection, traits, magicEdenValid, blurValid };
 
     if (
       collection.collection_offers_enabled &&
@@ -52,6 +93,7 @@ export async function GET(
       );
     }
   } catch (error) {
+    console.error("Error in GET handler:", error);
     return NextResponse.json({ error: "An error occurred" }, { status: 500 });
   }
 }
@@ -68,11 +110,115 @@ export async function getCollectionTraits(collectionSlug: string) {
       }
     );
 
+    if (!response.ok) {
+      throw new Error("Failed to fetch collection traits");
+    }
+
     const data = await response.json();
     return data;
   } catch (error) {
     console.error("Error fetching collection traits:", error);
     throw error;
+  }
+}
+
+async function checkMagicEden(contractAddress: string): Promise<boolean> {
+  console.log({ contractAddress });
+
+  const apiUrl = `https://api.nfttools.website/magiceden/v3/rtp/ethereum/collections/v7?id=${contractAddress}&displayCurrency=0x4200000000000000000000000000000000000006`;
+  const headers = {
+    accept: "application/json",
+    "X-NFT-API-Key": API_KEY,
+  };
+
+  try {
+    const response = await fetch(apiUrl, { headers });
+
+    console.log({ response });
+
+    if (!response.ok) {
+      throw new Error("Failed to validate contract address on Magic Eden");
+    }
+    return true;
+  } catch (error) {
+    console.error("Error checking Magic Eden:", error);
+    return false;
+  }
+}
+
+async function checkBlur(
+  contractAddress: string,
+  walletAddress: string,
+  private_key: string
+): Promise<boolean> {
+  const sanitizedPrivateKey = private_key.startsWith("0x")
+    ? private_key.slice(2)
+    : private_key;
+
+  const BLUR_API_URL = "https://api.nfttools.website/blur";
+  const accessToken = await getAccessToken(BLUR_API_URL, sanitizedPrivateKey);
+
+  const options = {
+    method: "GET",
+    url: `${BLUR_API_URL}/v1/collections/${contractAddress}`,
+    headers: {
+      authToken: accessToken as string,
+      walletAddress: walletAddress,
+      "X-NFT-API-Key": API_KEY,
+    },
+  };
+
+  try {
+    const response = await axios.get(options.url, {
+      headers: options.headers,
+    });
+
+    return response.data.success;
+  } catch (error) {
+    console.error("Error checking Blur:", error);
+    return false;
+  }
+}
+
+export async function getAccessToken(
+  url: string,
+  private_key: string
+): Promise<string | undefined> {
+  const provider = new ethers.AlchemyProvider(
+    "mainnet",
+    "0rk2kbu11E5PDyaUqX1JjrNKwG7s4ty5"
+  );
+  const wallet = new Web3Wallet(private_key, provider);
+  const options = { walletAddress: wallet.address };
+
+  const headers = {
+    "content-type": "application/json",
+    "X-NFT-API-Key": API_KEY,
+  };
+
+  try {
+    let response: any = await axios.post(`${url}/auth/challenge`, options, {
+      headers,
+    });
+
+    const message = response.data.message;
+    const signature = await wallet.signMessage(message);
+    const data = {
+      message: message,
+      walletAddress: wallet.address,
+      expiresOn: response.data.expiresOn,
+      hmac: response.data.hmac,
+      signature: signature,
+    };
+
+    response = await axios.post(`${url}/auth/login`, data, { headers });
+
+    return response.data.accessToken;
+  } catch (error: any) {
+    console.error(
+      "getAccessToken Error:",
+      error.response?.data || error.message
+    );
   }
 }
 
