@@ -8,7 +8,7 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
     updatedOptions: Partial<typeof formState.stopOptions>
   ) => {
     setFormState((prev) => {
-      const newStopOptions = {
+      let newStopOptions = {
         ...prev.stopOptions,
         ...updatedOptions,
       };
@@ -22,12 +22,21 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
         newStopOptions.maxPurchase = null;
       }
 
+      // Ensure only one of pauseAllBids or stopAllBids can be true
+      if (newStopOptions.pauseAllBids) {
+        newStopOptions.stopAllBids = false;
+      }
+      if (newStopOptions.stopAllBids) {
+        newStopOptions.pauseAllBids = false;
+      }
+
       return {
         ...prev,
         stopOptions: newStopOptions,
       };
     });
   };
+
   return (
     <>
       <div className="mt-6">
@@ -91,6 +100,7 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
                     onClick={() =>
                       updateStopOptions({
                         stopAllBids: !formState.stopOptions.stopAllBids,
+                        pauseAllBids: false, // Ensure pauseAllBids is false
                       })
                     }
                   />
@@ -101,6 +111,7 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
                   onClick={() =>
                     updateStopOptions({
                       stopAllBids: !formState.stopOptions.stopAllBids,
+                      pauseAllBids: false, // Ensure pauseAllBids is false
                     })
                   }
                 >
@@ -116,6 +127,7 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
                     onClick={() =>
                       updateStopOptions({
                         pauseAllBids: !formState.stopOptions.pauseAllBids,
+                        stopAllBids: false, // Ensure stopAllBids is false
                       })
                     }
                   />
@@ -126,6 +138,7 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
                   onClick={() =>
                     updateStopOptions({
                       pauseAllBids: !formState.stopOptions.pauseAllBids,
+                      stopAllBids: false, // Ensure stopAllBids is false
                     })
                   }
                 >
@@ -149,6 +162,7 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
                 type="number"
                 id="minFloorPrice"
                 step={0.0001}
+                min={0.0001}
                 name="minFloorPrice"
                 onChange={(e) =>
                   setFormState((prev) => ({
@@ -176,6 +190,7 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
                 id="minTraitPrice"
                 name="minTraitPrice"
                 step={0.0001}
+                min={0.0001}
                 onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,
@@ -203,6 +218,7 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
                 id="maxPurchase"
                 name="maxPurchase"
                 step={1}
+                min={1}
                 onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,

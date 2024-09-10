@@ -71,6 +71,7 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
                 id="blurOutbidMargin"
                 name="blurOutbidMargin"
                 min={0.01}
+                max={0.1}
                 step={0.01}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -110,6 +111,8 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
                 inputMode="numeric"
                 type="number"
                 step={0.0001}
+                min={0.0001}
+                max={0.1}
                 id="openseaOutbidMargin"
                 name="openseaOutbidMargin"
                 onChange={(e) =>
@@ -142,6 +145,8 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
                 id="magicedenOutbidMargin"
                 name="magicedenOutbidMargin"
                 step={0.0001}
+                min={0.0001}
+                max={0.1}
                 onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,
