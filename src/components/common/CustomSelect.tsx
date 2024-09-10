@@ -5,6 +5,9 @@ export type CustomSelectOption = {
   value: string;
   label: string;
   address?: string;
+  etherBalance?: string;
+  wethBalance?: string;
+  blurBalance?: string;
 };
 
 interface CustomSelectProps {
@@ -54,6 +57,23 @@ const CustomSelect = ({
                     {option.address}
                   </div>
                 )}
+                <div className="flex flex-col gap-1 text-sm mt-2">
+                  {option.etherBalance && (
+                    <div className="text-sm text-Neutral/Neutral-600-[night]">
+                      {option.etherBalance}
+                    </div>
+                  )}
+                  {option.wethBalance && (
+                    <div className="text-sm text-Neutral/Neutral-600-[night]">
+                      {option.wethBalance}
+                    </div>
+                  )}
+                  {option.blurBalance && (
+                    <div className="text-sm text-Neutral/Neutral-600-[night]">
+                      {option.blurBalance}
+                    </div>
+                  )}
+                </div>
               </div>
             </li>
           ))}

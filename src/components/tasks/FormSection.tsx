@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import CheckIcon from "@/assets/svg/CheckIcon";
 import XIcon from "@/assets/svg/XIcon";
 import { TaskFormState } from "@/hooks/useTaskForm";
 import CustomSelect, { CustomSelectOption } from "../common/CustomSelect";
 import Toggle from "../common/Toggle";
+import WalletBalanceFetcher from "../common/WalletBalanceFetcher";
 
 interface FormSectionProps {
   formState: TaskFormState;
@@ -22,6 +23,9 @@ const FormSection: React.FC<FormSectionProps> = ({
   setFormState,
   onWalletModalOpen,
 }) => {
+  const [updatedWalletOptions, setUpdatedWalletOptions] =
+    useState(walletOptions);
+
   const priceTypeOptions: CustomSelectOption[] = [
     { value: "percentage", label: "%" },
     { value: "eth", label: "ETH" },
@@ -107,6 +111,10 @@ const FormSection: React.FC<FormSectionProps> = ({
 
   return (
     <>
+      <WalletBalanceFetcher
+        walletOptions={walletOptions}
+        onBalancesFetched={setUpdatedWalletOptions}
+      />
       <div>
         <label htmlFor="slug" className="block text-sm font-medium mb-2">
           Collection slug <span className="text-red-500">*</span>
@@ -148,7 +156,7 @@ const FormSection: React.FC<FormSectionProps> = ({
         </label>
         <div className="relative">
           <CustomSelect
-            options={walletOptions}
+            options={updatedWalletOptions}
             value={formState.wallet?.address || ""}
             onChange={(selectedValue) =>
               setFormState((prev) => ({
