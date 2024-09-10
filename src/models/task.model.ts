@@ -38,6 +38,7 @@ interface ITask extends Document {
     stopAllBids: boolean;
     cancelAllBids: boolean;
     minFloorPrice: number;
+    maxFloorPrice: number;
     minTraitPrice: number;
     maxTraitPrice: number;
     maxPurchase: number;
@@ -79,6 +80,7 @@ const TaskSchema: Schema = new Schema(
     },
     stopOptions: {
       minFloorPrice: { type: Number, required: true },
+      maxFloorPrice: { type: Number, required: true },
       minTraitPrice: { type: Number, required: true },
       maxTraitPrice: { type: Number, required: true },
       maxPurchase: { type: Number, required: true },

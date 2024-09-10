@@ -29,6 +29,7 @@ export interface TaskFormState {
   };
   stopOptions: {
     minFloorPrice: string | null;
+    maxFloorPrice: string | null;
     minTraitPrice: string | null;
     maxTraitPrice: string | null;
     maxPurchase: string | null;
@@ -76,6 +77,7 @@ export const useTaskForm = (
     },
     stopOptions: {
       minFloorPrice: initialState.stopOptions.minFloorPrice || null,
+      maxFloorPrice: initialState.stopOptions.maxFloorPrice || null,
       minTraitPrice: initialState.stopOptions.minTraitPrice || null,
       maxTraitPrice: initialState.stopOptions.maxTraitPrice || null,
       maxPurchase: initialState.stopOptions.maxPurchase || null,
@@ -116,6 +118,7 @@ export const useTaskForm = (
         },
         stopOptions: {
           minFloorPrice: initialState.stopOptions.minFloorPrice || "",
+          maxFloorPrice: initialState.stopOptions.maxFloorPrice || "",
           minTraitPrice: initialState.stopOptions.minTraitPrice || "",
           maxTraitPrice: initialState.stopOptions.maxTraitPrice || "",
           maxPurchase: initialState.stopOptions.maxPurchase || "",
@@ -256,6 +259,7 @@ export const useTaskForm = (
         },
         stopOptions: {
           minFloorPrice: Number(formState.stopOptions.minFloorPrice),
+          maxFloorPrice: Number(formState.stopOptions.maxFloorPrice),
           minTraitPrice: Number(formState.stopOptions.minTraitPrice),
           maxTraitPrice: Number(formState.stopOptions.maxTraitPrice),
           maxPurchase: Number(formState.stopOptions.maxPurchase),

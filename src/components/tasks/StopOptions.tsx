@@ -18,6 +18,7 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
         newStopOptions.pauseAllBids = false;
         newStopOptions.stopAllBids = false;
         newStopOptions.minFloorPrice = null;
+        newStopOptions.maxFloorPrice = null;
         newStopOptions.minTraitPrice = null;
         newStopOptions.maxTraitPrice = null;
         newStopOptions.maxPurchase = null;
@@ -183,26 +184,26 @@ const StopOption = ({ formState, setFormState }: IStopOption) => {
                 />
               </div>
               <div>
-                <label htmlFor="minFloorPrice" className="block text-sm mb-1">
+                <label htmlFor="maxFloorPrice" className="block text-sm mb-1">
                   Max Floor Price
                 </label>
                 <input
                   inputMode="numeric"
                   type="number"
-                  id="minFloorPrice"
+                  id="maxFloorPrice"
                   step={0.0001}
                   min={0.0001}
-                  name="minFloorPrice"
+                  name="maxFloorPrice"
                   onChange={(e) =>
                     setFormState((prev) => ({
                       ...prev,
                       stopOptions: {
                         ...prev.stopOptions,
-                        minFloorPrice: e.target.value,
+                        maxFloorPrice: e.target.value,
                       },
                     }))
                   }
-                  value={formState.stopOptions.minFloorPrice?.toString()}
+                  value={formState.stopOptions.maxFloorPrice?.toString()}
                   placeholder="0.0001"
                   className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] `}
                   required
