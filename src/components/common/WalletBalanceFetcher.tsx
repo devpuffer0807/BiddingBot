@@ -15,8 +15,6 @@ const WETH_CONTRACT_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 export const BLUR_POOL_ADDRESS = "0x0000000000A39bb272e79075ade125fd351887Ac";
 
 const fetchEtherBalance = async (walletAddress: string, provider: any) => {
-  console.log("Fetching Ether balance for:", walletAddress);
-
   try {
     const balance = await provider.getBalance(walletAddress);
     return Number(formatEther(balance)).toFixed(4) + " ETH";

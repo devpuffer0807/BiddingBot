@@ -13,6 +13,8 @@ export interface TaskFormState {
   selectedMarketplaces: string[];
   running: boolean;
   slugValid: boolean | null;
+  blurValid: boolean | null;
+  magicEdenValid: boolean | null;
   slugDirty: boolean;
   tags: { name: string; color: string }[];
   selectedTraits: Record<string, string[]>;
@@ -51,7 +53,10 @@ export interface TaskFormState {
 }
 
 export const useTaskForm = (
-  initialState: Omit<TaskFormState, "slugValid" | "slugDirty">,
+  initialState: Omit<
+    TaskFormState,
+    "slugValid" | "slugDirty" | "magicEdenValid" | "blurValid"
+  >,
   taskId?: string
 ) => {
   const { addTask, editTask } = useTaskStore();
@@ -60,6 +65,8 @@ export const useTaskForm = (
   const [formState, setFormState] = useState<TaskFormState>({
     ...initialState,
     slugValid: taskId ? true : null,
+    blurValid: taskId ? true : null,
+    magicEdenValid: taskId ? true : null,
     slugDirty: false,
     tags: initialState.tags || [],
     selectedTraits: initialState.selectedTraits || {},
@@ -103,6 +110,8 @@ export const useTaskForm = (
       setFormState((prevState) => ({
         ...initialState,
         slugValid: taskId ? true : prevState.slugValid,
+        magicEdenValid: taskId ? true : prevState.magicEdenValid,
+        blurValid: taskId ? true : prevState.blurValid,
         slugDirty: prevState.slugDirty,
         tags: initialState.tags || [],
         selectedTraits: initialState.selectedTraits || {},
@@ -141,7 +150,12 @@ export const useTaskForm = (
 
   const validateSlug = useCallback(async (slug: string) => {
     if (slug.length < 3) {
-      setFormState((prev) => ({ ...prev, slugValid: false }));
+      setFormState((prev) => ({
+        ...prev,
+        slugValid: false,
+        magicEdenValid: false,
+        blurValid: false,
+      }));
       return;
     }
 
@@ -150,6 +164,9 @@ export const useTaskForm = (
       if (response.status === 200) {
         const data = await response.json();
         const contractAddress = data.contracts[0]?.address || "";
+        const magicEdenValid = data.magicEdenValid;
+        const blurValid = data.blurValid;
+
         setFormState((prev) => ({
           ...prev,
           slugValid: !!contractAddress,
@@ -157,6 +174,8 @@ export const useTaskForm = (
             ...prev.contract,
             contractAddress,
           },
+          magicEdenValid: magicEdenValid,
+          blurValid: blurValid,
         }));
 
         // Update the traits in the form state
@@ -167,11 +186,21 @@ export const useTaskForm = (
           }));
         }
       } else {
-        setFormState((prev) => ({ ...prev, slugValid: false }));
+        setFormState((prev) => ({
+          ...prev,
+          slugValid: false,
+          magicEdenValid: false,
+          blurValid: false,
+        }));
       }
     } catch (error) {
       console.error("Error validating slug:", error);
-      setFormState((prev) => ({ ...prev, slugValid: false }));
+      setFormState((prev) => ({
+        ...prev,
+        slugValid: false,
+        magicEdenValid: false,
+        blurValid: false,
+      }));
     }
   }, []);
 
@@ -185,11 +214,23 @@ export const useTaskForm = (
     setFormState((prev) => ({ ...prev, [name]: value }));
 
     if (name === "contract.slug") {
-      setFormState((prev) => ({ ...prev, slugDirty: true }));
+      setFormState((prev) => ({
+        ...prev,
+        slugDirty: true,
+        selectedTraits: initialState.selectedTraits || {},
+        traits: initialState.traits || { categories: {}, counts: {} },
+        blurValid: taskId ? true : null,
+        magicEdenValid: taskId ? true : null,
+      }));
       if (value.length >= 3) {
         debouncedValidateSlug(value);
       } else {
-        setFormState((prev) => ({ ...prev, slugValid: false }));
+        setFormState((prev) => ({
+          ...prev,
+          slugValid: false,
+          magicEdenValid: false,
+          blurValid: false,
+        }));
       }
     }
   };

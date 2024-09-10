@@ -252,6 +252,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
       selectedMarketplaces: [],
       running: false,
       slugValid: false,
+      magicEdenValid: false,
+      blurValid: false,
       slugDirty: false,
       tags: [],
       selectedTraits: {},

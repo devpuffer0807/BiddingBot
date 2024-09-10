@@ -28,11 +28,12 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
     setSelectedCategory(selectedCategory === category ? null : category);
   };
 
-  const filteredTraits = selectedCategory
-    ? Object.entries(traits.counts[selectedCategory]).filter(([trait]) =>
-        trait.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [];
+  const filteredTraits =
+    selectedCategory && traits.counts[selectedCategory]
+      ? Object.entries(traits.counts[selectedCategory]).filter(([trait]) =>
+          trait.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : [];
 
   const handleClickOutside = (event: MouseEvent) => {
     if (

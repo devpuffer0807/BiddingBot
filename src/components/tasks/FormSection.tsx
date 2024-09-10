@@ -88,25 +88,21 @@ const FormSection: React.FC<FormSectionProps> = ({
         slug: value,
       },
       slugDirty: true,
+      selectedTraits: {},
+      traits: {
+        categories: {},
+        counts: {},
+      },
+      blurValid: false,
+      magicEdenValid: false,
+      slugValid: false,
     }));
+    // alert("slug changed");
     if (value.length >= 3) {
       debouncedValidateSlug(value);
     } else {
       setFormState((prev) => ({ ...prev, slugValid: false }));
     }
-  };
-
-  const handleContractAddressChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const { value } = e.target;
-    setFormState((prev) => ({
-      ...prev,
-      contract: {
-        ...prev.contract,
-        contractAddress: value,
-      },
-    }));
   };
 
   return (

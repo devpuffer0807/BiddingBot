@@ -175,8 +175,8 @@ async function checkBlur(
     });
 
     return response.data.success;
-  } catch (error) {
-    console.error("Error checking Blur:", error);
+  } catch (error: any) {
+    console.error("Error checking Blur:", error.response.data);
     return false;
   }
 }

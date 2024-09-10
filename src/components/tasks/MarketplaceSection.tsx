@@ -20,12 +20,17 @@ const MarketplaceSection = ({
               : marketplace === "Blur"
               ? "bg-[#FF8700]"
               : "bg-[#2081e2]";
+          const isDisabled =
+            (marketplace === "MagicEden" && !formState.magicEdenValid) ||
+            (marketplace === "Blur" && !formState.blurValid);
+
           return (
             <button
               key={marketplace}
               type="button"
               onClick={() => handleMarketplaceToggle(marketplace)}
               className="flex items-center"
+              disabled={isDisabled}
             >
               <span className="mr-2 text-sm">{marketplace}</span>
               <div className="w-10 h-6 flex items-center rounded-full p-1 bg-gray-300">
@@ -42,6 +47,12 @@ const MarketplaceSection = ({
           );
         })}
       </div>
+      {formState.slugValid && !formState.blurValid ? (
+        <p className="text-red-500 text-sm mt-1">
+          ⚠️ this collection is not available on Blur Marketplace
+        </p>
+      ) : null}
+
       {errors.selectedMarketplaces && (
         <p className="text-red-500 text-sm mt-1">
           {errors.selectedMarketplaces}
