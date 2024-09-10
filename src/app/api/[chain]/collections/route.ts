@@ -46,7 +46,10 @@ export async function GET(
     let magicEdenValid = false;
     let blurValid = false;
     try {
-      // magicEdenValid = await checkMagicEden(collection.contracts[0].address);
+      magicEdenValid = await checkMagicEden(
+        collection.contracts[0].address,
+        slug
+      );
     } catch (error) {
       console.error("Error checking Magic Eden:", error);
     }
@@ -75,8 +78,6 @@ export async function GET(
     } catch (error) {
       console.error("Error checking Blur:", error);
     }
-
-    console.log({ magicEdenValid, blurValid });
 
     const data = { ...collection, traits, magicEdenValid, blurValid };
 
@@ -122,24 +123,24 @@ export async function getCollectionTraits(collectionSlug: string) {
   }
 }
 
-async function checkMagicEden(contractAddress: string): Promise<boolean> {
-  console.log({ contractAddress });
-
-  const apiUrl = `https://api.nfttools.website/magiceden/v3/rtp/ethereum/collections/v7?id=${contractAddress}&displayCurrency=0x4200000000000000000000000000000000000006`;
+async function checkMagicEden(
+  contractAddress: string,
+  slug: string
+): Promise<boolean> {
+  const apiUrl = `https://api.nfttools.website/magiceden/v3/rtp/ethereum/collections/v7?id=${contractAddress}`;
   const headers = {
     accept: "application/json",
     "X-NFT-API-Key": API_KEY,
   };
 
   try {
-    const response = await fetch(apiUrl, { headers });
+    let response: any = await fetch(apiUrl, { headers });
+    response = await response.json();
 
-    console.log({ response });
-
-    if (!response.ok) {
-      throw new Error("Failed to validate contract address on Magic Eden");
-    }
-    return true;
+    return (
+      response.collections[0].chainId === 1 &&
+      response.collections[0].slug.toLowerCase() === slug.toLowerCase()
+    );
   } catch (error) {
     console.error("Error checking Magic Eden:", error);
     return false;
