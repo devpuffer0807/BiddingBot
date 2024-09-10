@@ -38,6 +38,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     setFormState,
     handleTagChange,
     handleTraitChange,
+    debouncedValidateSlug, // Ensure this is destructured
   } = useTaskForm(
     initialTask
       ? {
@@ -313,7 +314,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
             <FormSection
               formState={formState}
               errors={errors}
-              validateSlug={validateSlug}
+              debouncedValidateSlug={debouncedValidateSlug} // Pass the debounced function
               walletOptions={walletOptions}
               setFormState={setFormState}
               onWalletModalOpen={handleWalletModalOpen}
@@ -383,6 +384,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
 };
 
 export default TaskModal;
+
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;

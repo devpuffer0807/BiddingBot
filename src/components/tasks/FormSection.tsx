@@ -8,7 +8,7 @@ import Toggle from "../common/Toggle";
 interface FormSectionProps {
   formState: TaskFormState;
   errors: Partial<TaskFormState>;
-  validateSlug: (slug: string) => void;
+  debouncedValidateSlug: (slug: string) => void;
   walletOptions: CustomSelectOption[];
   setFormState: React.Dispatch<React.SetStateAction<TaskFormState>>;
   onWalletModalOpen: () => void;
@@ -17,7 +17,7 @@ interface FormSectionProps {
 const FormSection: React.FC<FormSectionProps> = ({
   formState,
   errors,
-  validateSlug,
+  debouncedValidateSlug,
   walletOptions,
   setFormState,
   onWalletModalOpen,
@@ -86,7 +86,7 @@ const FormSection: React.FC<FormSectionProps> = ({
       slugDirty: true,
     }));
     if (value.length >= 3) {
-      validateSlug(value);
+      debouncedValidateSlug(value);
     } else {
       setFormState((prev) => ({ ...prev, slugValid: false }));
     }

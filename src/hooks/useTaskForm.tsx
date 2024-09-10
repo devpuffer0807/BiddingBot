@@ -329,5 +329,6 @@ export const useTaskForm = (
     setFormState,
     handleTagChange,
     handleTraitChange,
+    debouncedValidateSlug, // Ensure this is returned
   };
 };
