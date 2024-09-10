@@ -35,6 +35,7 @@ export interface Task {
   stopOptions: {
     minFloorPrice: number | null;
     minTraitPrice: number | null;
+    maxTraitPrice: number | null;
     maxPurchase: number | null;
     pauseAllBids: boolean;
     stopAllBids: boolean;
@@ -116,6 +117,9 @@ export const useTaskStore = create(
                     minTraitPrice:
                       updatedTask.stopOptions?.minTraitPrice ??
                       task.stopOptions.minTraitPrice,
+                    maxTraitPrice:
+                      updatedTask.stopOptions?.maxTraitPrice ??
+                      task.stopOptions.maxTraitPrice,
                     maxPurchase:
                       updatedTask.stopOptions?.maxPurchase ??
                       task.stopOptions.maxPurchase,

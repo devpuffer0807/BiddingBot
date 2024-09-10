@@ -30,6 +30,7 @@ export interface TaskFormState {
   stopOptions: {
     minFloorPrice: string | null;
     minTraitPrice: string | null;
+    maxTraitPrice: string | null;
     maxPurchase: string | null;
     pauseAllBids: boolean;
     stopAllBids: boolean;
@@ -76,6 +77,7 @@ export const useTaskForm = (
     stopOptions: {
       minFloorPrice: initialState.stopOptions.minFloorPrice || null,
       minTraitPrice: initialState.stopOptions.minTraitPrice || null,
+      maxTraitPrice: initialState.stopOptions.maxTraitPrice || null,
       maxPurchase: initialState.stopOptions.maxPurchase || null,
       pauseAllBids: initialState.stopOptions.pauseAllBids || false,
       stopAllBids: initialState.stopOptions.stopAllBids || false,
@@ -115,6 +117,7 @@ export const useTaskForm = (
         stopOptions: {
           minFloorPrice: initialState.stopOptions.minFloorPrice || "",
           minTraitPrice: initialState.stopOptions.minTraitPrice || "",
+          maxTraitPrice: initialState.stopOptions.maxTraitPrice || "",
           maxPurchase: initialState.stopOptions.maxPurchase || "",
           pauseAllBids: initialState.stopOptions.pauseAllBids || false,
           stopAllBids: initialState.stopOptions.stopAllBids || false,
@@ -254,6 +257,7 @@ export const useTaskForm = (
         stopOptions: {
           minFloorPrice: Number(formState.stopOptions.minFloorPrice),
           minTraitPrice: Number(formState.stopOptions.minTraitPrice),
+          maxTraitPrice: Number(formState.stopOptions.maxTraitPrice),
           maxPurchase: Number(formState.stopOptions.maxPurchase),
           pauseAllBids: formState.stopOptions.pauseAllBids,
           stopAllBids: formState.stopOptions.stopAllBids,

@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
     stopOptions: {
       minFloorPrice: body.stopOptions.minFloorPrice,
       minTraitPrice: body.stopOptions.minTraitPrice,
+      maxTraitPrice: body.stopOptions.maxTraitPrice,
       maxPurchase: body.stopOptions.maxPurchase,
       pauseAllBids: body.stopOptions.pauseAllBids,
       stopAllBids: body.stopOptions.stopAllBids,

@@ -65,6 +65,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
               initialTask.stopOptions.minFloorPrice?.toString() || "",
             minTraitPrice:
               initialTask.stopOptions.minTraitPrice?.toString() || "",
+            maxTraitPrice:
+              initialTask.stopOptions.maxTraitPrice?.toString() || "",
             maxPurchase: initialTask.stopOptions.maxPurchase?.toString() || "",
             pauseAllBids: initialTask.stopOptions.pauseAllBids,
             stopAllBids: initialTask.stopOptions.stopAllBids,
@@ -103,6 +105,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           stopOptions: {
             minFloorPrice: "",
             minTraitPrice: "",
+            maxTraitPrice: "",
             maxPurchase: "",
             pauseAllBids: false,
             stopAllBids: false,
@@ -203,6 +206,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         stopOptions: {
           minFloorPrice: Number(formState.stopOptions.minFloorPrice),
           minTraitPrice: Number(formState.stopOptions.minTraitPrice),
+          maxTraitPrice: Number(formState.stopOptions.maxTraitPrice),
           maxPurchase: Number(formState.stopOptions.maxPurchase),
           pauseAllBids: formState.stopOptions.pauseAllBids,
           stopAllBids: formState.stopOptions.stopAllBids,
@@ -257,6 +261,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       stopOptions: {
         minFloorPrice: "",
         minTraitPrice: "",
+        maxTraitPrice: "",
         maxPurchase: "",
         pauseAllBids: false,
         stopAllBids: false,
