@@ -5,7 +5,7 @@ import axios from "axios";
 import { ethers, Wallet as Web3Wallet } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 
-const API_KEY = "8a73f6c4-5f93-40fc-b50d-74d865b1cbf9";
+const API_KEY = "9669db1f-485e-4cbf-8041-2c886a5ca440";
 
 export async function GET(
   request: NextRequest,
