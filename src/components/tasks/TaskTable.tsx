@@ -3,6 +3,7 @@ import { Task } from "@/store/task.store";
 import Toggle from "@/components/common/Toggle";
 import EditIcon from "@/assets/svg/EditIcon";
 import { Tag } from "@/store/tag.store";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -29,6 +30,10 @@ const TaskTable: React.FC<TaskTableProps> = ({
   filterText,
   selectedTags,
 }) => {
+  const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
+    .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
+
+  const { sendMessage } = useWebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
   const filteredTasks = tasks.filter((task) => {
     const matchesSlug = task.contract.slug
       .toLowerCase()
@@ -225,7 +230,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     type="checkbox"
                     className="sr-only"
                     checked={task.running}
-                    onChange={() => onToggleTaskStatus(task._id)}
+                    onChange={() => {
+                      onToggleTaskStatus(task._id);
+                      const message = { endpoint: "toggle-status", data: task };
+                      sendMessage(message);
+                    }}
                   />
                   <div
                     className={`relative w-11 h-6 bg-gray-200 rounded-full transition-colors duration-200 ease-in-out ${

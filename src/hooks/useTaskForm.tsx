@@ -4,53 +4,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import debounce from "lodash/debounce";
 import isEqual from "lodash/isEqual";
 import { toast } from "react-toastify";
-
-export interface TaskFormState {
-  contract: {
-    slug: string;
-    contractAddress: string;
-  };
-  selectedMarketplaces: string[];
-  running: boolean;
-  slugValid: boolean | null;
-  blurValid: boolean | null;
-  magicEdenValid: boolean | null;
-  slugDirty: boolean;
-  tags: { name: string; color: string }[];
-  selectedTraits: Record<string, string[]>;
-  traits: {
-    categories: Record<string, string>;
-    counts: Record<string, Record<string, number>>;
-  };
-  outbidOptions: {
-    outbid: boolean;
-    blurOutbidMargin: string | null;
-    openseaOutbidMargin: string | null;
-    magicedenOutbidMargin: string | null;
-    counterbid: boolean;
-  };
-  stopOptions: {
-    minFloorPrice: string | null;
-    maxFloorPrice: string | null;
-    minTraitPrice: string | null;
-    maxTraitPrice: string | null;
-    maxPurchase: string | null;
-    pauseAllBids: boolean;
-    stopAllBids: boolean;
-    cancelAllBids: boolean;
-    triggerStopOptions: boolean;
-  };
-  bidPrice: {
-    min: string;
-    max: string;
-    minType: "percentage" | "eth";
-    maxType: "percentage" | "eth";
-  };
-  wallet: {
-    address: string;
-    privateKey: string;
-  };
-}
+import { useWebSocket } from "./useWebSocket";
 
 export const useTaskForm = (
   initialState: Omit<
@@ -59,8 +13,11 @@ export const useTaskForm = (
   >,
   taskId?: string
 ) => {
+  const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
+    .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
   const { addTask, editTask } = useTaskStore();
   const { wallets } = useWalletStore();
+  const { sendMessage } = useWebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
 
   const [formState, setFormState] = useState<TaskFormState>({
     ...initialState,
@@ -102,7 +59,6 @@ export const useTaskForm = (
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
-
   const prevInitialStateRef = useRef(initialState);
 
   useEffect(() => {
@@ -328,7 +284,10 @@ export const useTaskForm = (
 
           if (!response.ok) throw new Error("Failed to update task");
           const updatedTask = await response.json();
+          const message = { endpoint: "updated-task", data: updatedTask };
+
           editTask(taskId, updatedTask);
+          sendMessage(message);
         } else {
           const response = await fetch("/api/task", {
             method: "POST",
@@ -338,10 +297,13 @@ export const useTaskForm = (
           });
           if (!response.ok) throw new Error("Failed to create task");
           const newTask = await response.json();
+          const message = { endpoint: "new-task", data: newTask };
           const fetchResponse = await fetch(`/api/task/${newTask._id}`);
           if (!fetchResponse.ok) throw new Error("Failed to fetch new task");
           const fetchedTask = await fetchResponse.json();
+
           addTask(fetchedTask);
+          sendMessage(message);
         }
         return true;
       } catch (error) {
@@ -373,3 +335,50 @@ export const useTaskForm = (
     debouncedValidateSlug, // Ensure this is returned
   };
 };
+
+export interface TaskFormState {
+  contract: {
+    slug: string;
+    contractAddress: string;
+  };
+  selectedMarketplaces: string[];
+  running: boolean;
+  slugValid: boolean | null;
+  blurValid: boolean | null;
+  magicEdenValid: boolean | null;
+  slugDirty: boolean;
+  tags: { name: string; color: string }[];
+  selectedTraits: Record<string, string[]>;
+  traits: {
+    categories: Record<string, string>;
+    counts: Record<string, Record<string, number>>;
+  };
+  outbidOptions: {
+    outbid: boolean;
+    blurOutbidMargin: string | null;
+    openseaOutbidMargin: string | null;
+    magicedenOutbidMargin: string | null;
+    counterbid: boolean;
+  };
+  stopOptions: {
+    minFloorPrice: string | null;
+    maxFloorPrice: string | null;
+    minTraitPrice: string | null;
+    maxTraitPrice: string | null;
+    maxPurchase: string | null;
+    pauseAllBids: boolean;
+    stopAllBids: boolean;
+    cancelAllBids: boolean;
+    triggerStopOptions: boolean;
+  };
+  bidPrice: {
+    min: string;
+    max: string;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
+  wallet: {
+    address: string;
+    privateKey: string;
+  };
+}

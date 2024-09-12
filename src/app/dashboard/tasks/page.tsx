@@ -10,6 +10,7 @@ import RecentBids from "@/components/tasks/RecentBids";
 import { BidInfo, WebSocketResponse } from "@/interface";
 import TagFilter from "@/components/tasks/TagFilter";
 import { Tag } from "@/store/tag.store";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
   .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
@@ -26,6 +27,8 @@ const Tasks = () => {
   const [recordsPerPage, setRecordsPerPage] = useState(20);
   const [filterText, setFilterText] = useState("");
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+
+  const { sendMessage } = useWebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -57,51 +60,6 @@ const Tasks = () => {
       sessionStorage.setItem("lastSession", Date.now().toString());
     }
   }, []);
-
-  useEffect(() => {
-    const runningTasks = tasks.filter((task) => task.running);
-    let ws: WebSocket | null = null;
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 5;
-
-    function connect() {
-      ws = new WebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
-
-      ws.onopen = () => {
-        console.log("WebSocket connection established");
-        reconnectAttempts = 0;
-        ws?.send(JSON.stringify({ endpoint: "tasks", data: runningTasks }));
-      };
-
-      ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
-      };
-
-      ws.onclose = (event) => {
-        console.warn("WebSocket connection closed:", event.reason);
-        if (reconnectAttempts < maxReconnectAttempts) {
-          const timeout = Math.pow(2, reconnectAttempts) * 1000;
-          console.log(
-            `Attempting to reconnect in ${timeout / 1000} seconds...`
-          );
-          setTimeout(connect, timeout);
-          reconnectAttempts++;
-        } else {
-          console.error(
-            "Max reconnection attempts reached. Please refresh the page."
-          );
-        }
-      };
-    }
-
-    connect();
-
-    return () => {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.close();
-      }
-    };
-  }, [tasks]);
 
   const toggleTaskSelection = (taskId: string) => {
     setSelectedTasks((prev) => {
@@ -189,6 +147,11 @@ const Tasks = () => {
 
   const toggleSelectedTasksStatus = (running: boolean) => {
     toggleMultipleTasksRunning(selectedTasks, running);
+
+    sendMessage({
+      endpoint: "update-multiple-tasks-status",
+      data: { taskIds: selectedTasks, running },
+    });
   };
 
   const toggleSelectAll = () => {
@@ -224,7 +187,6 @@ const Tasks = () => {
   const indexOfLastOffer = currentPage * recordsPerPage;
   const indexOfFirstOffer = indexOfLastOffer - recordsPerPage;
   const currentBids = bids.slice(indexOfFirstOffer, indexOfLastOffer);
-
   const totalPages = Math.ceil(bids.length / recordsPerPage);
 
   const paginate = React.useCallback((pageNumber: number) => {

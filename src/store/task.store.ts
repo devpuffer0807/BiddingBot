@@ -1,50 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export interface Task {
-  _id: string;
-  contract: {
-    slug: string;
-    contractAddress: string;
-  };
-  wallet: {
-    address: string;
-    privateKey: string;
-  };
-  selectedMarketplaces: string[];
-  running: boolean;
-  tags: { name: string; color: string }[];
-  selectedTraits: Record<string, string[]>;
-  traits: {
-    categories: Record<string, string>;
-    counts: Record<string, Record<string, number>>;
-  };
-  outbidOptions: {
-    outbid: boolean;
-    blurOutbidMargin: number | null;
-    openseaOutbidMargin: number | null;
-    magicedenOutbidMargin: number | null;
-    counterbid: boolean;
-  };
-  bidPrice: {
-    min: number;
-    max: number | null;
-    minType: "percentage" | "eth";
-    maxType: "percentage" | "eth";
-  };
-  stopOptions: {
-    minFloorPrice: number | null;
-    maxFloorPrice: number | null;
-    minTraitPrice: number | null;
-    maxTraitPrice: number | null;
-    maxPurchase: number | null;
-    pauseAllBids: boolean;
-    stopAllBids: boolean;
-    cancelAllBids: boolean;
-    triggerStopOptions: boolean;
-  };
-}
-
 interface TaskStore {
   tasks: Task[];
   addTask: (task: Task) => void;
@@ -171,3 +127,47 @@ export const useTaskStore = create(
     }
   )
 );
+
+export interface Task {
+  _id: string;
+  contract: {
+    slug: string;
+    contractAddress: string;
+  };
+  wallet: {
+    address: string;
+    privateKey: string;
+  };
+  selectedMarketplaces: string[];
+  running: boolean;
+  tags: { name: string; color: string }[];
+  selectedTraits: Record<string, string[]>;
+  traits: {
+    categories: Record<string, string>;
+    counts: Record<string, Record<string, number>>;
+  };
+  outbidOptions: {
+    outbid: boolean;
+    blurOutbidMargin: number | null;
+    openseaOutbidMargin: number | null;
+    magicedenOutbidMargin: number | null;
+    counterbid: boolean;
+  };
+  bidPrice: {
+    min: number;
+    max: number | null;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
+  stopOptions: {
+    minFloorPrice: number | null;
+    maxFloorPrice: number | null;
+    minTraitPrice: number | null;
+    maxTraitPrice: number | null;
+    maxPurchase: number | null;
+    pauseAllBids: boolean;
+    stopAllBids: boolean;
+    cancelAllBids: boolean;
+    triggerStopOptions: boolean;
+  };
+}
