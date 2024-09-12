@@ -23,11 +23,14 @@ export const useTaskStore = create(
             {
               ...task,
               running: false,
-              wallet: task.wallet,
               bidPrice: task.bidPrice,
               outbidOptions: task.outbidOptions,
               stopOptions: task.stopOptions,
               triggerStopOptions: false,
+              wallet: {
+                address: "",
+                privateKey: "",
+              },
             },
           ],
         })),
@@ -38,10 +41,6 @@ export const useTaskStore = create(
               ? {
                   ...task,
                   ...updatedTask,
-                  wallet: {
-                    ...task.wallet,
-                    ...updatedTask.wallet,
-                  },
                   bidPrice: {
                     min: updatedTask.bidPrice?.min ?? task.bidPrice.min,
                     max: updatedTask.bidPrice?.max ?? task.bidPrice.max,
