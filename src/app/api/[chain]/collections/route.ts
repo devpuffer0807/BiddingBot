@@ -6,6 +6,7 @@ import { ethers, Wallet as Web3Wallet } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 
 const API_KEY = "9669db1f-485e-4cbf-8041-2c886a5ca440";
+const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY as string;
 
 export async function GET(
   request: NextRequest,
@@ -185,10 +186,7 @@ export async function getAccessToken(
   url: string,
   private_key: string
 ): Promise<string | undefined> {
-  const provider = new ethers.AlchemyProvider(
-    "mainnet",
-    "0rk2kbu11E5PDyaUqX1JjrNKwG7s4ty5"
-  );
+  const provider = new ethers.AlchemyProvider("mainnet", ALCHEMY_API_KEY);
   const wallet = new Web3Wallet(private_key, provider);
   const options = { walletAddress: wallet.address };
 
