@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 interface TaskStore {
   tasks: Task[];
   addTask: (task: Task) => void;
-  editTask: (id: string, updatedTask: Partial<Task>) => void;
+  editTask: (id: string, updatedTask: Partial<Task>) => Task;
   deleteTask: (id: string) => void;
   toggleTaskRunning: (id: string) => void;
   toggleMultipleTasksRunning: (ids: string[], running: boolean) => void;
@@ -34,7 +34,7 @@ export const useTaskStore = create(
             },
           ],
         })),
-      editTask: (id, updatedTask) =>
+      editTask: (id, updatedTask) => {
         set((state) => ({
           tasks: state.tasks.map((task) =>
             task._id === id
@@ -98,23 +98,47 @@ export const useTaskStore = create(
                 }
               : task
           ),
-        })),
+        }));
+
+        const task = get().tasks.find((task) => task._id === id) as Task;
+        return task;
+      },
       deleteTask: (id) =>
         set((state) => ({
           tasks: state.tasks.filter((task) => task._id !== id),
         })),
-      toggleTaskRunning: (id) =>
+      toggleTaskRunning: async (id) => {
         set((state) => ({
           tasks: state.tasks.map((task) =>
             task._id === id ? { ...task, running: !task.running } : task
           ),
-        })),
-      toggleMultipleTasksRunning: (ids, running) =>
+        }));
+
+        await fetch(`/api/task/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            running: get().tasks.find((task) => task._id === id)?.running,
+          }),
+        });
+      },
+      toggleMultipleTasksRunning: async (ids, running) => {
         set((state) => ({
-          tasks: state.tasks.map((task) =>
-            ids.includes(task._id) ? { ...task, running } : task
-          ),
-        })),
+          tasks: state.tasks.map((task) => {
+            return ids.includes(task._id) ? { ...task, running } : task;
+          }),
+        }));
+
+        await fetch(`/api/task`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ids, running }),
+        });
+      },
       getLastTaskId: () => {
         const state = get();
         return state.tasks[state.tasks.length - 1]?._id;

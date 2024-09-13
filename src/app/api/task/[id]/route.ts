@@ -130,3 +130,33 @@ export async function DELETE(
     { status: 200 }
   );
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  await connect();
+  const userId = await getUserIdFromCookies(request);
+  const taskId = params.id;
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!isObjectIdOrHexString(taskId)) {
+    return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+  }
+
+  const isOwner = await checkTaskOwnership(taskId, userId);
+  if (!isOwner) {
+    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+  }
+
+  const body = await request.json();
+  const task = await Task.findByIdAndUpdate(
+    taskId,
+    { $set: body },
+    { new: true }
+  );
+  return NextResponse.json(task, { status: 200 });
+}

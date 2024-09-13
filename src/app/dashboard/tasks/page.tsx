@@ -178,9 +178,21 @@ const Tasks = () => {
         ? task.selectedMarketplaces.filter((m) => m !== marketplace)
         : [...task.selectedMarketplaces, marketplace];
 
-      useTaskStore
+      const updatedTask = useTaskStore
         .getState()
         .editTask(taskId, { selectedMarketplaces: updatedMarketplaces });
+
+      try {
+        fetch(`/api/task/${taskId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedTask),
+          credentials: "include",
+        });
+        console.log("Marketplace updated successfully");
+      } catch (error) {
+        console.error("Error updating marketplace:", error);
+      }
     }
   };
 

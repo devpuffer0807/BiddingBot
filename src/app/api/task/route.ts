@@ -64,3 +64,23 @@ export async function POST(request: NextRequest) {
   });
   return NextResponse.json(task, { status: 201 });
 }
+
+export async function PATCH(request: NextRequest) {
+  await connect();
+  const userId = await getUserIdFromCookies(request);
+  const { ids, running } = await request.json();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const tasks = await Task.updateMany(
+    { _id: { $in: ids }, user: userId },
+    { $set: { running } }
+  );
+
+  return NextResponse.json(
+    { modifiedCount: tasks.modifiedCount },
+    { status: 200 }
+  );
+}
