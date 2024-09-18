@@ -142,6 +142,8 @@ export const useTaskForm = (
           }));
         }
       } else {
+        console.log();
+
         setFormState((prev) => ({
           ...prev,
           slugValid: false,
@@ -161,7 +163,7 @@ export const useTaskForm = (
   }, []);
 
   const debouncedValidateSlug = useMemo(
-    () => debounce(validateSlug, 1500),
+    () => debounce(validateSlug, 500),
     [validateSlug]
   );
 

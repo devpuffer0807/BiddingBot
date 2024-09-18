@@ -1,84 +1,40 @@
-import Wallet from "@/models/wallet.model";
 import { getUserIdFromCookies } from "@/utils";
-import { connect } from "@/utils/mongodb";
 import axios from "axios";
 import { ethers, Wallet as Web3Wallet } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
+import PQueue from "p-queue"; // Import PQueue
 
-const API_KEY = "9669db1f-485e-4cbf-8041-2c886a5ca440";
+const API_KEY = "8fa3d411-a50c-43cb-ac4e-1306575ac586";
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY as string;
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { chain: string } }
-) {
-  await connect();
+const queue = new PQueue({ concurrency: 8 }); // Create a queue with concurrency of 3
+
+export async function GET(request: NextRequest) {
   try {
-    const { chain } = params;
     const searchParams = request.nextUrl.searchParams;
     const slug = searchParams.get("slug") as string;
+    const apiUrl: string = `https://api.nfttools.website/opensea/api/v2/collections/${slug?.toLowerCase()}`;
 
-    let apiUrl: string;
-    switch (chain.toLowerCase()) {
-      case "ethereum":
-        apiUrl = `https://api.nfttools.website/opensea/api/v2/collections/${slug?.toLowerCase()}`;
-        break;
-      default:
-        throw new Error(`Unsupported chain: ${chain}`);
-    }
+    // Add the fetch request to the queue
+    const response = await queue.add(() =>
+      fetch(apiUrl, {
+        headers: { "X-NFT-API-Key": API_KEY },
+      })
+    );
 
-    const response = await fetch(apiUrl, {
-      headers: { "X-NFT-API-Key": API_KEY },
-    });
-
+    // Check if the response is okay
     if (!response.ok) {
       throw new Error("Failed to fetch collection data");
     }
 
     const collection: CollectionData = await response.json();
 
-    let traits = null;
-    try {
-      traits = await getCollectionTraits(slug);
-    } catch (error) {
-      console.error("Error fetching traits:", error);
-    }
-
-    let magicEdenValid = false;
-    let blurValid = false;
-    try {
-      magicEdenValid = await checkMagicEden(
-        collection.contracts[0].address,
-        slug
-      );
-    } catch (error) {
-      console.error("Error checking Magic Eden:", error);
-    }
-
-    try {
-      const userId = await getUserIdFromCookies(request);
-
-      if (!userId) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-
-      const wallet = await Wallet.findOne({ user: userId });
-
-      if (!wallet) {
-        return NextResponse.json(
-          { error: "You need to create a wallet first" },
-          { status: 400 }
-        );
-      }
-
-      blurValid = await checkBlur(
-        collection.contracts[0].address,
-        wallet.address,
-        wallet.privateKey
-      );
-    } catch (error) {
-      console.error("Error checking Blur:", error);
-    }
+    // Use addAll to handle multiple promises concurrently
+    const [traits, magicEdenValid, blurValid] = await queue.addAll([
+      () => getCollectionTraits(slug),
+      () => checkMagicEden(collection.contracts[0].address, slug),
+      () => checkBlur(collection.contracts[0].address),
+    ]);
 
     const data = { ...collection, traits, magicEdenValid, blurValid };
 
@@ -148,24 +104,12 @@ async function checkMagicEden(
   }
 }
 
-async function checkBlur(
-  contractAddress: string,
-  walletAddress: string,
-  private_key: string
-): Promise<boolean> {
-  const sanitizedPrivateKey = private_key.startsWith("0x")
-    ? private_key.slice(2)
-    : private_key;
-
+async function checkBlur(contractAddress: string): Promise<boolean> {
   const BLUR_API_URL = "https://api.nfttools.website/blur";
-  const accessToken = await getAccessToken(BLUR_API_URL, sanitizedPrivateKey);
-
   const options = {
     method: "GET",
     url: `${BLUR_API_URL}/v1/collections/${contractAddress}`,
     headers: {
-      authToken: accessToken as string,
-      walletAddress: walletAddress,
       "X-NFT-API-Key": API_KEY,
     },
   };

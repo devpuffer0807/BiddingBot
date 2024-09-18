@@ -48,19 +48,6 @@ const Tasks = () => {
     fetchTasks();
   }, [setTasks]);
 
-  useEffect(() => {
-    const lastSession = sessionStorage.getItem("lastSession");
-    if (!lastSession) {
-      const { tasks, editTask } = useTaskStore.getState();
-      tasks.forEach((task) => {
-        if (task.running) {
-          editTask(task._id, { running: false });
-        }
-      });
-      sessionStorage.setItem("lastSession", Date.now().toString());
-    }
-  }, []);
-
   const toggleTaskSelection = (taskId: string) => {
     setSelectedTasks((prev) => {
       const newSelection = prev.includes(taskId)
@@ -183,6 +170,9 @@ const Tasks = () => {
         .editTask(taskId, { selectedMarketplaces: updatedMarketplaces });
 
       try {
+        const message = { endpoint: "update-marketplace", data: updatedTask };
+        sendMessage(message);
+
         fetch(`/api/task/${taskId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
