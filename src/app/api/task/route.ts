@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json();
+  const bidDurationInSeconds = convertToSeconds(body.bidDuration); // Add this line
   const task = await Task.create({
     ...body,
     contract: {
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
       cancelAllBids: body.stopOptions.cancelAllBids,
       triggerStopOptions: body.stopOptions.triggerStopOptions,
     },
+    bidDuration: bidDurationInSeconds, // Add this line
   });
   return NextResponse.json(task, { status: 201 });
 }
@@ -84,3 +86,18 @@ export async function PATCH(request: NextRequest) {
     { status: 200 }
   );
 }
+
+// Helper function to convert duration to seconds
+const convertToSeconds = (duration: { value: number; unit: string }) => {
+  const { value, unit } = duration;
+  switch (unit) {
+    case "minutes":
+      return value * 60;
+    case "hours":
+      return value * 3600;
+    case "days":
+      return value * 86400;
+    default:
+      return value; // Assuming seconds if no unit is provided
+  }
+};
