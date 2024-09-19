@@ -23,6 +23,7 @@ jobs:
       CLIENT_URL: ${{secrets.CLIENT_URL}}
       NEXT_PUBLIC_CLIENT_URL: ${{secrets.NEXT_PUBLIC_CLIENT_URL}}
       NEXT_PUBLIC_SERVER_WEBSOCKET: ${{secrets.NEXT_PUBLIC_SERVER_WEBSOCKET}}
+      NEXT_PUBLIC_ALCHEMY_API_KEY: ${{secrets.NEXT_PUBLIC_ALCHEMY_API_KEY}}
 
     steps:
       - uses: actions/checkout@v4
@@ -58,6 +59,7 @@ jobs:
           echo "CLIENT_URL=${{secrets.CLIENT_URL}}" >> .env.production
           echo "NEXT_PUBLIC_CLIENT_URL=${{secrets.NEXT_PUBLIC_CLIENT_URL}}" >> .env.production
           echo "NEXT_PUBLIC_SERVER_WEBSOCKET=${{secrets.NEXT_PUBLIC_SERVER_WEBSOCKET}}" >> .env.production
+          echo "NEXT_PUBLIC_ALCHEMY_API_KEY=${{secrets.NEXT_PUBLIC_ALCHEMY_API_KEY}}" >> .env.production
 
       - name: Validate .env.production contents
         run: cat .env.production
