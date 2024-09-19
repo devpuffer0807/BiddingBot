@@ -31,6 +31,12 @@ const FormSection: React.FC<FormSectionProps> = ({
     { value: "eth", label: "ETH" },
   ];
 
+  const durationTypeOptions: CustomSelectOption[] = [
+    { value: "minutes", label: "Min" },
+    { value: "hours", label: "Hours" },
+    { value: "days", label: "Days" },
+  ];
+
   const updateOutbidOptions = (
     updatedOptions: Partial<typeof formState.outbidOptions>
   ) => {
@@ -103,6 +109,24 @@ const FormSection: React.FC<FormSectionProps> = ({
     } else {
       setFormState((prev) => ({ ...prev, slugValid: false }));
     }
+  };
+
+  const handleBidDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormState((prev) => ({
+      ...prev,
+      bidDuration: {
+        ...prev.bidDuration,
+        [name]: value,
+      },
+    }));
+  };
+
+  const validateBidDuration = (value: number, unit: string) => {
+    if (unit === "minutes" && value < 15) return false;
+    if (unit === "hours" && value < 0.25) return false;
+    if (unit === "days" && value < 0.011) return false;
+    return true;
   };
 
   return (
@@ -267,6 +291,43 @@ const FormSection: React.FC<FormSectionProps> = ({
             : "Enable Outbidding"}
         </span>
       </div>
+
+      <div>
+        <label htmlFor="bidDuration" className="block text-sm font-medium mb-2">
+          Bid Duration
+        </label>
+        <div className="flex items-center">
+          <input
+            inputMode="numeric"
+            type="number"
+            id="bidDuration"
+            name="value"
+            onChange={handleBidDurationChange}
+            value={formState.bidDuration.value || 15}
+            placeholder="Duration"
+            className="w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
+            required
+            autoComplete="off"
+          />
+          <CustomSelect
+            options={durationTypeOptions}
+            value={formState.bidDuration.unit || "minutes"}
+            onChange={(value) =>
+              handleBidDurationChange({
+                target: { name: "unit", value },
+              } as React.ChangeEvent<HTMLInputElement>)
+            }
+            className="w-20 ml-2"
+          />
+        </div>
+        {errors.bidDuration?.value && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.bidDuration.value}
+          </p>
+        )}
+      </div>
+
+      <div></div>
     </>
   );
 };

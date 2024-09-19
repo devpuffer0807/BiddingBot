@@ -23,6 +23,8 @@ export const useTaskStore = create(
             {
               ...task,
               running: false,
+              // Ensure bidDuration is included in the task
+              bidDuration: task.bidDuration, // Ensure this line is included
               bidPrice: task.bidPrice,
               outbidOptions: task.outbidOptions,
               stopOptions: task.stopOptions,
@@ -41,6 +43,7 @@ export const useTaskStore = create(
               ? {
                   ...task,
                   ...updatedTask,
+                  bidDuration: updatedTask.bidDuration ?? task.bidDuration, // Ensure this line is included
                   bidPrice: {
                     min: updatedTask.bidPrice?.min ?? task.bidPrice.min,
                     max: updatedTask.bidPrice?.max ?? task.bidPrice.max,
@@ -193,4 +196,5 @@ export interface Task {
     cancelAllBids: boolean;
     triggerStopOptions: boolean;
   };
+  bidDuration: { value: number; unit: string }; // Ensure this line is included
 }
