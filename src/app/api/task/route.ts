@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
       triggerStopOptions: body.stopOptions.triggerStopOptions,
     },
     bidDuration: bidDurationInSeconds, // Add this line
+    tokenIds: body.tokenIds || [], // Add this line
   });
   return NextResponse.json(task, { status: 201 });
 }

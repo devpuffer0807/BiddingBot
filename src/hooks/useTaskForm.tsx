@@ -57,6 +57,7 @@ export const useTaskForm = (
       maxType: initialState.bidPrice?.maxType || "percentage",
     },
     bidDuration: { value: 15, unit: "minutes" }, // Add this line
+    tokenIds: [], // Change this line
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
@@ -276,6 +277,7 @@ export const useTaskForm = (
           maxType: formState.bidPrice.maxType,
         },
         bidDuration: formState.bidDuration, // Add this line
+        tokenIds: formState.tokenIds, // Add this line
       };
 
       try {
@@ -387,4 +389,5 @@ export interface TaskFormState {
     privateKey: string;
   };
   bidDuration: { value: number; unit: string }; // Add this line
+  tokenIds: number[]; // Change this line
 }

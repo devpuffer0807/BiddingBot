@@ -33,6 +33,7 @@ export const useTaskStore = create(
                 address: "",
                 privateKey: "",
               },
+              tokenIds: task.tokenIds || [], // Ensure this line is included
             },
           ],
         })),
@@ -98,6 +99,7 @@ export const useTaskStore = create(
                       updatedTask.stopOptions?.triggerStopOptions ??
                       task.stopOptions.triggerStopOptions,
                   },
+                  tokenIds: updatedTask.tokenIds ?? task.tokenIds, // Ensure this line is included
                 }
               : task
           ),
@@ -196,5 +198,6 @@ export interface Task {
     cancelAllBids: boolean;
     triggerStopOptions: boolean;
   };
-  bidDuration: { value: number; unit: string }; // Ensure this line is included
+  bidDuration: { value: number; unit: string };
+  tokenIds: number[];
 }

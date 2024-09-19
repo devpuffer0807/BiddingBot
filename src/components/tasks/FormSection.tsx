@@ -129,6 +129,34 @@ const FormSection: React.FC<FormSectionProps> = ({
     return true;
   };
 
+  const handleTokenIdsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    const ranges = value.split(",").map((range) => range.trim());
+    const numbers: number[] = [];
+    const uniqueNumbers = new Set<number>(); // Use a Set to store unique numbers
+
+    ranges.forEach((range) => {
+      const parts = range.split("-");
+      if (parts.length === 1) {
+        const num = parseInt(parts[0].trim());
+        if (!isNaN(num)) uniqueNumbers.add(num); // Add to Set
+      } else if (parts.length === 2) {
+        const start = parseInt(parts[0].trim());
+        const end = parseInt(parts[1].trim());
+        if (!isNaN(start) && !isNaN(end) && start <= end) {
+          for (let i = start; i <= end; i++) {
+            uniqueNumbers.add(i); // Add to Set
+          }
+        }
+      }
+    });
+
+    setFormState((prev) => ({
+      ...prev,
+      tokenIds: Array.from(uniqueNumbers), // Convert Set back to array
+    }));
+  };
+
   return (
     <>
       <WalletBalanceFetcher
@@ -327,7 +355,24 @@ const FormSection: React.FC<FormSectionProps> = ({
         )}
       </div>
 
-      <div></div>
+      <div>
+        <label htmlFor="tokenIds" className="block text-sm font-medium mb-2">
+          Token Range
+        </label>
+        <div className="flex items-center">
+          <input
+            inputMode="text"
+            type="text"
+            id="tokenIds"
+            name="tokenIds"
+            onChange={handleTokenIdsChange}
+            placeholder="1 - 777, 86, 999 - 1456"
+            className="w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
+            required
+            autoComplete="off"
+          />
+        </div>
+      </div>
     </>
   );
 };

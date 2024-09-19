@@ -99,6 +99,7 @@ export async function PUT(
         counterbid: body.outbidOptions.counterbid,
       },
       bidDuration: bidDurationInSeconds, // Add this line
+      tokenIds: body.tokenIds || [], // Add this line
     },
     { new: true }
   );
