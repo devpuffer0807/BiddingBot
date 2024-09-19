@@ -134,10 +134,12 @@ const Tasks = () => {
 
   const toggleSelectedTasksStatus = (running: boolean) => {
     toggleMultipleTasksRunning(selectedTasks, running);
-
+    const selectedTaskDetails = tasks.filter((task) =>
+      selectedTasks.includes(task._id)
+    );
     sendMessage({
       endpoint: "update-multiple-tasks-status",
-      data: { taskIds: selectedTasks, running },
+      data: { tasks: selectedTaskDetails, running },
     });
   };
 
