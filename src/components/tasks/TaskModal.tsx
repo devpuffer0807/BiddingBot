@@ -38,7 +38,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     setFormState,
     handleTagChange,
     handleTraitChange,
-    debouncedValidateSlug, // Ensure this is destructured
+    debouncedValidateSlug,
   } = useTaskForm(
     initialTask
       ? {
@@ -82,11 +82,15 @@ const TaskModal: React.FC<TaskModalProps> = ({
             minType: initialTask.bidPrice.minType || "percentage",
             maxType: initialTask.bidPrice.maxType || "percentage",
           },
-
           wallet: {
             address: initialTask.wallet.address || "",
             privateKey: initialTask.wallet.privateKey || "",
           },
+          bidDuration: initialTask.bidDuration || {
+            value: 15,
+            unit: "minutes",
+          },
+          tokenIds: initialTask.tokenIds || [],
         }
       : {
           contract: {
@@ -126,6 +130,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
             address: "",
             privateKey: "",
           },
+          bidDuration: { value: 15, unit: "minutes" },
+          tokenIds: [],
         },
     taskId
   );
@@ -224,6 +230,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
           minType: formState.bidPrice.minType,
           maxType: formState.bidPrice.maxType,
         },
+        tokenIds: formState.tokenIds,
+        bidDuration: formState.bidDuration,
       };
 
       if (taskId) {
@@ -282,6 +290,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
         minType: "percentage",
         maxType: "percentage",
       },
+      bidDuration: { value: 15, unit: "minutes" },
+      tokenIds: [],
     });
   };
 
@@ -316,7 +326,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
             <FormSection
               formState={formState}
               errors={errors}
-              debouncedValidateSlug={debouncedValidateSlug} // Pass the debounced function
+              debouncedValidateSlug={debouncedValidateSlug}
               walletOptions={walletOptions}
               setFormState={setFormState}
               onWalletModalOpen={handleWalletModalOpen}

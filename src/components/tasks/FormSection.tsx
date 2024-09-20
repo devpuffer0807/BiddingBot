@@ -368,7 +368,6 @@ const FormSection: React.FC<FormSectionProps> = ({
             onChange={handleTokenIdsChange}
             placeholder="1 - 777, 86, 999 - 1456"
             className="w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
-            required
             autoComplete="off"
           />
         </div>
