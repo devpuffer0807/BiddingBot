@@ -6,6 +6,11 @@ import CustomSelect, { CustomSelectOption } from "../common/CustomSelect";
 import Toggle from "../common/Toggle";
 import WalletBalanceFetcher from "../common/WalletBalanceFetcher";
 
+enum BidType {
+  Collection = "collection",
+  Token = "token",
+}
+
 interface FormSectionProps {
   formState: TaskFormState;
   errors: Partial<TaskFormState>;
@@ -13,6 +18,8 @@ interface FormSectionProps {
   walletOptions: CustomSelectOption[];
   setFormState: React.Dispatch<React.SetStateAction<TaskFormState>>;
   onWalletModalOpen: () => void;
+  bidType: BidType;
+  setBidType: React.Dispatch<React.SetStateAction<BidType>>;
 }
 
 const FormSection: React.FC<FormSectionProps> = ({
@@ -22,6 +29,8 @@ const FormSection: React.FC<FormSectionProps> = ({
   walletOptions,
   setFormState,
   onWalletModalOpen,
+  bidType,
+  setBidType,
 }) => {
   const [updatedWalletOptions, setUpdatedWalletOptions] =
     useState(walletOptions);
@@ -47,7 +56,7 @@ const FormSection: React.FC<FormSectionProps> = ({
       };
 
       if (!newOutbidOptions.outbid) {
-        newOutbidOptions.counterbid = false; // Disable counterbidding if outbidding is not true
+        newOutbidOptions.counterbid = false;
       }
 
       if (!newOutbidOptions.outbid && !newOutbidOptions.counterbid) {
@@ -103,7 +112,6 @@ const FormSection: React.FC<FormSectionProps> = ({
       magicEdenValid: false,
       slugValid: false,
     }));
-    // alert("slug changed");
     if (value.length >= 3) {
       debouncedValidateSlug(value);
     } else {
@@ -133,19 +141,19 @@ const FormSection: React.FC<FormSectionProps> = ({
     const { value } = e.target;
     const ranges = value.split(",").map((range) => range.trim());
     const numbers: number[] = [];
-    const uniqueNumbers = new Set<number>(); // Use a Set to store unique numbers
+    const uniqueNumbers = new Set<number>();
 
     ranges.forEach((range) => {
       const parts = range.split("-");
       if (parts.length === 1) {
         const num = parseInt(parts[0].trim());
-        if (!isNaN(num)) uniqueNumbers.add(num); // Add to Set
+        if (!isNaN(num)) uniqueNumbers.add(num);
       } else if (parts.length === 2) {
         const start = parseInt(parts[0].trim());
         const end = parseInt(parts[1].trim());
         if (!isNaN(start) && !isNaN(end) && start <= end) {
           for (let i = start; i <= end; i++) {
-            uniqueNumbers.add(i); // Add to Set
+            uniqueNumbers.add(i);
           }
         }
       }
@@ -153,7 +161,16 @@ const FormSection: React.FC<FormSectionProps> = ({
 
     setFormState((prev) => ({
       ...prev,
-      tokenIds: Array.from(uniqueNumbers), // Convert Set back to array
+      tokenIds: Array.from(uniqueNumbers),
+    }));
+  };
+
+  const handleBidTypeChange = (type: BidType) => {
+    console.log({ type });
+    setBidType(type);
+    setFormState((prev) => ({
+      ...prev,
+      bidType: type,
     }));
   };
 
@@ -321,6 +338,63 @@ const FormSection: React.FC<FormSectionProps> = ({
       </div>
 
       <div>
+        <label htmlFor="bidType" className="block text-sm font-medium mb-2">
+          Bid Type
+        </label>
+        <div className="flex gap-8">
+          <label className="inline-flex items-center cursor-pointer gap-2">
+            <input
+              type="radio"
+              name="bidType"
+              checked={bidType === BidType.Collection}
+              onChange={() => handleBidTypeChange(BidType.Collection)}
+              className="hidden"
+            />
+            <span className="relative w-6 h-6 inline-block">
+              <span
+                className={`absolute inset-0 rounded-full border-2 ${
+                  bidType === BidType.Collection
+                    ? "border-[#7364DB]"
+                    : "border-gray-400"
+                }`}
+              ></span>
+              {bidType === BidType.Collection && (
+                <span className="absolute inset-1.5 rounded-full bg-[#7364DB]"></span>
+              )}
+            </span>
+            <p className="text-sm">Collection Offers</p>
+          </label>
+
+          <label className="inline-flex items-center cursor-pointer gap-2">
+            <input
+              type="radio"
+              name="bidType"
+              checked={bidType === BidType.Token}
+              onChange={() => handleBidTypeChange(BidType.Token)}
+              className="hidden"
+            />
+            <span className="relative w-6 h-6 inline-block">
+              <span
+                className={`absolute inset-0 rounded-full border-2 ${
+                  bidType === BidType.Token
+                    ? "border-[#7364DB]"
+                    : "border-gray-400"
+                }`}
+              ></span>
+              {bidType === BidType.Token && (
+                <span className="absolute inset-1.5 rounded-full bg-[#7364DB]"></span>
+              )}
+            </span>
+            <p className="text-sm">Token Offers</p>
+          </label>
+        </div>
+      </div>
+      <div>
+        <label htmlFor="bidDuration" className="block text-sm font-medium mb-2">
+          Loop Interval
+        </label>
+      </div>
+      <div>
         <label htmlFor="bidDuration" className="block text-sm font-medium mb-2">
           Bid Duration
         </label>
@@ -355,23 +429,27 @@ const FormSection: React.FC<FormSectionProps> = ({
         )}
       </div>
 
-      <div>
-        <label htmlFor="tokenIds" className="block text-sm font-medium mb-2">
-          Token Range
-        </label>
-        <div className="flex items-center">
-          <input
-            inputMode="text"
-            type="text"
-            id="tokenIds"
-            name="tokenIds"
-            onChange={handleTokenIdsChange}
-            placeholder="1 - 777, 86, 999 - 1456"
-            className="w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
-            autoComplete="off"
-          />
+      {bidType === BidType.Token ? (
+        <div>
+          <label htmlFor="tokenIds" className="block text-sm font-medium mb-2">
+            Token Range
+          </label>
+          <div className="flex items-center">
+            <input
+              inputMode="text"
+              type="text"
+              id="tokenIds"
+              name="tokenIds"
+              onChange={handleTokenIdsChange}
+              placeholder="1 - 777, 86, 999 - 1456"
+              className="w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
+              autoComplete="off"
+            />
+          </div>
         </div>
-      </div>
+      ) : (
+        <div></div>
+      )}
     </>
   );
 };

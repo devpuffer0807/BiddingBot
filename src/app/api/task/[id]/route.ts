@@ -56,11 +56,12 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const bidDurationInSeconds = convertToSeconds(body.bidDuration); // Add this line
+  const bidDurationInSeconds = convertToSeconds(body.bidDuration);
   const task = await Task.findByIdAndUpdate(
     params.id,
     {
       ...body,
+      bidType: body.bidType || "collection",
       stopOptions: {
         minFloorPrice: body.stopOptions.minFloorPrice,
         maxFloorPrice: body.stopOptions.maxFloorPrice,
@@ -98,8 +99,8 @@ export async function PUT(
           : null,
         counterbid: body.outbidOptions.counterbid,
       },
-      bidDuration: bidDurationInSeconds, // Add this line
-      tokenIds: body.tokenIds || [], // Add this line
+      bidDuration: bidDurationInSeconds,
+      tokenIds: body.tokenIds || [],
     },
     { new: true }
   );
@@ -175,6 +176,6 @@ const convertToSeconds = (duration: { value: number; unit: string }) => {
     case "days":
       return value * 86400;
     default:
-      return value; // Assuming seconds if no unit is provided
+      return value;
   }
 };

@@ -23,8 +23,8 @@ export const useTaskStore = create(
             {
               ...task,
               running: false,
-              // Ensure bidDuration is included in the task
-              bidDuration: task.bidDuration, // Ensure this line is included
+              bidType: task.bidType || "collection",
+              bidDuration: task.bidDuration,
               bidPrice: task.bidPrice,
               outbidOptions: task.outbidOptions,
               stopOptions: task.stopOptions,
@@ -33,7 +33,7 @@ export const useTaskStore = create(
                 address: "",
                 privateKey: "",
               },
-              tokenIds: task.tokenIds || [], // Ensure this line is included
+              tokenIds: task.tokenIds || [],
             },
           ],
         })),
@@ -44,7 +44,7 @@ export const useTaskStore = create(
               ? {
                   ...task,
                   ...updatedTask,
-                  bidDuration: updatedTask.bidDuration ?? task.bidDuration, // Ensure this line is included
+                  bidDuration: updatedTask.bidDuration ?? task.bidDuration,
                   bidPrice: {
                     min: updatedTask.bidPrice?.min ?? task.bidPrice.min,
                     max: updatedTask.bidPrice?.max ?? task.bidPrice.max,
@@ -99,7 +99,7 @@ export const useTaskStore = create(
                       updatedTask.stopOptions?.triggerStopOptions ??
                       task.stopOptions.triggerStopOptions,
                   },
-                  tokenIds: updatedTask.tokenIds ?? task.tokenIds, // Ensure this line is included
+                  tokenIds: updatedTask.tokenIds ?? task.tokenIds,
                 }
               : task
           ),
@@ -200,4 +200,5 @@ export interface Task {
   };
   bidDuration: { value: number; unit: string };
   tokenIds: number[];
+  bidType: "collection" | "token";
 }

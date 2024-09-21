@@ -1,4 +1,3 @@
-import React from "react";
 import Modal from "../common/Modal";
 import { useWalletStore } from "../../store/wallet.store";
 import { toast } from "react-toastify";
@@ -27,6 +26,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [newTagColor, setNewTagColor] = useState("#000000");
   const [showCreateTag, setShowCreateTag] = useState(false);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+
+  const [bidType, setBidType] = useState<BidType>(BidType.Collection);
 
   const {
     formState,
@@ -91,6 +92,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
             unit: "minutes",
           },
           tokenIds: initialTask.tokenIds || [],
+          bidType: initialTask.bidType || "collection",
         }
       : {
           contract: {
@@ -132,6 +134,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           },
           bidDuration: { value: 15, unit: "minutes" },
           tokenIds: [],
+          bidType: bidType,
         },
     taskId
   );
@@ -232,6 +235,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         },
         tokenIds: formState.tokenIds,
         bidDuration: formState.bidDuration,
+        bidType: formState.bidType,
       };
 
       if (taskId) {
@@ -292,6 +296,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       },
       bidDuration: { value: 15, unit: "minutes" },
       tokenIds: [],
+      bidType: "collection",
     });
   };
 
@@ -330,6 +335,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
               walletOptions={walletOptions}
               setFormState={setFormState}
               onWalletModalOpen={handleWalletModalOpen}
+              bidType={bidType}
+              setBidType={setBidType}
             />
             {formState.traits &&
               Object.keys(formState.traits.categories).length > 0 && (
@@ -402,4 +409,9 @@ interface TaskModalProps {
   onClose: () => void;
   taskId?: string;
   initialTask?: Task | null;
+}
+
+enum BidType {
+  Collection = "collection",
+  Token = "token",
 }

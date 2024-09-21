@@ -45,7 +45,8 @@ interface ITask extends Document {
     triggerStopOptions: boolean;
   };
   bidDuration: number;
-  tokenIds: number[]; // Add this line
+  tokenIds: number[];
+  bidType: "collection" | "token";
 }
 
 const TaskSchema: Schema = new Schema(
@@ -93,6 +94,11 @@ const TaskSchema: Schema = new Schema(
     },
     bidDuration: { type: Number, required: false, default: 900 },
     tokenIds: { type: [Number], required: false },
+    bidType: {
+      type: String,
+      enum: ["collection", "token"],
+      default: "collection",
+    },
   },
   { timestamps: true }
 );

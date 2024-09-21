@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { CustomSelectOption } from "./CustomSelect";
-import { ethers, formatEther } from "ethers"; // Ensure ethers is imported
+import { ethers, formatEther } from "ethers";
 
 interface WalletBalanceFetcherProps {
   walletOptions: CustomSelectOption[];
@@ -71,10 +71,7 @@ const WalletBalanceFetcher: React.FC<WalletBalanceFetcherProps> = ({
         console.log("MetaMask not installed; using read-only defaults");
         provider = ethers.getDefaultProvider();
       } else {
-        provider = new ethers.AlchemyProvider(
-          "mainnet",
-          NEXT_PUBLIC_ALCHEMY_API_KEY
-        );
+        provider = ethers.getDefaultProvider();
       }
       setProvider(provider);
     };
@@ -114,7 +111,7 @@ const WalletBalanceFetcher: React.FC<WalletBalanceFetcherProps> = ({
     updateWalletOptionsWithBalances();
   }, [walletOptions, onBalancesFetched, provider]);
 
-  return null; // This component does not render anything
+  return null;
 };
 
 export default WalletBalanceFetcher;
