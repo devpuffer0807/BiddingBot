@@ -14,8 +14,7 @@ const ERC20_BAL_ABI = [
 const WETH_CONTRACT_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 export const BLUR_POOL_ADDRESS = "0x0000000000A39bb272e79075ade125fd351887Ac";
 
-const NEXT_PUBLIC_ALCHEMY_API_KEY =
-  "HGWgCONolXMB2op5UjPH1YreDCwmSbvx" || process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
+const NEXT_PUBLIC_ALCHEMY_API_KEY = "HGWgCONolXMB2op5UjPH1YreDCwmSbvx";
 
 const fetchEtherBalance = async (walletAddress: string, provider: any) => {
   try {

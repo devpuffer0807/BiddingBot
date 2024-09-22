@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import PQueue from "p-queue"; // Import PQueue
 
 const API_KEY = "8fa3d411-a50c-43cb-ac4e-1306575ac586";
-const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY as string;
+const ALCHEMY_API_KEY = "HGWgCONolXMB2op5UjPH1YreDCwmSbvx";
 
 const queue = new PQueue({ concurrency: 8 }); // Create a queue with concurrency of 3
 
