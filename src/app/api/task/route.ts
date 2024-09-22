@@ -33,6 +33,25 @@ export async function POST(request: NextRequest) {
       minType: body.bidPrice.minType,
       maxType: body.bidPrice.maxType,
     },
+    openseaBidPrice: {
+      min: body.openseaBidPrice.min,
+      max: body.openseaBidPrice.max,
+      minType: body.openseaBidPrice.minType,
+      maxType: body.openseaBidPrice.maxType,
+    },
+
+    blurBidPrice: {
+      min: body.blurBidPrice.min,
+      max: body.blurBidPrice.max,
+      minType: body.blurBidPrice.minType,
+      maxType: body.blurBidPrice.maxType,
+    },
+    magicEdenBidPrice: {
+      min: body.magicEdenBidPrice.min,
+      max: body.magicEdenBidPrice.max,
+      minType: body.magicEdenBidPrice.minType,
+      maxType: body.magicEdenBidPrice.maxType,
+    },
     user: userId,
     tags: body.tags,
     selectedTraits: body.selectedTraits,

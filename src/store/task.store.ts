@@ -26,6 +26,9 @@ export const useTaskStore = create(
               bidType: task.bidType || "collection",
               bidDuration: task.bidDuration,
               bidPrice: task.bidPrice,
+              openseaBidPrice: task.openseaBidPrice,
+              blurBidPrice: task.blurBidPrice,
+              magicEdenBidPrice: task.magicEdenBidPrice,
               outbidOptions: task.outbidOptions,
               stopOptions: task.stopOptions,
               triggerStopOptions: false,
@@ -54,6 +57,44 @@ export const useTaskStore = create(
                       updatedTask.bidPrice?.minType ?? task.bidPrice.minType,
                     maxType:
                       updatedTask.bidPrice?.maxType ?? task.bidPrice.maxType,
+                  },
+                  openseaBidPrice: {
+                    min:
+                      updatedTask.openseaBidPrice?.min ??
+                      task.openseaBidPrice.min,
+                    max:
+                      updatedTask.openseaBidPrice?.max ??
+                      task.openseaBidPrice.max,
+                    minType:
+                      updatedTask.openseaBidPrice?.minType ??
+                      task.openseaBidPrice.minType,
+                    maxType:
+                      updatedTask.openseaBidPrice?.maxType ??
+                      task.openseaBidPrice.maxType,
+                  },
+                  blurBidPrice: {
+                    min: updatedTask.blurBidPrice?.min ?? task.blurBidPrice.min,
+                    max: updatedTask.blurBidPrice?.max ?? task.blurBidPrice.max,
+                    minType:
+                      updatedTask.blurBidPrice?.minType ??
+                      task.blurBidPrice.minType,
+                    maxType:
+                      updatedTask.blurBidPrice?.maxType ??
+                      task.blurBidPrice.maxType,
+                  },
+                  magicEdenBidPrice: {
+                    min:
+                      updatedTask.magicEdenBidPrice?.min ??
+                      task.magicEdenBidPrice.min,
+                    max:
+                      updatedTask.magicEdenBidPrice?.max ??
+                      task.magicEdenBidPrice.max,
+                    minType:
+                      updatedTask.magicEdenBidPrice?.minType ??
+                      task.magicEdenBidPrice.minType,
+                    maxType:
+                      updatedTask.magicEdenBidPrice?.maxType ??
+                      task.magicEdenBidPrice.maxType,
                   },
                   outbidOptions: {
                     outbid:
@@ -189,6 +230,28 @@ export interface Task {
     minType: "percentage" | "eth";
     maxType: "percentage" | "eth";
   };
+
+  openseaBidPrice: {
+    min: number;
+    max: number | null;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
+
+  blurBidPrice: {
+    min: number;
+    max: number | null;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
+
+  magicEdenBidPrice: {
+    min: number;
+    max: number | null;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
+
   stopOptions: {
     minFloorPrice: number | null;
     maxFloorPrice: number | null;

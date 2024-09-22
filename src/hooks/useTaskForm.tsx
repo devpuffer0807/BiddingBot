@@ -56,6 +56,24 @@ export const useTaskForm = (
       minType: initialState.bidPrice?.minType || "percentage",
       maxType: initialState.bidPrice?.maxType || "percentage",
     },
+    openseaBidPrice: {
+      min: initialState.openseaBidPrice.min,
+      max: initialState.openseaBidPrice.max,
+      minType: initialState.openseaBidPrice?.minType || "percentage",
+      maxType: initialState.openseaBidPrice?.maxType || "percentage",
+    },
+    blurBidPrice: {
+      min: initialState.blurBidPrice.min,
+      max: initialState.blurBidPrice.max,
+      minType: initialState.blurBidPrice?.minType || "percentage",
+      maxType: initialState.blurBidPrice?.maxType || "percentage",
+    },
+    magicEdenBidPrice: {
+      min: initialState.magicEdenBidPrice.min,
+      max: initialState.magicEdenBidPrice.max,
+      minType: initialState.magicEdenBidPrice?.minType || "percentage",
+      maxType: initialState.magicEdenBidPrice?.maxType || "percentage",
+    },
     bidDuration: {
       value: initialState.bidDuration.value,
       unit: initialState.bidDuration.unit,
@@ -108,6 +126,24 @@ export const useTaskForm = (
           max: initialState.bidPrice.max,
           minType: initialState.bidPrice.minType,
           maxType: initialState.bidPrice.maxType,
+        },
+        openseaBidPrice: {
+          min: initialState.openseaBidPrice.min,
+          max: initialState.openseaBidPrice.max,
+          minType: initialState.openseaBidPrice.minType,
+          maxType: initialState.openseaBidPrice.maxType,
+        },
+        blurBidPrice: {
+          min: initialState.blurBidPrice.min,
+          max: initialState.blurBidPrice.max,
+          minType: initialState.blurBidPrice.minType,
+          maxType: initialState.blurBidPrice.maxType,
+        },
+        magicEdenBidPrice: {
+          min: initialState.magicEdenBidPrice.min,
+          max: initialState.magicEdenBidPrice.max,
+          minType: initialState.magicEdenBidPrice.minType,
+          maxType: initialState.magicEdenBidPrice.maxType,
         },
       }));
       prevInitialStateRef.current = initialState;
@@ -287,6 +323,24 @@ export const useTaskForm = (
           minType: formState.bidPrice.minType,
           maxType: formState.bidPrice.maxType,
         },
+        openseaBidPrice: {
+          min: Number(formState.openseaBidPrice.min),
+          max: Number(formState.openseaBidPrice.max),
+          minType: formState.openseaBidPrice.minType,
+          maxType: formState.openseaBidPrice.maxType,
+        },
+        blurBidPrice: {
+          min: Number(formState.blurBidPrice.min),
+          max: Number(formState.blurBidPrice.max),
+          minType: formState.blurBidPrice.minType,
+          maxType: formState.blurBidPrice.maxType,
+        },
+        magicEdenBidPrice: {
+          min: Number(formState.magicEdenBidPrice.min),
+          max: Number(formState.magicEdenBidPrice.max),
+          minType: formState.magicEdenBidPrice.minType,
+          maxType: formState.magicEdenBidPrice.maxType,
+        },
         bidDuration: {
           value: formState.bidDuration.value,
           unit: formState.bidDuration.unit,
@@ -398,6 +452,24 @@ export interface TaskFormState {
     triggerStopOptions: boolean;
   };
   bidPrice: {
+    min: string;
+    max: string;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
+  openseaBidPrice: {
+    min: string;
+    max: string;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
+  blurBidPrice: {
+    min: string;
+    max: string;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
+  magicEdenBidPrice: {
     min: string;
     max: string;
     minType: "percentage" | "eth";

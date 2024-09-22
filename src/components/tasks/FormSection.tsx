@@ -23,8 +23,13 @@ const FormSection: React.FC<FormSectionProps> = ({
   setFormState,
   onWalletModalOpen,
 }) => {
+  const GENERAL_BID_PRICE = "GENERAL_BID_PRICE";
+  const MARKETPLACE_BID_PRICE = "MARKETPLACE_BID_PRICE";
+
   const [updatedWalletOptions, setUpdatedWalletOptions] =
     useState(walletOptions);
+
+  const [bidPriceType, setBidPriceType] = useState(GENERAL_BID_PRICE);
 
   const priceTypeOptions: CustomSelectOption[] = [
     { value: "percentage", label: "%" },
@@ -63,11 +68,12 @@ const FormSection: React.FC<FormSectionProps> = ({
     });
   };
 
-  const handlePriceTypeChange = (selectedValue: string) => {
+  const handlePriceTypeChange = (selectedValue: string, priceType: string) => {
     setFormState((prev) => ({
       ...prev,
-      bidPrice: {
-        ...prev.bidPrice,
+      [priceType]: {
+        //@ts-ignore
+        ...prev[priceType],
         minType: selectedValue as "percentage" | "eth",
         maxType: selectedValue as "percentage" | "eth",
       },
@@ -76,11 +82,15 @@ const FormSection: React.FC<FormSectionProps> = ({
 
   const handleBidPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    const priceType = name.split(".")[1]; // Extract the price type (min or max)
+    const priceCategory = name.split(".")[0]; // Extract the category (bidPrice, openseaBidPrice, etc.)
+
     setFormState((prev) => ({
       ...prev,
-      bidPrice: {
-        ...prev.bidPrice,
-        [name.split(".")[1]]: value,
+      [priceCategory]: {
+        // @ts-ignore
+        ...prev[priceCategory],
+        [priceType]: value, // Update only the specific price type
       },
     }));
   };
@@ -248,6 +258,8 @@ const FormSection: React.FC<FormSectionProps> = ({
         </label>
         <div className="flex items-center">
           <input
+            min={0.005}
+            step={0.0001}
             inputMode="numeric"
             type="number"
             id="minPrice"
@@ -264,7 +276,7 @@ const FormSection: React.FC<FormSectionProps> = ({
           <CustomSelect
             options={priceTypeOptions}
             value={formState.bidPrice.minType}
-            onChange={(value) => handlePriceTypeChange(value)}
+            onChange={(value) => handlePriceTypeChange(value, "bidPrice")}
             className="w-20 ml-2"
           />
         </div>
@@ -281,6 +293,8 @@ const FormSection: React.FC<FormSectionProps> = ({
           </label>
           <div className="flex items-center">
             <input
+              min={0.005}
+              step={0.0001}
               inputMode="numeric"
               type="number"
               id="maxPrice"
@@ -296,7 +310,7 @@ const FormSection: React.FC<FormSectionProps> = ({
             <CustomSelect
               options={priceTypeOptions}
               value={formState.bidPrice.maxType}
-              onChange={(value) => handlePriceTypeChange(value)}
+              onChange={(value) => handlePriceTypeChange(value, "bidPrice")}
               className="w-20 ml-2"
             />
           </div>
@@ -308,7 +322,288 @@ const FormSection: React.FC<FormSectionProps> = ({
         <div></div>
       )}
 
-      <div className="col-span-2 flex items-center mb-8 gap-2">
+      {bidPriceType === MARKETPLACE_BID_PRICE ? (
+        <div>
+          <label htmlFor="maxPrice" className="block text-sm font-medium mb-2">
+            {formState.outbidOptions.outbid
+              ? "Opensea Min Bid Price"
+              : "Opensea Bid Price"}
+          </label>
+          <div className="flex items-center">
+            <input
+              inputMode="numeric"
+              step={0.0001}
+              min={0.005}
+              type="number"
+              id="openseaMinPrice"
+              name={"openseaBidPrice.min"}
+              onChange={handleBidPriceChange}
+              value={formState.openseaBidPrice.min}
+              placeholder={
+                formState.openseaBidPrice.minType === "percentage" ? "80" : "1"
+              }
+              className={`w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]`}
+              autoComplete="off"
+            />
+            <CustomSelect
+              options={priceTypeOptions}
+              value={formState.openseaBidPrice.minType}
+              onChange={(value) =>
+                handlePriceTypeChange(value, "openseaBidPrice")
+              }
+              className="w-20 ml-2"
+            />
+          </div>
+
+          {errors.openseaBidPrice?.min && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.openseaBidPrice.min}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div></div>
+      )}
+
+      {bidPriceType === MARKETPLACE_BID_PRICE &&
+      formState.outbidOptions.outbid ? (
+        <div>
+          <label htmlFor="maxPrice" className="block text-sm font-medium mb-2">
+            Opensea Max Bid Price
+          </label>
+          <div className="flex items-center">
+            <input
+              step={0.0001}
+              min={0.005}
+              inputMode="numeric"
+              type="number"
+              id="openseaMaxPrice"
+              name={"openseaBidPrice.max"}
+              onChange={handleBidPriceChange}
+              value={formState.openseaBidPrice.max}
+              placeholder={
+                formState.openseaBidPrice.maxType === "percentage" ? "80" : "1"
+              }
+              className={`w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]`}
+              autoComplete="off"
+            />
+            <CustomSelect
+              options={priceTypeOptions}
+              value={formState.openseaBidPrice.maxType}
+              onChange={(value) =>
+                handlePriceTypeChange(value, "openseaBidPrice")
+              }
+              className="w-20 ml-2"
+            />
+          </div>
+
+          {errors.openseaBidPrice?.max && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.openseaBidPrice.max}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div></div>
+      )}
+
+      {bidPriceType === MARKETPLACE_BID_PRICE ? (
+        <div>
+          <label htmlFor="maxPrice" className="block text-sm font-medium mb-2">
+            {formState.outbidOptions.outbid
+              ? "Blur Min Bid Price"
+              : "Blur Bid Price"}
+          </label>
+          <div className="flex items-center">
+            <input
+              inputMode="numeric"
+              step={0.01}
+              min={0.01}
+              type="number"
+              id="blurMinPrice"
+              name={"blurBidPrice.min"}
+              onChange={handleBidPriceChange}
+              value={formState.blurBidPrice.min}
+              placeholder={
+                formState.blurBidPrice.minType === "percentage" ? "80" : "1"
+              }
+              className={`w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]`}
+              autoComplete="off"
+            />
+            <CustomSelect
+              options={priceTypeOptions}
+              value={formState.blurBidPrice.minType}
+              onChange={(value) => handlePriceTypeChange(value, "blurBidPrice")}
+              className="w-20 ml-2"
+            />
+          </div>
+          {errors.blurBidPrice?.max && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.blurBidPrice.max}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div></div>
+      )}
+
+      {bidPriceType === MARKETPLACE_BID_PRICE &&
+      formState.outbidOptions.outbid ? (
+        <div>
+          <label htmlFor="maxPrice" className="block text-sm font-medium mb-2">
+            Blur Max Bid Price
+          </label>
+          <div className="flex items-center">
+            <input
+              min={0.01}
+              step={0.01}
+              inputMode="numeric"
+              type="number"
+              id="blurMaxPrice"
+              name={"blurBidPrice.max"}
+              onChange={handleBidPriceChange}
+              value={formState.blurBidPrice.max}
+              placeholder={
+                formState.blurBidPrice.maxType === "percentage" ? "80" : "1"
+              }
+              className={`w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]`}
+              autoComplete="off"
+            />
+            <CustomSelect
+              options={priceTypeOptions}
+              value={formState.blurBidPrice.maxType}
+              onChange={(value) => handlePriceTypeChange(value, "blurBidPrice")}
+              className="w-20 ml-2"
+            />
+          </div>
+          {errors.blurBidPrice?.max && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.blurBidPrice.max}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div></div>
+      )}
+
+      {bidPriceType === MARKETPLACE_BID_PRICE ? (
+        <div>
+          <label
+            htmlFor="magicEdenMinPrice"
+            className="block text-sm font-medium mb-2"
+          >
+            {formState.outbidOptions.outbid
+              ? "MagicEden Min Bid Price"
+              : "MagicEden Bid Price"}
+          </label>
+          <div className="flex items-center">
+            <input
+              min={0.005}
+              step={0.0001}
+              inputMode="numeric"
+              type="number"
+              id="magicEdenMinPrice"
+              name={"magicEdenBidPrice.min"}
+              onChange={handleBidPriceChange}
+              value={formState.magicEdenBidPrice.min}
+              placeholder={
+                formState.magicEdenBidPrice.minType === "percentage"
+                  ? "80"
+                  : "1"
+              }
+              className={`w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]`}
+              autoComplete="off"
+            />
+            <CustomSelect
+              options={priceTypeOptions}
+              value={formState.magicEdenBidPrice.minType}
+              onChange={(value) =>
+                handlePriceTypeChange(value, "magicEdenBidPrice")
+              }
+              className="w-20 ml-2"
+            />
+          </div>
+          {errors.magicEdenBidPrice?.min && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.magicEdenBidPrice.min}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div></div>
+      )}
+
+      {bidPriceType === MARKETPLACE_BID_PRICE &&
+      formState.outbidOptions.outbid ? (
+        <div>
+          <label
+            htmlFor="magicEdenMaxPrice"
+            className="block text-sm font-medium mb-2"
+          >
+            MagicEden Max Bid Price
+          </label>
+          <div className="flex items-center">
+            <input
+              min={0.005}
+              step={0.0001}
+              inputMode="numeric"
+              type="number"
+              id="magicEdenMaxPrice"
+              name={"magicEdenBidPrice.max"}
+              onChange={handleBidPriceChange}
+              value={formState.magicEdenBidPrice.max}
+              placeholder={
+                formState.magicEdenBidPrice.maxType === "percentage"
+                  ? "80"
+                  : "1"
+              }
+              className={`w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]`}
+              autoComplete="off"
+            />
+            <CustomSelect
+              options={priceTypeOptions}
+              value={formState.magicEdenBidPrice.maxType}
+              onChange={(value) =>
+                handlePriceTypeChange(value, "magicEdenBidPrice")
+              }
+              className="w-20 ml-2"
+            />
+          </div>
+          {errors.magicEdenBidPrice?.max && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.magicEdenBidPrice.max}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div></div>
+      )}
+      <div className="flex items-center mb-8 gap-2">
+        <Toggle
+          checked={bidPriceType === MARKETPLACE_BID_PRICE}
+          onChange={() =>
+            setBidPriceType(
+              bidPriceType === MARKETPLACE_BID_PRICE
+                ? GENERAL_BID_PRICE
+                : MARKETPLACE_BID_PRICE
+            )
+          }
+        />
+        <span
+          className="text-sm cursor-pointer"
+          onClick={() => {
+            setBidPriceType(
+              bidPriceType === MARKETPLACE_BID_PRICE
+                ? GENERAL_BID_PRICE
+                : MARKETPLACE_BID_PRICE
+            );
+          }}
+        >
+          Marketplace Specific Bid Amount
+        </span>
+      </div>
+
+      <div className="flex items-center mb-8 gap-2">
         <Toggle
           checked={formState.outbidOptions.outbid}
           onChange={() =>

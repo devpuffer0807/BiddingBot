@@ -33,6 +33,27 @@ interface ITask extends Document {
     maxType: "percentage" | "eth";
   };
 
+  openseaBidPrice: {
+    min: number;
+    max: number | null;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
+
+  blurBidPrice: {
+    min: number;
+    max: number | null;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
+
+  magicEdenBidPrice: {
+    min: number;
+    max: number | null;
+    minType: "percentage" | "eth";
+    maxType: "percentage" | "eth";
+  };
+
   stopOptions: {
     pauseAllBids: boolean;
     stopAllBids: boolean;
@@ -83,6 +104,24 @@ const TaskSchema: Schema = new Schema(
       counterbid: { type: Boolean, default: false },
     },
     bidPrice: {
+      min: { type: Number, required: true },
+      max: { type: Number, required: false, default: null },
+      minType: { type: String, enum: ["percentage", "eth"], required: true },
+      maxType: { type: String, enum: ["percentage", "eth"], required: true },
+    },
+    openseaBidPrice: {
+      min: { type: Number, required: true },
+      max: { type: Number, required: false, default: null },
+      minType: { type: String, enum: ["percentage", "eth"], required: true },
+      maxType: { type: String, enum: ["percentage", "eth"], required: true },
+    },
+    blurBidPrice: {
+      min: { type: Number, required: true },
+      max: { type: Number, required: false, default: null },
+      minType: { type: String, enum: ["percentage", "eth"], required: true },
+      maxType: { type: String, enum: ["percentage", "eth"], required: true },
+    },
+    magicEdenBidPrice: {
       min: { type: Number, required: true },
       max: { type: Number, required: false, default: null },
       minType: { type: String, enum: ["percentage", "eth"], required: true },

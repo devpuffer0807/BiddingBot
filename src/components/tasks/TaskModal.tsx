@@ -79,6 +79,24 @@ const TaskModal: React.FC<TaskModalProps> = ({
             minType: initialTask.bidPrice.minType || "percentage",
             maxType: initialTask.bidPrice.maxType || "percentage",
           },
+          openseaBidPrice: {
+            min: initialTask.openseaBidPrice.min?.toString() || "",
+            max: initialTask.openseaBidPrice.max?.toString() || "",
+            minType: initialTask.openseaBidPrice.minType || "percentage",
+            maxType: initialTask.openseaBidPrice.maxType || "percentage",
+          },
+          blurBidPrice: {
+            min: initialTask.blurBidPrice.min?.toString() || "",
+            max: initialTask.blurBidPrice.max?.toString() || "",
+            minType: initialTask.blurBidPrice.minType || "percentage",
+            maxType: initialTask.blurBidPrice.maxType || "percentage",
+          },
+          magicEdenBidPrice: {
+            min: initialTask.magicEdenBidPrice.min?.toString() || "",
+            max: initialTask.magicEdenBidPrice.max?.toString() || "",
+            minType: initialTask.magicEdenBidPrice.minType || "percentage",
+            maxType: initialTask.magicEdenBidPrice.maxType || "percentage",
+          },
           wallet: {
             address: initialTask.wallet.address || "",
             privateKey: initialTask.wallet.privateKey || "",
@@ -123,6 +141,24 @@ const TaskModal: React.FC<TaskModalProps> = ({
             triggerStopOptions: false,
           },
           bidPrice: {
+            min: "",
+            max: "",
+            minType: "percentage",
+            maxType: "percentage",
+          },
+          openseaBidPrice: {
+            min: "",
+            max: "",
+            minType: "percentage",
+            maxType: "percentage",
+          },
+          blurBidPrice: {
+            min: "",
+            max: "",
+            minType: "percentage",
+            maxType: "percentage",
+          },
+          magicEdenBidPrice: {
             min: "",
             max: "",
             minType: "percentage",
@@ -181,12 +217,23 @@ const TaskModal: React.FC<TaskModalProps> = ({
   };
 
   const isFormValid = () => {
-    const { contract, wallet, bidPrice, selectedMarketplaces } = formState;
+    const {
+      contract,
+      wallet,
+      bidPrice,
+      openseaBidPrice,
+      blurBidPrice,
+      magicEdenBidPrice,
+      selectedMarketplaces,
+    } = formState;
     return (
       contract.slug &&
       contract.contractAddress &&
       wallet.address &&
-      bidPrice.min &&
+      (bidPrice.min ||
+        openseaBidPrice.min ||
+        blurBidPrice.min ||
+        magicEdenBidPrice.min) &&
       selectedMarketplaces.length > 0
     );
   };
@@ -233,6 +280,24 @@ const TaskModal: React.FC<TaskModalProps> = ({
           max: Number(formState.bidPrice.max),
           minType: formState.bidPrice.minType,
           maxType: formState.bidPrice.maxType,
+        },
+        openseaBidPrice: {
+          min: Number(formState.openseaBidPrice.min),
+          max: Number(formState.openseaBidPrice.max),
+          minType: formState.openseaBidPrice.minType,
+          maxType: formState.openseaBidPrice.maxType,
+        },
+        blurBidPrice: {
+          min: Number(formState.blurBidPrice.min),
+          max: Number(formState.blurBidPrice.max),
+          minType: formState.blurBidPrice.minType,
+          maxType: formState.blurBidPrice.maxType,
+        },
+        magicEdenBidPrice: {
+          min: Number(formState.magicEdenBidPrice.min),
+          max: Number(formState.magicEdenBidPrice.max),
+          minType: formState.magicEdenBidPrice.minType,
+          maxType: formState.magicEdenBidPrice.maxType,
         },
         tokenIds: formState.tokenIds,
         bidDuration: formState.bidDuration,
@@ -291,6 +356,24 @@ const TaskModal: React.FC<TaskModalProps> = ({
         triggerStopOptions: false,
       },
       bidPrice: {
+        min: "",
+        max: "",
+        minType: "percentage",
+        maxType: "percentage",
+      },
+      openseaBidPrice: {
+        min: "",
+        max: "",
+        minType: "percentage",
+        maxType: "percentage",
+      },
+      blurBidPrice: {
+        min: "",
+        max: "",
+        minType: "percentage",
+        maxType: "percentage",
+      },
+      magicEdenBidPrice: {
         min: "",
         max: "",
         minType: "percentage",
