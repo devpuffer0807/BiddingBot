@@ -6,11 +6,6 @@ import CustomSelect, { CustomSelectOption } from "../common/CustomSelect";
 import Toggle from "../common/Toggle";
 import WalletBalanceFetcher from "../common/WalletBalanceFetcher";
 
-enum BidType {
-  Collection = "collection",
-  Token = "token",
-}
-
 interface FormSectionProps {
   formState: TaskFormState;
   errors: Partial<TaskFormState>;
@@ -18,8 +13,6 @@ interface FormSectionProps {
   walletOptions: CustomSelectOption[];
   setFormState: React.Dispatch<React.SetStateAction<TaskFormState>>;
   onWalletModalOpen: () => void;
-  bidType: BidType;
-  setBidType: React.Dispatch<React.SetStateAction<BidType>>;
 }
 
 const FormSection: React.FC<FormSectionProps> = ({
@@ -29,8 +22,6 @@ const FormSection: React.FC<FormSectionProps> = ({
   walletOptions,
   setFormState,
   onWalletModalOpen,
-  bidType,
-  setBidType,
 }) => {
   const [updatedWalletOptions, setUpdatedWalletOptions] =
     useState(walletOptions);
@@ -130,17 +121,20 @@ const FormSection: React.FC<FormSectionProps> = ({
     }));
   };
 
-  const validateBidDuration = (value: number, unit: string) => {
-    if (unit === "minutes" && value < 15) return false;
-    if (unit === "hours" && value < 0.25) return false;
-    if (unit === "days" && value < 0.011) return false;
-    return true;
+  const handleLoopIntervalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormState((prev) => ({
+      ...prev,
+      loopInterval: {
+        ...prev.loopInterval,
+        [name]: value,
+      },
+    }));
   };
 
   const handleTokenIdsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     const ranges = value.split(",").map((range) => range.trim());
-    const numbers: number[] = [];
     const uniqueNumbers = new Set<number>();
 
     ranges.forEach((range) => {
@@ -165,9 +159,7 @@ const FormSection: React.FC<FormSectionProps> = ({
     }));
   };
 
-  const handleBidTypeChange = (type: BidType) => {
-    console.log({ type });
-    setBidType(type);
+  const handleBidTypeChange = (type: string) => {
     setFormState((prev) => ({
       ...prev,
       bidType: type,
@@ -346,19 +338,19 @@ const FormSection: React.FC<FormSectionProps> = ({
             <input
               type="radio"
               name="bidType"
-              checked={bidType === BidType.Collection}
-              onChange={() => handleBidTypeChange(BidType.Collection)}
+              checked={formState.bidType === "collection"}
+              onChange={() => handleBidTypeChange("collection")}
               className="hidden"
             />
             <span className="relative w-6 h-6 inline-block">
               <span
                 className={`absolute inset-0 rounded-full border-2 ${
-                  bidType === BidType.Collection
+                  formState.bidType === "collection"
                     ? "border-[#7364DB]"
                     : "border-gray-400"
                 }`}
               ></span>
-              {bidType === BidType.Collection && (
+              {formState.bidType === "collection" && (
                 <span className="absolute inset-1.5 rounded-full bg-[#7364DB]"></span>
               )}
             </span>
@@ -369,19 +361,19 @@ const FormSection: React.FC<FormSectionProps> = ({
             <input
               type="radio"
               name="bidType"
-              checked={bidType === BidType.Token}
-              onChange={() => handleBidTypeChange(BidType.Token)}
+              checked={formState.bidType === "token"}
+              onChange={() => handleBidTypeChange("token")}
               className="hidden"
             />
             <span className="relative w-6 h-6 inline-block">
               <span
                 className={`absolute inset-0 rounded-full border-2 ${
-                  bidType === BidType.Token
+                  formState.bidType === "token"
                     ? "border-[#7364DB]"
                     : "border-gray-400"
                 }`}
               ></span>
-              {bidType === BidType.Token && (
+              {formState.bidType === "token" && (
                 <span className="absolute inset-1.5 rounded-full bg-[#7364DB]"></span>
               )}
             </span>
@@ -389,11 +381,30 @@ const FormSection: React.FC<FormSectionProps> = ({
           </label>
         </div>
       </div>
-      <div>
-        <label htmlFor="bidDuration" className="block text-sm font-medium mb-2">
-          Loop Interval
-        </label>
-      </div>
+      {formState.bidType === "token" ? (
+        <div>
+          <label htmlFor="tokenIds" className="block text-sm font-medium mb-2">
+            Token Range
+          </label>
+          <div className="flex items-center">
+            <input
+              inputMode="text"
+              type="text"
+              id="tokenIds"
+              name="tokenIds"
+              onChange={handleTokenIdsChange}
+              placeholder="1 - 777, 86, 999 - 1456"
+              className="w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
+              autoComplete="off"
+            />
+          </div>
+          {errors.tokenIds && (
+            <p className="text-red-500 text-sm mt-1">{errors.tokenIds}</p>
+          )}
+        </div>
+      ) : (
+        <div></div>
+      )}
       <div>
         <label htmlFor="bidDuration" className="block text-sm font-medium mb-2">
           Bid Duration
@@ -408,7 +419,6 @@ const FormSection: React.FC<FormSectionProps> = ({
             value={formState.bidDuration.value || 15}
             placeholder="Duration"
             className="w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
-            required
             autoComplete="off"
           />
           <CustomSelect
@@ -428,28 +438,34 @@ const FormSection: React.FC<FormSectionProps> = ({
           </p>
         )}
       </div>
-
-      {bidType === BidType.Token ? (
-        <div>
-          <label htmlFor="tokenIds" className="block text-sm font-medium mb-2">
-            Token Range
-          </label>
-          <div className="flex items-center">
-            <input
-              inputMode="text"
-              type="text"
-              id="tokenIds"
-              name="tokenIds"
-              onChange={handleTokenIdsChange}
-              placeholder="1 - 777, 86, 999 - 1456"
-              className="w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
-              autoComplete="off"
-            />
-          </div>
+      <div>
+        <label htmlFor="bidDuration" className="block text-sm font-medium mb-2">
+          Loop Interval
+        </label>
+        <div className="flex items-center">
+          <input
+            inputMode="numeric"
+            type="number"
+            id="loopInterval"
+            name="value"
+            onChange={handleLoopIntervalChange}
+            value={formState.loopInterval.value || 15}
+            placeholder="15 Minutes"
+            className="w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
+            autoComplete="off"
+          />
+          <CustomSelect
+            options={durationTypeOptions}
+            value={formState.loopInterval.unit || "minutes"}
+            onChange={(value) =>
+              handleLoopIntervalChange({
+                target: { name: "unit", value },
+              } as React.ChangeEvent<HTMLInputElement>)
+            }
+            className="w-20 ml-2"
+          />
         </div>
-      ) : (
-        <div></div>
-      )}
+      </div>
     </>
   );
 };

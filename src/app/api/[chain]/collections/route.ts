@@ -28,18 +28,22 @@ export async function GET(request: NextRequest) {
     }
 
     const collection: CollectionData = await response.json();
+    const traits = await getCollectionTraits(slug);
 
-    // Use addAll to handle multiple promises concurrently
-    const [traits, magicEdenValid, blurValid] = await queue.addAll([
-      () => getCollectionTraits(slug),
-      () => checkMagicEden(collection.contracts[0].address, slug),
-      () => checkBlur(collection.contracts[0].address),
+    // Validate on Magic Eden and Blur concurrently
+    const [magicEdenResult, blurResult] = await Promise.allSettled([
+      checkMagicEden(collection.contracts[0].address, slug),
+      checkBlur(collection.contracts[0].address),
     ]);
+
+    const magicEdenValid =
+      magicEdenResult.status === "fulfilled" ? magicEdenResult.value : false;
+    const blurValid =
+      blurResult.status === "fulfilled" ? blurResult.value : false;
 
     const data = { ...collection, traits, magicEdenValid, blurValid };
 
     if (
-      collection.collection_offers_enabled &&
       collection.total_supply > 0 &&
       collection.contracts[0].chain.toLowerCase() === "ethereum"
     ) {
@@ -121,7 +125,6 @@ async function checkBlur(contractAddress: string): Promise<boolean> {
 
     return response.data.success;
   } catch (error: any) {
-    console.error("Error checking Blur:", error.response.data);
     return false;
   }
 }

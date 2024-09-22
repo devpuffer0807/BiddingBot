@@ -56,7 +56,6 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const bidDurationInSeconds = convertToSeconds(body.bidDuration);
   const task = await Task.findByIdAndUpdate(
     params.id,
     {
@@ -99,7 +98,14 @@ export async function PUT(
           : null,
         counterbid: body.outbidOptions.counterbid,
       },
-      bidDuration: bidDurationInSeconds,
+      bidDuration: {
+        value: +body.bidDuration.value, // Ensure this is a number
+        unit: body.bidDuration.unit, // This should remain a string
+      },
+      loopInterval: {
+        value: +body.loopInterval.value,
+        unit: body.loopInterval.unit,
+      },
       tokenIds: body.tokenIds || [],
     },
     { new: true }
@@ -164,18 +170,3 @@ export async function PATCH(
   );
   return NextResponse.json(task, { status: 200 });
 }
-
-// Helper function to convert duration to seconds
-const convertToSeconds = (duration: { value: number; unit: string }) => {
-  const { value, unit } = duration;
-  switch (unit) {
-    case "minutes":
-      return value * 60;
-    case "hours":
-      return value * 3600;
-    case "days":
-      return value * 86400;
-    default:
-      return value;
-  }
-};

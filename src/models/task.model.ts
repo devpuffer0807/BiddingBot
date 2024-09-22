@@ -44,7 +44,14 @@ interface ITask extends Document {
     maxPurchase: number;
     triggerStopOptions: boolean;
   };
-  bidDuration: number;
+  bidDuration: {
+    value: number;
+    unit: string;
+  };
+  loopInterval: {
+    value: number;
+    unit: string;
+  };
   tokenIds: number[];
   bidType: "collection" | "token";
 }
@@ -92,7 +99,14 @@ const TaskSchema: Schema = new Schema(
       cancelAllBids: { type: Boolean, default: false },
       triggerStopOptions: { type: Boolean, default: false },
     },
-    bidDuration: { type: Number, required: false, default: 900 },
+    bidDuration: {
+      value: { type: Number, required: false, default: 15 },
+      unit: { type: String, required: false, default: "minutes" },
+    },
+    loopInterval: {
+      value: { type: Number, required: false, default: 15 },
+      unit: { type: String, required: false, default: "minutes" },
+    },
     tokenIds: { type: [Number], required: false },
     bidType: {
       type: String,

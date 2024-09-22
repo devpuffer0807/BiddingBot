@@ -27,15 +27,11 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [showCreateTag, setShowCreateTag] = useState(false);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
-  const [bidType, setBidType] = useState<BidType>(BidType.Collection);
-
   const {
     formState,
     errors,
-    handleChange,
     handleMarketplaceToggle,
     handleSubmit,
-    validateSlug,
     setFormState,
     handleTagChange,
     handleTraitChange,
@@ -91,8 +87,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
             value: 15,
             unit: "minutes",
           },
+          loopInterval: initialTask.loopInterval || {
+            value: 15,
+            unit: "minutes",
+          },
           tokenIds: initialTask.tokenIds || [],
-          bidType: initialTask.bidType || "collection",
+          bidType: initialTask.bidType,
         }
       : {
           contract: {
@@ -133,8 +133,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
             privateKey: "",
           },
           bidDuration: { value: 15, unit: "minutes" },
+          loopInterval: { value: 15, unit: "minutes" },
           tokenIds: [],
-          bidType: bidType,
+          bidType: "collection",
         },
     taskId
   );
@@ -235,6 +236,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         },
         tokenIds: formState.tokenIds,
         bidDuration: formState.bidDuration,
+        loopInterval: formState.loopInterval,
         bidType: formState.bidType,
       };
 
@@ -295,6 +297,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         maxType: "percentage",
       },
       bidDuration: { value: 15, unit: "minutes" },
+      loopInterval: { value: 15, unit: "minutes" },
       tokenIds: [],
       bidType: "collection",
     });
@@ -335,8 +338,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
               walletOptions={walletOptions}
               setFormState={setFormState}
               onWalletModalOpen={handleWalletModalOpen}
-              bidType={bidType}
-              setBidType={setBidType}
             />
             {formState.traits &&
               Object.keys(formState.traits.categories).length > 0 && (
@@ -409,9 +410,4 @@ interface TaskModalProps {
   onClose: () => void;
   taskId?: string;
   initialTask?: Task | null;
-}
-
-enum BidType {
-  Collection = "collection",
-  Token = "token",
 }

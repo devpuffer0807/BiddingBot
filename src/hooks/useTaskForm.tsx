@@ -56,9 +56,16 @@ export const useTaskForm = (
       minType: initialState.bidPrice?.minType || "percentage",
       maxType: initialState.bidPrice?.maxType || "percentage",
     },
-    bidDuration: { value: 15, unit: "minutes" },
+    bidDuration: {
+      value: initialState.bidDuration.value,
+      unit: initialState.bidDuration.unit,
+    },
+    loopInterval: {
+      value: initialState.loopInterval.value,
+      unit: initialState.loopInterval.unit,
+    },
     tokenIds: [],
-    bidType: "collection",
+    bidType: initialState.bidType || "collection", // Add this line
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
@@ -102,8 +109,6 @@ export const useTaskForm = (
           minType: initialState.bidPrice.minType,
           maxType: initialState.bidPrice.maxType,
         },
-        bidDuration: { value: 15, unit: "minutes" },
-        bidType: "collection",
       }));
       prevInitialStateRef.current = initialState;
     }
@@ -219,6 +224,11 @@ export const useTaskForm = (
       newErrors.selectedMarketplaces = [
         "At least one marketplace must be selected",
       ];
+    if (formState.bidType === "token" && formState.tokenIds.length === 0) {
+      newErrors.tokenIds = [
+        "Token IDs cannot be empty when bid type is 'token'",
+      ] as unknown as number[];
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -277,7 +287,14 @@ export const useTaskForm = (
           minType: formState.bidPrice.minType,
           maxType: formState.bidPrice.maxType,
         },
-        bidDuration: formState.bidDuration,
+        bidDuration: {
+          value: formState.bidDuration.value,
+          unit: formState.bidDuration.unit,
+        },
+        loopInterval: {
+          value: formState.loopInterval.value,
+          unit: formState.loopInterval.unit,
+        },
         tokenIds: formState.tokenIds,
         bidType: formState.bidType,
       };
@@ -391,6 +408,7 @@ export interface TaskFormState {
     privateKey: string;
   };
   bidDuration: { value: number; unit: string };
+  loopInterval: { value: number; unit: string };
   tokenIds: number[];
-  bidType: "collection" | "token";
+  bidType: string;
 }

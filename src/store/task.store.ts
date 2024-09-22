@@ -34,6 +34,7 @@ export const useTaskStore = create(
                 privateKey: "",
               },
               tokenIds: task.tokenIds || [],
+              loopInterval: task.loopInterval || { value: 0, unit: "minutes" },
             },
           ],
         })),
@@ -45,6 +46,7 @@ export const useTaskStore = create(
                   ...task,
                   ...updatedTask,
                   bidDuration: updatedTask.bidDuration ?? task.bidDuration,
+                  loopInterval: updatedTask.loopInterval ?? task.loopInterval,
                   bidPrice: {
                     min: updatedTask.bidPrice?.min ?? task.bidPrice.min,
                     max: updatedTask.bidPrice?.max ?? task.bidPrice.max,
@@ -200,5 +202,6 @@ export interface Task {
   };
   bidDuration: { value: number; unit: string };
   tokenIds: number[];
-  bidType: "collection" | "token";
+  bidType: string;
+  loopInterval: { value: number; unit: string };
 }
