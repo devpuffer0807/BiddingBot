@@ -19,7 +19,6 @@ export const useTaskStore = create(
       addTask: (task) =>
         set((state) => ({
           tasks: [
-            ...state.tasks,
             {
               ...task,
               running: false,
@@ -39,6 +38,7 @@ export const useTaskStore = create(
               tokenIds: task.tokenIds || [],
               loopInterval: task.loopInterval || { value: 0, unit: "minutes" },
             },
+            ...state.tasks,
           ],
         })),
       editTask: (id, updatedTask) => {
@@ -201,6 +201,7 @@ export const useTaskStore = create(
 
 export interface Task {
   _id: string;
+  user: string;
   contract: {
     slug: string;
     contractAddress: string;
@@ -267,4 +268,5 @@ export interface Task {
   tokenIds: number[];
   bidType: string;
   loopInterval: { value: number; unit: string };
+  bidPriceType: string;
 }

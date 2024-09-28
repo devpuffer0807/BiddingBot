@@ -12,7 +12,7 @@ const MarketplaceSection = ({
         Select Marketplace <span className="text-red-500">*</span>
       </h2>
       <div className="flex flex-wrap gap-4">
-        {["MagicEden", "Blur", "OpenSea"].map((marketplace) => {
+        {["OpenSea", "Blur", "MagicEden"].map((marketplace) => {
           const isActive = formState.selectedMarketplaces.includes(marketplace);
           const activeColor =
             marketplace === "MagicEden"
@@ -21,6 +21,7 @@ const MarketplaceSection = ({
               ? "bg-[#FF8700]"
               : "bg-[#2081e2]";
           const isDisabled =
+            (marketplace === "OpenSea" && !formState.slugValid) ||
             (marketplace === "MagicEden" && !formState.magicEdenValid) ||
             (marketplace === "Blur" && !formState.blurValid);
 

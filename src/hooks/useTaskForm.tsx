@@ -83,7 +83,8 @@ export const useTaskForm = (
       unit: initialState.loopInterval.unit,
     },
     tokenIds: [],
-    bidType: initialState.bidType || "collection", // Add this line
+    bidType: initialState.bidType || "collection",
+    bidPriceType: initialState.bidPriceType || "general",
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
@@ -279,7 +280,7 @@ export const useTaskForm = (
         return false;
       }
 
-      const taskData: Omit<Task, "_id"> = {
+      const taskData: Omit<Task, "_id" | "user"> = {
         contract: {
           slug: formState.contract.slug.toLowerCase(),
           contractAddress: formState.contract.contractAddress,
@@ -351,6 +352,7 @@ export const useTaskForm = (
         },
         tokenIds: formState.tokenIds,
         bidType: formState.bidType,
+        bidPriceType: formState.bidPriceType || "GENERAL_BID_PRICE",
       };
 
       try {
@@ -483,4 +485,5 @@ export interface TaskFormState {
   loopInterval: { value: number; unit: string };
   tokenIds: number[];
   bidType: string;
+  bidPriceType: string;
 }

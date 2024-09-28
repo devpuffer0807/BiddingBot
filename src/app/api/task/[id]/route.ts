@@ -61,6 +61,7 @@ export async function PUT(
     {
       ...body,
       bidType: body.bidType || "collection",
+      bidPriceType: body.bidPriceType || "GENERAL_BID_PRICE",
       stopOptions: {
         minFloorPrice: body.stopOptions.minFloorPrice,
         maxFloorPrice: body.stopOptions.maxFloorPrice,

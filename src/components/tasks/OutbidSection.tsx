@@ -62,6 +62,38 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
         formState.outbidOptions.counterbid ? (
           <div className="flex flex-col gap-4">
             <div>
+              <label
+                htmlFor="openseaOutbidMargin"
+                className="block text-sm mb-1"
+              >
+                Opensea Outbid/Counterbid Margin
+              </label>
+              <input
+                inputMode="numeric"
+                type="number"
+                step={0.0001}
+                min={0.0001}
+                max={0.1}
+                id="openseaOutbidMargin"
+                name="openseaOutbidMargin"
+                onChange={(e) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    outbidOptions: {
+                      ...prev.outbidOptions,
+                      openseaOutbidMargin: e.target.value,
+                    },
+                  }))
+                }
+                value={formState.outbidOptions.openseaOutbidMargin?.toString()}
+                placeholder="0.0001"
+                className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] `}
+                required
+                autoComplete="off"
+              />
+            </div>
+
+            <div>
               <label htmlFor="blurOutbidMargin" className="block text-sm mb-1">
                 Blur Outbid/Counterbid Margin
               </label>
@@ -95,37 +127,6 @@ const OutbidSection = ({ formState, setFormState }: IOutbidSection) => {
                 }}
                 value={formState.outbidOptions.blurOutbidMargin || ""}
                 placeholder="0.01"
-                className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] `}
-                required
-                autoComplete="off"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="openseaOutbidMargin"
-                className="block text-sm mb-1"
-              >
-                Opensea Outbid/Counterbid Margin
-              </label>
-              <input
-                inputMode="numeric"
-                type="number"
-                step={0.0001}
-                min={0.0001}
-                max={0.1}
-                id="openseaOutbidMargin"
-                name="openseaOutbidMargin"
-                onChange={(e) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    outbidOptions: {
-                      ...prev.outbidOptions,
-                      openseaOutbidMargin: e.target.value,
-                    },
-                  }))
-                }
-                value={formState.outbidOptions.openseaOutbidMargin?.toString()}
-                placeholder="0.0001"
                 className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] `}
                 required
                 autoComplete="off"

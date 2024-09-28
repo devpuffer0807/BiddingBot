@@ -5,7 +5,6 @@ import { useTaskForm } from "@/hooks/useTaskForm";
 import { Task, useTaskStore } from "@/store";
 import { useState } from "react";
 import { useTagStore } from "@/store/tag.store";
-import TraitSelector from "./TraitSelector";
 import FormSection from "./FormSection";
 import MarketplaceSection from "./MarketplaceSection";
 import TagSection from "./TagSection";
@@ -111,6 +110,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           },
           tokenIds: initialTask.tokenIds || [],
           bidType: initialTask.bidType,
+          bidPriceType: initialTask.bidPriceType,
         }
       : {
           contract: {
@@ -172,6 +172,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           loopInterval: { value: 15, unit: "minutes" },
           tokenIds: [],
           bidType: "collection",
+          bidPriceType: "GENERAL_BID_PRICE",
         },
     taskId
   );
@@ -210,10 +211,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
         toast.error("Failed to add tag.");
       }
     }
-  };
-
-  const handleTraitSelect = (traits: Record<string, string[]>) => {
-    handleTraitChange(traits);
   };
 
   const isFormValid = () => {
@@ -383,6 +380,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       loopInterval: { value: 15, unit: "minutes" },
       tokenIds: [],
       bidType: "collection",
+      bidPriceType: "GENERAL_BID_PRICE",
     });
   };
 
@@ -414,25 +412,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
         <div className="flex-grow pr-4 -mr-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormSection
-              formState={formState}
-              errors={errors}
-              debouncedValidateSlug={debouncedValidateSlug}
-              walletOptions={walletOptions}
-              setFormState={setFormState}
-              onWalletModalOpen={handleWalletModalOpen}
-            />
-            {formState.traits &&
-              Object.keys(formState.traits.categories).length > 0 && (
-                <div className="col-span-2 mt-6">
-                  <h3 className="mb-2 font-medium">Select Traits</h3>
-                  <TraitSelector
-                    traits={formState.traits}
-                    onTraitSelect={handleTraitSelect}
-                    initialSelectedTraits={formState.selectedTraits}
-                  />
-                </div>
-              )}
             <MarketplaceSection
               formState={formState}
               errors={errors}
@@ -448,6 +427,15 @@ const TaskModal: React.FC<TaskModalProps> = ({
               newTagColor={newTagColor}
               setNewTagColor={setNewTagColor}
               handleAddTag={handleAddTag}
+            />
+            <FormSection
+              formState={formState}
+              errors={errors}
+              debouncedValidateSlug={debouncedValidateSlug}
+              walletOptions={walletOptions}
+              setFormState={setFormState}
+              onWalletModalOpen={handleWalletModalOpen}
+              handleTraitChange={handleTraitChange}
             />
 
             {formState.outbidOptions.outbid ? (

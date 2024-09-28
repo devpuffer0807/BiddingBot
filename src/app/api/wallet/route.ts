@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const wallets = await Wallet.find({ user: userId });
+  const wallets = await Wallet.find({ user: userId }).sort({ createdAt: -1 });
   return NextResponse.json(wallets, { status: 200 });
 }
 
