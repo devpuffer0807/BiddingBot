@@ -95,13 +95,13 @@ const TaskTable: React.FC<TaskTableProps> = ({
               Max Price
             </th>
             <th scope="col" className="px-6 py-3 text-center">
-              MagicEden
+              OS
             </th>
             <th scope="col" className="px-6 py-3 text-center">
               Blur
             </th>
             <th scope="col" className="px-6 py-3 text-center">
-              OS
+              MagicEden
             </th>
             <th scope="col" className="px-6 py-3 text-center">
               Tags
@@ -192,11 +192,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
                 </span>
               </td>
               <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
-                <span className="sm:hidden font-bold">MagicEden</span>
+                <span className="sm:hidden font-bold">OpenSea</span>
                 <Toggle
-                  checked={task.selectedMarketplaces.includes("MagicEden")}
-                  onChange={() => onToggleMarketplace(task._id, "MagicEden")}
-                  activeColor="#e42575"
+                  checked={task.selectedMarketplaces.includes("OpenSea")}
+                  onChange={() => onToggleMarketplace(task._id, "OpenSea")}
+                  activeColor="#2081e2"
                   inactiveColor="#3F3F46"
                 />
               </td>
@@ -210,11 +210,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
                 />
               </td>
               <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
-                <span className="sm:hidden font-bold">OpenSea</span>
+                <span className="sm:hidden font-bold">MagicEden</span>
                 <Toggle
-                  checked={task.selectedMarketplaces.includes("OpenSea")}
-                  onChange={() => onToggleMarketplace(task._id, "OpenSea")}
-                  activeColor="#2081e2"
+                  checked={task.selectedMarketplaces.includes("MagicEden")}
+                  onChange={() => onToggleMarketplace(task._id, "MagicEden")}
+                  activeColor="#e42575"
                   inactiveColor="#3F3F46"
                 />
               </td>
