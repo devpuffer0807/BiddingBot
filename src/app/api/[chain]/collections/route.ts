@@ -4,7 +4,7 @@ import { ethers, Wallet as Web3Wallet } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import PQueue from "p-queue"; // Import PQueue
 
-const API_KEY = "8fa3d411-a50c-43cb-ac4e-1306575ac586";
+const API_KEY = "d3348c68-097d-48b5-b5f0-0313cc05e92d";
 const ALCHEMY_API_KEY = "HGWgCONolXMB2op5UjPH1YreDCwmSbvx";
 
 const queue = new PQueue({ concurrency: 8 }); // Create a queue with concurrency of 3
@@ -73,9 +73,8 @@ export async function getCollectionTraits(collectionSlug: string) {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to fetch collection traits");
+      return { categories: {}, counts: {} };
     }
-
     const data = await response.json();
     return data;
   } catch (error) {
