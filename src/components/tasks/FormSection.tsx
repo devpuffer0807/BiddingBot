@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import CheckIcon from "@/assets/svg/CheckIcon";
-import XIcon from "@/assets/svg/XIcon";
 import { TaskFormState } from "@/hooks/useTaskForm";
 import CustomSelect, { CustomSelectOption } from "../common/CustomSelect";
 import Toggle from "../common/Toggle";
-import WalletBalanceFetcher from "../common/WalletBalanceFetcher";
 import TraitSelector from "./TraitSelector";
+import MarketplaceSection from "./MarketplaceSection";
 
 interface FormSectionProps {
   formState: TaskFormState;
@@ -15,6 +13,7 @@ interface FormSectionProps {
   setFormState: React.Dispatch<React.SetStateAction<TaskFormState>>;
   onWalletModalOpen: () => void;
   handleTraitChange: (traits: Record<string, string[]>) => void;
+  handleMarketplaceToggle: (marketplace: string) => void;
 }
 
 const FormSection: React.FC<FormSectionProps> = ({
@@ -25,6 +24,7 @@ const FormSection: React.FC<FormSectionProps> = ({
   setFormState,
   onWalletModalOpen,
   handleTraitChange,
+  handleMarketplaceToggle,
 }) => {
   const GENERAL_BID_PRICE = "GENERAL_BID_PRICE";
   const MARKETPLACE_BID_PRICE = "MARKETPLACE_BID_PRICE";
@@ -83,15 +83,15 @@ const FormSection: React.FC<FormSectionProps> = ({
 
   const handleBidPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const priceType = name.split(".")[1]; // Extract the price type (min or max)
-    const priceCategory = name.split(".")[0]; // Extract the category (bidPrice, openseaBidPrice, etc.)
+    const priceType = name.split(".")[1];
+    const priceCategory = name.split(".")[0];
 
     setFormState((prev) => ({
       ...prev,
       [priceCategory]: {
         // @ts-ignore
         ...prev[priceCategory],
-        [priceType]: value, // Update only the specific price type
+        [priceType]: value,
       },
     }));
   };
@@ -190,42 +190,11 @@ const FormSection: React.FC<FormSectionProps> = ({
 
   return (
     <>
-      <WalletBalanceFetcher
-        walletOptions={walletOptions}
-        onBalancesFetched={setUpdatedWalletOptions}
+      <MarketplaceSection
+        formState={formState}
+        errors={errors}
+        handleMarketplaceToggle={handleMarketplaceToggle}
       />
-      <div>
-        <label htmlFor="slug" className="block text-sm font-medium mb-2">
-          Collection slug <span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            id="slug"
-            name="contract.slug"
-            onChange={handleSlugChange}
-            value={formState.contract.slug}
-            placeholder="collection slug"
-            className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
-              errors.contract?.slug ? "border-red-500" : ""
-            }`}
-            required
-            autoComplete="off"
-          />
-          {formState.slugDirty && formState.contract.slug.length > 0 && (
-            <div className="absolute right-3 top-[50%] transform -translate-y-1/2">
-              {errors.contract?.slug || !formState.slugValid ? (
-                <XIcon />
-              ) : (
-                <CheckIcon />
-              )}
-            </div>
-          )}
-          {errors.contract?.slug && (
-            <p className="text-red-500 text-sm mt-1">{errors.contract.slug}</p>
-          )}
-        </div>
-      </div>
       <div>
         <label
           htmlFor="walletSelection"

@@ -6,12 +6,14 @@ import { Task, useTaskStore } from "@/store";
 import { useState } from "react";
 import { useTagStore } from "@/store/tag.store";
 import FormSection from "./FormSection";
-import MarketplaceSection from "./MarketplaceSection";
 import TagSection from "./TagSection";
 import OutbidSection from "./OutbidSection";
 import StartSection from "./StartSection";
 import StopOption from "./StopOptions";
 import WalletModal from "../wallet/WalletModal";
+import XIcon from "@/assets/svg/XIcon";
+import CheckIcon from "@/assets/svg/CheckIcon";
+import LoadingIcon from "@/assets/svg/LoadingIcon";
 
 const TaskModal: React.FC<TaskModalProps> = ({
   isOpen,
@@ -111,6 +113,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
           tokenIds: initialTask.tokenIds || [],
           bidType: initialTask.bidType,
           bidPriceType: initialTask.bidPriceType,
+          blurFloorPrice: null,
+          magicedenFloorPrice: null,
+          openseaFloorPrice: null,
+          validatingSlug: false,
         }
       : {
           contract: {
@@ -173,6 +179,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
           tokenIds: [],
           bidType: "collection",
           bidPriceType: "GENERAL_BID_PRICE",
+          blurFloorPrice: null,
+          magicedenFloorPrice: null,
+          openseaFloorPrice: null,
+          validatingSlug: false,
         },
     taskId
   );
@@ -381,6 +391,11 @@ const TaskModal: React.FC<TaskModalProps> = ({
       tokenIds: [],
       bidType: "collection",
       bidPriceType: "GENERAL_BID_PRICE",
+      // Add the missing properties
+      blurFloorPrice: null,
+      magicedenFloorPrice: null,
+      openseaFloorPrice: null,
+      validatingSlug: false,
     });
   };
 
@@ -398,6 +413,31 @@ const TaskModal: React.FC<TaskModalProps> = ({
     }
   };
 
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setFormState((prev) => ({
+      ...prev,
+      contract: {
+        ...prev.contract,
+        slug: value,
+      },
+      slugDirty: true,
+      selectedTraits: {},
+      traits: {
+        categories: {},
+        counts: {},
+      },
+      blurValid: false,
+      magicEdenValid: false,
+      slugValid: false,
+    }));
+    if (value.length >= 3) {
+      debouncedValidateSlug(value);
+    } else {
+      setFormState((prev) => ({ ...prev, slugValid: false }));
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -412,11 +452,42 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
         <div className="flex-grow pr-4 -mr-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <MarketplaceSection
-              formState={formState}
-              errors={errors}
-              handleMarketplaceToggle={handleMarketplaceToggle}
-            />
+            <div className="mt-6">
+              <label htmlFor="slug" className="block text-sm font-medium mb-2">
+                Collection slug <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="slug"
+                  name="contract.slug"
+                  onChange={handleSlugChange}
+                  value={formState.contract.slug}
+                  placeholder="collection slug"
+                  className={`w-full p-3 rounded-lg border border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] ${
+                    errors.contract?.slug ? "border-red-500" : ""
+                  }`}
+                  required
+                  autoComplete="off"
+                />
+                {formState.slugDirty && formState.contract.slug.length > 0 && (
+                  <div className="absolute right-3 top-[50%] transform -translate-y-1/2">
+                    {formState.validatingSlug ? (
+                      <LoadingIcon />
+                    ) : errors.contract?.slug || !formState.slugValid ? (
+                      <XIcon />
+                    ) : (
+                      <CheckIcon />
+                    )}
+                  </div>
+                )}
+                {errors.contract?.slug && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.contract.slug}
+                  </p>
+                )}
+              </div>
+            </div>
             <TagSection
               formState={formState}
               handleTagChange={handleTagChange}
@@ -436,6 +507,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               setFormState={setFormState}
               onWalletModalOpen={handleWalletModalOpen}
               handleTraitChange={handleTraitChange}
+              handleMarketplaceToggle={handleMarketplaceToggle}
             />
 
             {formState.outbidOptions.outbid ? (

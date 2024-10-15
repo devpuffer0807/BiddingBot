@@ -1,4 +1,3 @@
-import { getUserIdFromCookies } from "@/utils";
 import axios from "axios";
 import { ethers, Wallet as Web3Wallet } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
@@ -7,7 +6,7 @@ import PQueue from "p-queue"; // Import PQueue
 const API_KEY = "d3348c68-097d-48b5-b5f0-0313cc05e92d";
 const ALCHEMY_API_KEY = "HGWgCONolXMB2op5UjPH1YreDCwmSbvx";
 
-const queue = new PQueue({ concurrency: 8 }); // Create a queue with concurrency of 3
+const queue = new PQueue({ concurrency: 8 });
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,33 +14,38 @@ export async function GET(request: NextRequest) {
     const slug = searchParams.get("slug") as string;
     const apiUrl: string = `https://api.nfttools.website/opensea/api/v2/collections/${slug?.toLowerCase()}`;
 
-    // Add the fetch request to the queue
     const response = await queue.add(() =>
       fetch(apiUrl, {
         headers: { "X-NFT-API-Key": API_KEY },
       })
     );
 
-    // Check if the response is okay
     if (!response.ok) {
       throw new Error("Failed to fetch collection data");
     }
 
     const collection: CollectionData = await response.json();
-    const traits = await getCollectionTraits(slug);
 
-    // Validate on Magic Eden and Blur concurrently
-    const [magicEdenResult, blurResult] = await Promise.allSettled([
-      checkMagicEden(collection.contracts[0].address, slug),
-      checkBlur(collection.contracts[0].address),
-    ]);
+    const [traits, blurFLoorPrice, magicedenFloorPrice, openseaFloorPrice] =
+      await Promise.all([
+        queue.add(() => getCollectionTraits(slug)),
+        queue.add(() => fetchBlurFloorPrice(slug)),
+        queue.add(() => fetchMagicEdenData(collection.contracts[0].address)),
+        queue.add(() => fetchOpenSeaCollectionStats(slug)),
+      ]);
 
-    const magicEdenValid =
-      magicEdenResult.status === "fulfilled" ? magicEdenResult.value : false;
-    const blurValid =
-      blurResult.status === "fulfilled" ? blurResult.value : false;
+    await fetchOpenSeaCollectionStats(slug);
+    const data = {
+      ...collection,
+      traits,
+      magicEdenValid: Number(magicedenFloorPrice) > 0,
+      blurValid: Number(blurFLoorPrice) > 0,
+      blurFLoorPrice,
+      magicedenFloorPrice,
+      openseaFloorPrice,
+    };
 
-    const data = { ...collection, traits, magicEdenValid, blurValid };
+    console.log({ blurFLoorPrice, magicedenFloorPrice, openseaFloorPrice });
 
     if (
       collection.total_supply > 0 &&
@@ -57,6 +61,63 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error in GET handler:", error);
     return NextResponse.json({ error: "An error occurred" }, { status: 500 });
+  }
+}
+
+export async function fetchOpenSeaCollectionStats(collectionSlug: string) {
+  const url = `https://api.nfttools.website/opensea/api/v2/collections/${collectionSlug}/stats`;
+  try {
+    const { data } = await axios.get(url, {
+      headers: {
+        "X-NFT-API-Key": API_KEY,
+      },
+    });
+    return +data.total.floor_price;
+  } catch (error) {
+    console.error("Error fetching OpenSea collection stats:", error);
+
+    return 0;
+  }
+}
+
+export async function fetchMagicEdenData(collectionId: string) {
+  const API_KEY = "a4eae399-f135-4627-829a-18435bb631ae";
+
+  const url = `https://nfttools.pro/magiceden_stats/collection_stats/stats?chain=ethereum&collectionId=${collectionId}`;
+
+  try {
+    const { data } = await axios.get<MagicEdenCollection>(url, {
+      headers: {
+        accept: "application/json",
+        "X-NFT-API-Key": API_KEY,
+      },
+    });
+    return +data.floorPrice.amount;
+  } catch (error: any) {
+    console.error("Error fetching Magic Eden data:", error.response.data);
+    return 0;
+  }
+}
+
+export async function fetchBlurFloorPrice(collectionSlug: string) {
+  const apiUrl = `https://api.nfttools.website/blur/v1/collections/${collectionSlug}`;
+  try {
+    const response = await fetch(apiUrl, {
+      headers: {
+        accept: "application/json",
+        "X-NFT-API-Key": API_KEY,
+      },
+    });
+
+    if (!response.ok) {
+      return 0;
+    }
+
+    const data: BlurFloorPriceResponse = await response.json();
+    return +data.collection.floorPrice.amount;
+  } catch (error) {
+    console.error("Error fetching BLUR floor price:", error);
+    throw error;
   }
 }
 
@@ -80,51 +141,6 @@ export async function getCollectionTraits(collectionSlug: string) {
   } catch (error) {
     console.error("Error fetching collection traits:", error);
     throw error;
-  }
-}
-
-async function checkMagicEden(
-  contractAddress: string,
-  slug: string
-): Promise<boolean> {
-  const apiUrl = `https://api.nfttools.website/magiceden/v3/rtp/ethereum/collections/v7?id=${contractAddress}`;
-  const headers = {
-    accept: "application/json",
-    "X-NFT-API-Key": API_KEY,
-  };
-
-  try {
-    let response: any = await fetch(apiUrl, { headers });
-    response = await response.json();
-
-    return (
-      response.collections[0].chainId === 1 &&
-      response.collections[0].slug.toLowerCase() === slug.toLowerCase()
-    );
-  } catch (error) {
-    console.error("Error checking Magic Eden:", error);
-    return false;
-  }
-}
-
-async function checkBlur(contractAddress: string): Promise<boolean> {
-  const BLUR_API_URL = "https://api.nfttools.website/blur";
-  const options = {
-    method: "GET",
-    url: `${BLUR_API_URL}/v1/collections/${contractAddress}`,
-    headers: {
-      "X-NFT-API-Key": API_KEY,
-    },
-  };
-
-  try {
-    const response = await axios.get(options.url, {
-      headers: options.headers,
-    });
-
-    return response.data.success;
-  } catch (error: any) {
-    return false;
   }
 }
 
@@ -209,4 +225,89 @@ export interface CollectionData {
   }[];
   total_supply: number;
   created_date: string;
+}
+
+export interface BlurFloorPriceResponse {
+  success: boolean;
+  collection: {
+    contractAddress: string;
+    name: string;
+    collectionSlug: string;
+    imageUrl: string;
+    totalSupply: number;
+    numberOwners: number;
+    floorPrice: {
+      amount: string;
+      unit: string;
+    };
+    floorPriceOneDay: {
+      amount: string;
+      unit: string;
+    };
+    floorPriceOneWeek: {
+      amount: string;
+      unit: string;
+    };
+    volumeFifteenMinutes: null | number;
+    volumeOneDay: {
+      amount: string;
+      unit: string;
+    };
+    volumeOneWeek: {
+      amount: string;
+      unit: string;
+    };
+    bestCollectionBid: {
+      amount: string;
+      unit: string;
+    };
+    totalCollectionBidValue: {
+      amount: string;
+      unit: string;
+    };
+    traitFrequencies: Record<string, any>;
+    bestCollectionLoanOffer: null;
+  };
+}
+
+// ... existing code ...
+interface MagicEdenCollection {
+  collectionId: string;
+  chain: string;
+  collectionSymbol: string;
+  contract: string;
+  image: string;
+  isVerified: boolean;
+  listedCount: number;
+  ownerCount: number;
+  tokenCount: string;
+  floorPrice: {
+    amount: number;
+    currency: string;
+    native: number;
+  };
+  topOffer: {
+    amount: number;
+    currency: string;
+    native: number;
+  };
+  totalVol: number;
+  volume10m: number;
+  volume1h: number;
+  volume6h: number;
+  volume24hr: number;
+  volume7d: number;
+  volume30d: number;
+  avgPrice24hr: number;
+  avgPrice7d: number;
+  avgPrice30d: number;
+  txns10m: number;
+  txns1h: number;
+  txns6h: number;
+  txns24hr: number;
+  txns7d: number;
+  txns30d: number;
+  deltaFloor24hr: number;
+  deltaFloor7d: number;
+  deltaFloor30d: number;
 }

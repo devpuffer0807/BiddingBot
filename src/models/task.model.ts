@@ -14,10 +14,16 @@ interface ITask extends Document {
   selectedMarketplaces: string[];
   running: boolean;
   tags: { name: string; color: string }[];
-  selectedTraits: Record<string, string[]>;
+  selectedTraits: Record<
+    string,
+    { name: string; availableInMarketplaces: string[] }[]
+  >;
   traits: {
     categories: Record<string, string>;
-    counts: Record<string, Record<string, number>>;
+    counts: Record<
+      string,
+      Record<string, { count: number; availableInMarketplaces: string[] }>
+    >;
   };
   outbidOptions: {
     outbid: boolean;
@@ -92,10 +98,18 @@ const TaskSchema: Schema = new Schema(
     selectedMarketplaces: { type: [String], required: true },
     running: { type: Boolean, default: false },
     tags: [{ name: String, color: String }],
-    selectedTraits: { type: Schema.Types.Mixed },
+    selectedTraits: [
+      {
+        name: { type: String, required: true },
+        availableInMarketplaces: { type: [String], required: true },
+      },
+    ],
     traits: {
       categories: { type: Schema.Types.Mixed },
-      counts: { type: Schema.Types.Mixed },
+      counts: {
+        type: Schema.Types.Mixed,
+        required: true,
+      },
     },
     outbidOptions: {
       outbid: { type: Boolean, default: false },

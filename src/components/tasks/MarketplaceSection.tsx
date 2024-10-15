@@ -6,8 +6,10 @@ const MarketplaceSection = ({
   errors,
   handleMarketplaceToggle,
 }: IMarketplaceSection) => {
+  console.log({ formState });
+
   return (
-    <div className="mt-6">
+    <div>
       <h2 className="font-medium mb-4">
         Select Marketplace <span className="text-red-500">*</span>
       </h2>
@@ -26,25 +28,43 @@ const MarketplaceSection = ({
             (marketplace === "Blur" && !formState.blurValid);
 
           return (
-            <button
-              key={marketplace}
-              type="button"
-              onClick={() => handleMarketplaceToggle(marketplace)}
-              className="flex items-center"
-              disabled={isDisabled}
-            >
-              <span className="mr-2 text-sm">{marketplace}</span>
-              <div className="w-10 h-6 flex items-center rounded-full p-1 bg-gray-300">
-                <div
-                  className={`w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ease-in-out
+            <div className="flex flex-col" key={marketplace}>
+              <button
+                type="button"
+                onClick={() => handleMarketplaceToggle(marketplace)}
+                className="flex items-center"
+                disabled={isDisabled}
+              >
+                <span className="mr-2 text-sm">{marketplace}</span>
+                <div className="w-10 h-6 flex items-center rounded-full p-1 bg-gray-300">
+                  <div
+                    className={`w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ease-in-out
                         ${
                           isActive
                             ? `translate-x-4 ${activeColor}`
                             : "translate-x-0 bg-white"
                         }`}
-                ></div>
-              </div>
-            </button>
+                  ></div>
+                </div>
+              </button>
+              <p className="text-xs mt-0.5 text-n-3">
+                {(() => {
+                  const price =
+                    marketplace.toLowerCase() === "opensea" &&
+                    Number(formState.openseaFloorPrice) > 0
+                      ? formState.openseaFloorPrice?.toFixed(4)
+                      : marketplace.toLowerCase() === "blur" &&
+                        Number(formState.blurFloorPrice) > 0
+                      ? formState.blurFloorPrice?.toFixed(4)
+                      : marketplace.toLowerCase() === "magiceden" &&
+                        Number(formState.magicedenFloorPrice) > 0
+                      ? formState.magicedenFloorPrice?.toFixed(4)
+                      : null;
+
+                  return price ? `${price} ETH` : null;
+                })()}
+              </p>
+            </div>
           );
         })}
       </div>
