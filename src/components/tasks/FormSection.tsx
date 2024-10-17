@@ -12,7 +12,12 @@ interface FormSectionProps {
   walletOptions: CustomSelectOption[];
   setFormState: React.Dispatch<React.SetStateAction<TaskFormState>>;
   onWalletModalOpen: () => void;
-  handleTraitChange: (traits: Record<string, string[]>) => void;
+  handleTraitChange: (
+    traits: Record<
+      string,
+      { name: string; availableInMarketplaces: string[] }[]
+    >
+  ) => void;
   handleMarketplaceToggle: (marketplace: string) => void;
 }
 
@@ -96,31 +101,6 @@ const FormSection: React.FC<FormSectionProps> = ({
     }));
   };
 
-  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    setFormState((prev) => ({
-      ...prev,
-      contract: {
-        ...prev.contract,
-        slug: value,
-      },
-      slugDirty: true,
-      selectedTraits: {},
-      traits: {
-        categories: {},
-        counts: {},
-      },
-      blurValid: false,
-      magicEdenValid: false,
-      slugValid: false,
-    }));
-    if (value.length >= 3) {
-      debouncedValidateSlug(value);
-    } else {
-      setFormState((prev) => ({ ...prev, slugValid: false }));
-    }
-  };
-
   const handleBidDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormState((prev) => ({
@@ -177,7 +157,12 @@ const FormSection: React.FC<FormSectionProps> = ({
     }));
   };
 
-  const handleTraitSelect = (traits: Record<string, string[]>) => {
+  const handleTraitSelect = (
+    traits: Record<
+      string,
+      { name: string; availableInMarketplaces: string[] }[]
+    >
+  ) => {
     handleTraitChange(traits);
   };
 
@@ -187,6 +172,14 @@ const FormSection: React.FC<FormSectionProps> = ({
       bidPriceType: type,
     }));
   };
+
+  const floorPrices = [
+    Number(formState.openseaFloorPrice),
+    Number(formState.blurFloorPrice),
+    Number(formState.magicedenFloorPrice),
+  ].filter((price) => Number(price) > 0);
+
+  const minFloorPrice = Math.min(...floorPrices);
 
   return (
     <>
@@ -319,35 +312,30 @@ const FormSection: React.FC<FormSectionProps> = ({
           </div>
         )}
 
-      {formState.selectedMarketplaces.length < 1 ? (
-        <div></div>
-      ) : (
-        <div className="flex items-center mb-2 gap-2 mt-4">
-          <Toggle
-            checked={formState.bidPriceType === MARKETPLACE_BID_PRICE}
-            onChange={() =>
-              handleBidPriceTypeChange(
-                formState.bidPriceType === MARKETPLACE_BID_PRICE
-                  ? GENERAL_BID_PRICE
-                  : MARKETPLACE_BID_PRICE
-              )
-            }
-          />
-          <span
-            className="text-sm cursor-pointer"
-            onClick={() => {
-              handleBidPriceTypeChange(
-                formState.bidPriceType === MARKETPLACE_BID_PRICE
-                  ? GENERAL_BID_PRICE
-                  : MARKETPLACE_BID_PRICE
-              );
-            }}
-          >
-            Marketplace Specific Bid Amount
-          </span>
-        </div>
-      )}
-
+      <div className="flex items-center mb-2 gap-2 mt-4">
+        <Toggle
+          checked={formState.bidPriceType === MARKETPLACE_BID_PRICE}
+          onChange={() =>
+            handleBidPriceTypeChange(
+              formState.bidPriceType === MARKETPLACE_BID_PRICE
+                ? GENERAL_BID_PRICE
+                : MARKETPLACE_BID_PRICE
+            )
+          }
+        />
+        <span
+          className="text-sm cursor-pointer"
+          onClick={() => {
+            handleBidPriceTypeChange(
+              formState.bidPriceType === MARKETPLACE_BID_PRICE
+                ? GENERAL_BID_PRICE
+                : MARKETPLACE_BID_PRICE
+            );
+          }}
+        >
+          Marketplace Specific Bid Amount
+        </span>
+      </div>
       <div className="flex items-center mb-2 gap-2 mt-4">
         <Toggle
           checked={formState.outbidOptions.outbid}
@@ -403,6 +391,12 @@ const FormSection: React.FC<FormSectionProps> = ({
               className="w-20 ml-2"
             />
           </div>
+
+          {formState.bidPrice.minType === "percentage" && minFloorPrice && (
+            <span className="text-xs text-n-3">
+              {((minFloorPrice * +formState.bidPrice.min) / 100).toFixed(4)} ETH
+            </span>
+          )}
           {errors.bidPrice?.min && (
             <p className="text-red-500 text-sm mt-1">{errors.bidPrice.min}</p>
           )}
@@ -441,6 +435,11 @@ const FormSection: React.FC<FormSectionProps> = ({
               className="w-20 ml-2"
             />
           </div>
+          {formState.bidPrice.maxType === "percentage" && minFloorPrice && (
+            <span className="text-xs text-n-3">
+              {((minFloorPrice * +formState.bidPrice.max) / 100).toFixed(4)} ETH
+            </span>
+          )}
           {errors.bidPrice?.max && (
             <p className="text-red-500 text-sm mt-1">{errors.bidPrice.max}</p>
           )}
@@ -462,8 +461,14 @@ const FormSection: React.FC<FormSectionProps> = ({
           <div className="flex items-center">
             <input
               inputMode="numeric"
-              step={0.0001}
-              min={0.005}
+              step={
+                formState.openseaBidPrice.minType === "percentage"
+                  ? 0.1
+                  : 0.0001
+              }
+              min={
+                formState.openseaBidPrice.minType === "percentage" ? 1 : 0.005
+              }
               type="number"
               id="openseaMinPrice"
               name={"openseaBidPrice.min"}
@@ -490,6 +495,17 @@ const FormSection: React.FC<FormSectionProps> = ({
               className="w-20 ml-2"
             />
           </div>
+          {formState.openseaBidPrice.minType === "percentage" &&
+            formState.openseaFloorPrice && (
+              <span className="text-xs text-n-3">
+                {(
+                  (formState.openseaFloorPrice *
+                    +formState.openseaBidPrice.min) /
+                  100
+                ).toFixed(4)}{" "}
+                ETH
+              </span>
+            )}
 
           {errors.openseaBidPrice?.min && (
             <p className="text-red-500 text-sm mt-1">
@@ -512,8 +528,14 @@ const FormSection: React.FC<FormSectionProps> = ({
           </label>
           <div className="flex items-center">
             <input
-              step={0.0001}
-              min={0.005}
+              step={
+                formState.openseaBidPrice.maxType === "percentage"
+                  ? 0.1
+                  : 0.0001
+              }
+              min={
+                formState.openseaBidPrice.maxType === "percentage" ? 1 : 0.005
+              }
               inputMode="numeric"
               type="number"
               id="openseaMaxPrice"
@@ -542,7 +564,17 @@ const FormSection: React.FC<FormSectionProps> = ({
               className="w-20 ml-2"
             />
           </div>
-
+          {formState.openseaBidPrice.maxType === "percentage" &&
+            formState.openseaFloorPrice && (
+              <span className="text-xs text-n-3">
+                {(
+                  (formState.openseaFloorPrice *
+                    +formState.openseaBidPrice.max) /
+                  100
+                ).toFixed(4)}{" "}
+                ETH
+              </span>
+            )}
           {errors.openseaBidPrice?.max && (
             <p className="text-red-500 text-sm mt-1">
               {errors.openseaBidPrice.max}
@@ -566,8 +598,10 @@ const FormSection: React.FC<FormSectionProps> = ({
           <div className="flex items-center">
             <input
               inputMode="numeric"
-              step={0.01}
-              min={0.01}
+              step={
+                formState.blurBidPrice.minType === "percentage" ? 0.1 : 0.01
+              }
+              min={formState.blurBidPrice.minType === "percentage" ? 1 : 0.01}
               type="number"
               id="blurMinPrice"
               name={"blurBidPrice.min"}
@@ -592,6 +626,18 @@ const FormSection: React.FC<FormSectionProps> = ({
               className="w-20 ml-2"
             />
           </div>
+
+          {formState.blurBidPrice.minType === "percentage" &&
+            formState.blurFloorPrice && (
+              <span className="text-xs text-n-3">
+                {(
+                  (Number(formState.blurFloorPrice) *
+                    +formState.blurBidPrice.min) /
+                  100
+                ).toFixed(2)}{" "}
+                ETH
+              </span>
+            )}
           {errors.blurBidPrice?.max && (
             <p className="text-red-500 text-sm mt-1">
               {errors.blurBidPrice.max}
@@ -613,8 +659,10 @@ const FormSection: React.FC<FormSectionProps> = ({
           </label>
           <div className="flex items-center">
             <input
-              min={0.01}
-              step={0.01}
+              step={
+                formState.blurBidPrice.maxType === "percentage" ? 0.1 : 0.01
+              }
+              min={formState.blurBidPrice.maxType === "percentage" ? 1 : 0.01}
               inputMode="numeric"
               type="number"
               id="blurMaxPrice"
@@ -641,6 +689,16 @@ const FormSection: React.FC<FormSectionProps> = ({
               className="w-20 ml-2"
             />
           </div>
+          {formState.blurBidPrice.maxType === "percentage" &&
+            formState.blurFloorPrice && (
+              <span className="text-xs text-n-3">
+                {(
+                  (formState.blurFloorPrice * +formState.blurBidPrice.max) /
+                  100
+                ).toFixed(2)}{" "}
+                ETH
+              </span>
+            )}
           {errors.blurBidPrice?.max && (
             <p className="text-red-500 text-sm mt-1">
               {errors.blurBidPrice.max}
@@ -666,8 +724,14 @@ const FormSection: React.FC<FormSectionProps> = ({
           </label>
           <div className="flex items-center">
             <input
-              min={0.005}
-              step={0.0001}
+              step={
+                formState.magicEdenBidPrice.minType === "percentage"
+                  ? 0.1
+                  : 0.0001
+              }
+              min={
+                formState.magicEdenBidPrice.minType === "percentage" ? 1 : 0.005
+              }
               inputMode="numeric"
               type="number"
               id="magicEdenMinPrice"
@@ -697,6 +761,17 @@ const FormSection: React.FC<FormSectionProps> = ({
               className="w-20 ml-2"
             />
           </div>
+          {formState.magicEdenBidPrice.minType === "percentage" &&
+            formState.magicedenFloorPrice && (
+              <span className="text-xs text-n-3">
+                {(
+                  (formState.magicedenFloorPrice *
+                    +formState.magicEdenBidPrice.min) /
+                  100
+                ).toFixed(4)}{" "}
+                ETH
+              </span>
+            )}{" "}
           {errors.magicEdenBidPrice?.min && (
             <p className="text-red-500 text-sm mt-1">
               {errors.magicEdenBidPrice.min}
@@ -721,8 +796,14 @@ const FormSection: React.FC<FormSectionProps> = ({
           </label>
           <div className="flex items-center">
             <input
-              min={0.005}
-              step={0.0001}
+              step={
+                formState.magicEdenBidPrice.maxType === "percentage"
+                  ? 0.1
+                  : 0.0001
+              }
+              min={
+                formState.magicEdenBidPrice.maxType === "percentage" ? 1 : 0.005
+              }
               inputMode="numeric"
               type="number"
               id="magicEdenMaxPrice"
@@ -753,6 +834,17 @@ const FormSection: React.FC<FormSectionProps> = ({
               className="w-20 ml-2"
             />
           </div>
+          {formState.magicEdenBidPrice.maxType === "percentage" &&
+            formState.magicedenFloorPrice && (
+              <span className="text-xs text-n-3">
+                {(
+                  (formState.magicedenFloorPrice *
+                    +formState.magicEdenBidPrice.max) /
+                  100
+                ).toFixed(4)}{" "}
+                ETH
+              </span>
+            )}{" "}
           {errors.magicEdenBidPrice?.max && (
             <p className="text-red-500 text-sm mt-1">
               {errors.magicEdenBidPrice.max}
@@ -773,6 +865,7 @@ const FormSection: React.FC<FormSectionProps> = ({
             type="number"
             id="bidDuration"
             name="value"
+            min={formState.bidDuration.unit === "minutes" ? 15 : 1}
             onChange={handleBidDurationChange}
             value={formState.bidDuration.value || 15}
             placeholder="Duration"
@@ -806,6 +899,8 @@ const FormSection: React.FC<FormSectionProps> = ({
             type="number"
             id="loopInterval"
             name="value"
+            step={1}
+            min={0}
             onChange={handleLoopIntervalChange}
             value={formState.loopInterval.value || 15}
             placeholder="15 Minutes"

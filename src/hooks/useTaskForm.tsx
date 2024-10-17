@@ -186,8 +186,6 @@ export const useTaskForm = (
         const magicedenFloorPrice = data.magicedenFloorPrice;
         const openseaFloorPrice = data.openseaFloorPrice;
 
-        console.log({ blurFLoorPrice, magicedenFloorPrice, openseaFloorPrice });
-
         setFormState((prev) => ({
           ...prev,
           slugValid: !!contractAddress,
@@ -383,6 +381,9 @@ export const useTaskForm = (
         tokenIds: formState.tokenIds,
         bidType: formState.bidType,
         bidPriceType: formState.bidPriceType || "GENERAL_BID_PRICE",
+        slugValid: formState.slugValid,
+        magicEdenValid: formState.magicEdenValid,
+        blurValid: formState.blurValid,
       };
 
       try {
@@ -430,7 +431,12 @@ export const useTaskForm = (
     setFormState((prev) => ({ ...prev, tags: selectedTags }));
   };
 
-  const handleTraitChange = (traits: Record<string, string[]>) => {
+  const handleTraitChange = (
+    traits: Record<
+      string,
+      { name: string; availableInMarketplaces: string[] }[]
+    >
+  ) => {
     setFormState((prev) => ({ ...prev, selectedTraits: traits }));
   };
 
@@ -460,10 +466,16 @@ export interface TaskFormState {
   magicEdenValid: boolean | null;
   slugDirty: boolean;
   tags: { name: string; color: string }[];
-  selectedTraits: Record<string, string[]>;
+  selectedTraits: Record<
+    string,
+    { name: string; availableInMarketplaces: string[] }[]
+  >;
   traits: {
     categories: Record<string, string>;
-    counts: Record<string, Record<string, number>>;
+    counts: Record<
+      string,
+      Record<string, { count: number; availableInMarketplaces: string[] }>
+    >;
   };
   outbidOptions: {
     outbid: boolean;

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { ethers, Wallet as Web3Wallet } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
-import PQueue from "p-queue"; // Import PQueue
+import PQueue from "p-queue";
 
 const API_KEY = "d3348c68-097d-48b5-b5f0-0313cc05e92d";
 const ALCHEMY_API_KEY = "HGWgCONolXMB2op5UjPH1YreDCwmSbvx";
@@ -13,40 +13,101 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const slug = searchParams.get("slug") as string;
     const apiUrl: string = `https://api.nfttools.website/opensea/api/v2/collections/${slug?.toLowerCase()}`;
-
     const response = await queue.add(() =>
       fetch(apiUrl, {
         headers: { "X-NFT-API-Key": API_KEY },
       })
     );
-
     if (!response.ok) {
       throw new Error("Failed to fetch collection data");
     }
-
     const collection: CollectionData = await response.json();
+    const [
+      openseaTraits,
+      blurFLoorPrice,
+      magicedenFloorPrice,
+      openseaFloorPrice,
+      blurTraits,
+      magicEdenTraits,
+    ] = await Promise.all([
+      queue.add(() => getOpenseaTraits(slug)),
+      queue.add(() => fetchBlurFloorPrice(slug)),
+      queue.add(() => fetchMagicEdenData(collection.contracts[0].address)),
+      queue.add(() => fetchOpenSeaCollectionStats(slug)),
+      queue.add(() => fetchBlurTraits(collection.contracts[0].address)),
+      queue.add(() =>
+        fetchMagicEdenAttributes(collection.contracts[0].address)
+      ),
+    ]);
 
-    const [traits, blurFLoorPrice, magicedenFloorPrice, openseaFloorPrice] =
-      await Promise.all([
-        queue.add(() => getCollectionTraits(slug)),
-        queue.add(() => fetchBlurFloorPrice(slug)),
-        queue.add(() => fetchMagicEdenData(collection.contracts[0].address)),
-        queue.add(() => fetchOpenSeaCollectionStats(slug)),
-      ]);
+    const combinedTraits: {
+      categories: Record<string, string>;
+      counts: Record<
+        string,
+        Record<
+          string,
+          {
+            count: number;
+            availableInMarketplaces: string[];
+          }
+        >
+      >;
+    } = {
+      categories: {},
+      counts: {},
+    };
 
+    const marketplaces = ["opensea", "magiceden", "blur"] as const;
+    const traitsData = [openseaTraits, magicEdenTraits, blurTraits];
+
+    marketplaces.forEach((marketplace, index) => {
+      const traits = traitsData[index];
+
+      Object.entries(traits.categories).forEach(([category]) => {
+        if (!combinedTraits.categories[category]) {
+          combinedTraits.categories[category] = "string";
+        }
+        if (!combinedTraits.counts[category]) {
+          combinedTraits.counts[category] = {};
+        }
+
+        Object.entries(traits.counts[category]).forEach(([trait, count]) => {
+          if (!combinedTraits.counts[category][trait]) {
+            combinedTraits.counts[category][trait] = {
+              count: 0,
+              availableInMarketplaces: [],
+            };
+          }
+
+          if (
+            typeof count === "number" &&
+            count > combinedTraits.counts[category][trait].count
+          ) {
+            combinedTraits.counts[category][trait].count = count;
+          }
+
+          if (
+            !combinedTraits.counts[category][
+              trait
+            ].availableInMarketplaces.includes(marketplace)
+          ) {
+            combinedTraits.counts[category][trait].availableInMarketplaces.push(
+              marketplace
+            );
+          }
+        });
+      });
+    });
     await fetchOpenSeaCollectionStats(slug);
     const data = {
       ...collection,
-      traits,
+      traits: combinedTraits,
       magicEdenValid: Number(magicedenFloorPrice) > 0,
       blurValid: Number(blurFLoorPrice) > 0,
       blurFLoorPrice,
       magicedenFloorPrice,
       openseaFloorPrice,
     };
-
-    console.log({ blurFLoorPrice, magicedenFloorPrice, openseaFloorPrice });
-
     if (
       collection.total_supply > 0 &&
       collection.contracts[0].chain.toLowerCase() === "ethereum"
@@ -75,14 +136,12 @@ export async function fetchOpenSeaCollectionStats(collectionSlug: string) {
     return +data.total.floor_price;
   } catch (error) {
     console.error("Error fetching OpenSea collection stats:", error);
-
     return 0;
   }
 }
 
 export async function fetchMagicEdenData(collectionId: string) {
   const API_KEY = "a4eae399-f135-4627-829a-18435bb631ae";
-
   const url = `https://nfttools.pro/magiceden_stats/collection_stats/stats?chain=ethereum&collectionId=${collectionId}`;
 
   try {
@@ -108,11 +167,9 @@ export async function fetchBlurFloorPrice(collectionSlug: string) {
         "X-NFT-API-Key": API_KEY,
       },
     });
-
     if (!response.ok) {
       return 0;
     }
-
     const data: BlurFloorPriceResponse = await response.json();
     return +data.collection.floorPrice.amount;
   } catch (error) {
@@ -121,7 +178,7 @@ export async function fetchBlurFloorPrice(collectionSlug: string) {
   }
 }
 
-export async function getCollectionTraits(collectionSlug: string) {
+export async function getOpenseaTraits(collectionSlug: string) {
   try {
     const response = await fetch(
       `https://api.nfttools.website/opensea/api/v2/traits/${collectionSlug}`,
@@ -140,7 +197,7 @@ export async function getCollectionTraits(collectionSlug: string) {
     return data;
   } catch (error) {
     console.error("Error fetching collection traits:", error);
-    throw error;
+    return { categories: {}, counts: {} };
   }
 }
 
@@ -161,7 +218,6 @@ export async function getAccessToken(
     let response: any = await axios.post(`${url}/auth/challenge`, options, {
       headers,
     });
-
     const message = response.data.message;
     const signature = await wallet.signMessage(message);
     const data = {
@@ -171,9 +227,7 @@ export async function getAccessToken(
       hmac: response.data.hmac,
       signature: signature,
     };
-
     response = await axios.post(`${url}/auth/login`, data, { headers });
-
     return response.data.accessToken;
   } catch (error: any) {
     console.error(
@@ -182,6 +236,109 @@ export async function getAccessToken(
     );
   }
 }
+
+export async function fetchBlurTraits(contractAddress: string) {
+  const url = `https://api.nfttools.website/blur/v1/traits/${contractAddress}`;
+  try {
+    const { data } = await axios.get<BlurCollectionTraitsResponse>(url, {
+      headers: {
+        "X-NFT-API-Key": API_KEY,
+      },
+    });
+    const traits = transformBlurTraits(data.traits);
+    return traits;
+  } catch (error) {
+    console.error("Error fetching BLUR traits:", error);
+    return { categories: {}, counts: {} };
+  }
+}
+
+export async function fetchMagicEdenAttributes(collectionId: string) {
+  const url = `https://api.nfttools.website/magiceden/v3/rtp/ethereum/collections/${collectionId}/attributes/all/v4`;
+  try {
+    const { data } = await axios.get(url, {
+      headers: {
+        accept: "application/json",
+        "X-NFT-API-Key": API_KEY,
+      },
+    });
+
+    const traits = transformMagicEdenTraits(data);
+    return traits;
+  } catch (error) {
+    console.error("Error fetching Magic Eden attributes:", error);
+    return { categories: {}, counts: {} };
+  }
+}
+
+function transformMagicEdenTraits(magicEdenTraits: MagicEdenTraits): Traits {
+  const traits: Traits = {
+    categories: {},
+    counts: {},
+  };
+
+  magicEdenTraits.attributes.forEach((attribute) => {
+    const { key, values } = attribute;
+    traits.categories[key] = "string";
+    traits.counts[key] = {};
+    values.forEach((value) => {
+      const { value: itemValue, count } = value;
+      traits.counts[key][itemValue] = count;
+    });
+  });
+
+  return traits;
+}
+
+function transformBlurTraits(
+  blurTraits: Record<string, Record<string, any>>
+): Traits {
+  const traits: {
+    categories: Record<string, string>;
+    counts: Record<string, Record<string, number>>;
+  } = {
+    categories: {},
+    counts: {},
+  };
+  for (const category in blurTraits) {
+    traits.categories[category] = "string";
+    traits.counts[category] = {};
+    for (const item in blurTraits[category]) {
+      traits.counts[category][item] = 0;
+    }
+  }
+  return traits;
+}
+
+type MagicEdenValue = {
+  count: number;
+  value: string;
+  floorAskPrice?: {
+    currency: {
+      contract: string;
+      name: string;
+      symbol: string;
+      decimals: number;
+    };
+    amount: {
+      raw: string;
+      decimal: number;
+      usd: number;
+      native: number;
+    };
+  };
+};
+
+type MagicEdenAttribute = {
+  key: string;
+  attributeCount: number;
+  kind: string;
+  values: MagicEdenValue[];
+};
+
+type MagicEdenTraits = {
+  attributes: MagicEdenAttribute[];
+};
 
 export interface CollectionData {
   collection: string;
@@ -270,7 +427,6 @@ export interface BlurFloorPriceResponse {
   };
 }
 
-// ... existing code ...
 interface MagicEdenCollection {
   collectionId: string;
   chain: string;
@@ -310,4 +466,39 @@ interface MagicEdenCollection {
   deltaFloor24hr: number;
   deltaFloor7d: number;
   deltaFloor30d: number;
+}
+
+interface BlurTraitData {
+  sale: {
+    amount: string;
+    unit: string;
+    listedAt: string;
+  };
+  floor: {
+    amount: string;
+    unit: string;
+    listedAt: string;
+  };
+  bestBidPrice: string | null;
+  totalBidValue: string | null;
+}
+
+interface BlurTraits {
+  [category: string]: {
+    [trait: string]: BlurTraitData;
+  };
+}
+
+interface BlurCollectionTraitsResponse {
+  success: boolean;
+  traits: BlurTraits;
+}
+
+interface Traits {
+  categories: {
+    [key: string]: string;
+  };
+  counts: {
+    [key: string]: Record<string, number>;
+  };
 }

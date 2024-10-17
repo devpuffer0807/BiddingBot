@@ -1,5 +1,11 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+interface SelectedTraits {
+  [key: string]: {
+    name: string;
+    availableInMarketplaces: string[];
+  }[];
+}
 interface ITask extends Document {
   _id: mongoose.Types.ObjectId;
   user: mongoose.Types.ObjectId;
@@ -14,10 +20,7 @@ interface ITask extends Document {
   selectedMarketplaces: string[];
   running: boolean;
   tags: { name: string; color: string }[];
-  selectedTraits: Record<
-    string,
-    { name: string; availableInMarketplaces: string[] }[]
-  >;
+  selectedTraits: SelectedTraits;
   traits: {
     categories: Record<string, string>;
     counts: Record<
@@ -82,6 +85,9 @@ interface ITask extends Document {
   tokenIds: number[];
   bidType: "collection" | "token";
   bidPriceType: "GENERAL_BID_PRICE" | "MARKETPLACE_BID_PRICE";
+  slugValid: boolean;
+  magicEdenValid: boolean;
+  blurValid: boolean;
 }
 
 const TaskSchema: Schema = new Schema(
@@ -98,12 +104,9 @@ const TaskSchema: Schema = new Schema(
     selectedMarketplaces: { type: [String], required: true },
     running: { type: Boolean, default: false },
     tags: [{ name: String, color: String }],
-    selectedTraits: [
-      {
-        name: { type: String, required: true },
-        availableInMarketplaces: { type: [String], required: true },
-      },
-    ],
+    selectedTraits: {
+      type: Schema.Types.Mixed,
+    },
     traits: {
       categories: { type: Schema.Types.Mixed },
       counts: {
@@ -172,6 +175,9 @@ const TaskSchema: Schema = new Schema(
       enum: ["GENERAL_BID_PRICE", "MARKETPLACE_BID_PRICE"],
       default: "GENERAL_BID_PRICE",
     },
+    slugValid: { type: Boolean, default: null },
+    magicEdenValid: { type: Boolean, default: null },
+    blurValid: { type: Boolean, default: null },
   },
   { timestamps: true }
 );

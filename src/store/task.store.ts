@@ -16,31 +16,20 @@ export const useTaskStore = create(
   persist<TaskStore>(
     (set, get) => ({
       tasks: [],
-      addTask: (task) =>
+      addTask: (task) => {
         set((state) => ({
           tasks: [
             {
               ...task,
-              running: false,
-              bidType: task.bidType || "collection",
-              bidDuration: task.bidDuration,
-              bidPrice: task.bidPrice,
-              openseaBidPrice: task.openseaBidPrice,
-              blurBidPrice: task.blurBidPrice,
-              magicEdenBidPrice: task.magicEdenBidPrice,
-              outbidOptions: task.outbidOptions,
-              stopOptions: task.stopOptions,
-              triggerStopOptions: false,
               wallet: {
                 address: "",
                 privateKey: "",
               },
-              tokenIds: task.tokenIds || [],
-              loopInterval: task.loopInterval || { value: 0, unit: "minutes" },
             },
             ...state.tasks,
           ],
-        })),
+        }));
+      },
       editTask: (id, updatedTask) => {
         set((state) => ({
           tasks: state.tasks.map((task) =>
@@ -178,7 +167,6 @@ export const useTaskStore = create(
             return ids.includes(task._id) ? { ...task, running } : task;
           }),
         }));
-
         await fetch(`/api/task`, {
           method: "PATCH",
           headers: {
@@ -213,10 +201,16 @@ export interface Task {
   selectedMarketplaces: string[];
   running: boolean;
   tags: { name: string; color: string }[];
-  selectedTraits: Record<string, string[]>;
+  selectedTraits: Record<
+    string,
+    { name: string; availableInMarketplaces: string[] }[]
+  >;
   traits: {
     categories: Record<string, string>;
-    counts: Record<string, Record<string, number>>;
+    counts: Record<
+      string,
+      Record<string, { count: number; availableInMarketplaces: string[] }>
+    >;
   };
   outbidOptions: {
     outbid: boolean;
@@ -269,4 +263,7 @@ export interface Task {
   bidType: string;
   loopInterval: { value: number; unit: string };
   bidPriceType: string;
+  slugValid: boolean | null;
+  magicEdenValid: boolean | null;
+  blurValid: boolean | null;
 }

@@ -5,10 +5,21 @@ import "./task.css";
 interface TraitSelectorProps {
   traits: {
     categories: Record<string, string>;
-    counts: Record<string, Record<string, number>>;
+    counts: Record<
+      string,
+      Record<string, { count: number; availableInMarketplaces: string[] }>
+    >;
   };
-  onTraitSelect: (selectedTraits: Record<string, string[]>) => void;
-  initialSelectedTraits?: Record<string, string[]>;
+  onTraitSelect: (
+    selectedTraits: Record<
+      string,
+      { name: string; availableInMarketplaces: string[] }[]
+    >
+  ) => void;
+  initialSelectedTraits?: Record<
+    string,
+    { name: string; availableInMarketplaces: string[] }[]
+  >;
 }
 
 const TraitSelector: React.FC<TraitSelectorProps> = ({
@@ -21,12 +32,14 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [selectedTraits, setSelectedTraits] = useState<
-    Record<string, string[]>
+    Record<string, { name: string; availableInMarketplaces: string[] }[]>
   >(initialSelectedTraits);
 
   const toggleCategory = (category: string) => {
     setSelectedCategory(selectedCategory === category ? null : category);
   };
+
+  console.log({ selectedTraits });
 
   const filteredTraits =
     selectedCategory && traits.counts[selectedCategory]
@@ -56,11 +69,16 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
     if (!updatedTraits[category]) {
       updatedTraits[category] = [];
     }
-    const index = updatedTraits[category].indexOf(trait);
+    const index = updatedTraits[category].findIndex((t) => t.name === trait);
+    const availableInMarketplaces =
+      traits.counts[category][trait]?.availableInMarketplaces || [];
     if (index > -1) {
       updatedTraits[category].splice(index, 1);
     } else {
-      updatedTraits[category].push(trait);
+      updatedTraits[category].push({
+        name: trait,
+        availableInMarketplaces,
+      });
     }
     if (updatedTraits[category].length === 0) {
       delete updatedTraits[category];
@@ -148,20 +166,25 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
                             <input
                               type="checkbox"
                               checked={
-                                selectedTraits[category]?.includes(trait) ||
-                                false
+                                selectedTraits[category]?.some(
+                                  (t) => t.name === trait
+                                ) || false
                               }
                               className="sr-only"
                               onChange={() => {}} // Add empty onChange to suppress React warning
                             />
                             <div
                               className={`w-5 h-5 border-2 rounded-sm flex items-center justify-center ${
-                                selectedTraits[category]?.includes(trait)
+                                selectedTraits[category]?.some(
+                                  (t) => t.name === trait
+                                )
                                   ? "bg-Brand/Brand-1 border-Brand/Brand-1"
                                   : "border-gray-400"
                               }`}
                             >
-                              {selectedTraits[category]?.includes(trait) && (
+                              {selectedTraits[category]?.some(
+                                (t) => t.name === trait
+                              ) && (
                                 <svg
                                   className="w-3 h-3 text-white"
                                   viewBox="0 0 24 24"
@@ -177,8 +200,30 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
                             </div>
                           </div>
                           <span>{trait}</span>
+                          {/* Display availableInMarketplaces */}
+                          <div className="ml-4 flex gap-1">
+                            {count.availableInMarketplaces.map(
+                              (marketplace, index) => (
+                                <span
+                                  key={index}
+                                  className={`py-0.5 px-2 rounded-full text-white text-xs ${
+                                    marketplace.toLowerCase() === "opensea"
+                                      ? "bg-[#2081e280]" // Added opacity
+                                      : marketplace.toLowerCase() === "blur"
+                                      ? "bg-[#FF870080]" // Added opacity
+                                      : marketplace.toLowerCase() ===
+                                        "magiceden"
+                                      ? "bg-[#e4257580]" // Added opacity
+                                      : ""
+                                  }`}
+                                >
+                                  {marketplace}
+                                </span>
+                              )
+                            )}
+                          </div>
                         </div>
-                        <span>{count}</span>
+                        <span>{count.count}</span>
                       </div>
                     ))}
                   </div>

@@ -21,6 +21,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await request.json();
+
+  console.log({ body: JSON.stringify(body) });
+
   const task = await Task.create({
     ...body,
     contract: {
