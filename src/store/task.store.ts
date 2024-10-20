@@ -18,16 +18,7 @@ export const useTaskStore = create(
       tasks: [],
       addTask: (task) => {
         set((state) => ({
-          tasks: [
-            {
-              ...task,
-              wallet: {
-                address: "",
-                privateKey: "",
-              },
-            },
-            ...state.tasks,
-          ],
+          tasks: [task, ...state.tasks],
         }));
       },
       editTask: (id, updatedTask) => {

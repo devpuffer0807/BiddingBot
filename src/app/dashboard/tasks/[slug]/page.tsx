@@ -108,6 +108,8 @@ export default function Page({ params }: { params: { slug: string } }) {
     return pageNumbers;
   }, [currentPage, totalPages, paginate]);
 
+  console.log({ currentBids });
+
   return (
     <section className="ml-0 sm:ml-20 p-4 sm:p-6 pb-24">
       <div></div>
@@ -163,10 +165,10 @@ export default function Page({ params }: { params: { slug: string } }) {
                 </label>
               </th>
               <th scope="col" className="px-6 py-3 text-center">
-                name
+                marketplace
               </th>
               <th scope="col" className="px-6 py-3 text-center">
-                marketplace
+                name
               </th>
               <th scope="col" className="px-6 py-3 text-center">
                 offer price
@@ -239,14 +241,72 @@ export default function Page({ params }: { params: { slug: string } }) {
                         <div>{bid.marketplace}</div>
                       </div>
                     </td>
-                    <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
-                      {params.slug}{" "}
-                      {bid.identifier === "default"
-                        ? null
-                        : `#${bid.identifier}`}
+                    <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-end justify-center gap-2 flex-row">
+                      <span>{params.slug}</span>
+                      <div className="flex flex-row">
+                        {(() => {
+                          if (
+                            typeof bid.identifier === "object" &&
+                            bid.identifier !== null
+                          ) {
+                            switch (bid.marketplace) {
+                              case "magiceden":
+                                return (
+                                  <div className="flex border border-n-4 gap-2">
+                                    <span className="border-n-4 border-r px-2 bg-n-5">
+                                      {bid.identifier.attributeKey}
+                                    </span>
+                                    <span className="px-2">
+                                      {bid.identifier.attributeValue}
+                                    </span>
+                                  </div>
+                                );
+                              case "opensea":
+                                return (
+                                  <div className="flex border border-n-4 gap-2">
+                                    <span className="border-n-4 border-r px-2 bg-n-5">
+                                      {bid.identifier.type}
+                                    </span>
+                                    <span className="px-2">
+                                      {bid.identifier.value}
+                                    </span>
+                                  </div>
+                                );
+                              case "blur":
+                                const [key, value] = Object.entries(
+                                  bid.identifier
+                                )[0];
+                                return (
+                                  <div className="flex border border-n-4 gap-2">
+                                    <span className="border-n-4 border-r px-2 bg-n-5">
+                                      {key}
+                                    </span>
+                                    <span className="px-2">
+                                      {String(value)}
+                                    </span>
+                                  </div>
+                                );
+                            }
+                          } else if (
+                            typeof bid.identifier === "string" &&
+                            bid.identifier !== "default"
+                          ) {
+                            const num = Number(bid.identifier);
+                            if (!isNaN(num) && isFinite(num)) {
+                              return (
+                                <span className="px-2 bg-n-5">
+                                  {bid.identifier}
+                                </span>
+                              );
+                            }
+                          }
+                          return null;
+                        })()}
+                      </div>
                     </td>
                     <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
-                      {Number(bid.offerPrice) / 1e18} WETH
+                      {Number(bid.offerPrice) / 1e18}{" "}
+                      {bid.marketplace === "blur" ? "BETH" : "WETH"}
                     </td>
                     <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                       {formatTimeRemaining(bid.ttl)}
@@ -325,7 +385,7 @@ interface OfferData {
   value: string;
   ttl: number;
   marketplace: string;
-  identifier: string;
+  identifier: any;
   offerPrice: string;
   expirationDate: string;
 }
