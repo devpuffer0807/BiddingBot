@@ -11,6 +11,8 @@ import { BidInfo, WebSocketResponse } from "@/interface";
 import TagFilter from "@/components/tasks/TagFilter";
 import { Tag } from "@/store/tag.store";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import BidTypeFilter, { BidType } from "@/components/tasks/BidTypeFilter";
+import FilterInput from "@/components/tasks/FilterInput";
 
 const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
   .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
@@ -27,6 +29,7 @@ const Tasks = () => {
   const [recordsPerPage, setRecordsPerPage] = useState(20);
   const [filterText, setFilterText] = useState("");
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [selectedBidTypes, setSelectedBidTypes] = useState<BidType[]>([]);
 
   const { sendMessage } = useWebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
 
@@ -240,14 +243,16 @@ const Tasks = () => {
       </div>
       <div className="flex flex-col sm:flex-row  gap-2 sm:gap-4 mb-4 justify-between items-center">
         <div className="flex gap-2 sm:gap-4">
-          <input
-            type="text"
+          <FilterInput
             placeholder="Filter by slug"
             value={filterText}
-            onChange={(e) => setFilterText(e.target.value)}
-            className="w-full p-3 rounded-lg border border-n-5 bg-Neutral/Neutral-300-[night]"
+            onChange={setFilterText}
           />
           <TagFilter selectedTags={selectedTags} onChange={setSelectedTags} />
+          <BidTypeFilter
+            selectedBidTypes={selectedBidTypes}
+            onChange={setSelectedBidTypes}
+          />
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <button
@@ -278,6 +283,7 @@ const Tasks = () => {
           onEditTask={openEditModal}
           filterText={filterText}
           selectedTags={selectedTags}
+          selectedBidTypes={selectedBidTypes}
         />
       </Accordion>
       <RecentBids
