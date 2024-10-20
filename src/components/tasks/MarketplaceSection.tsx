@@ -6,8 +6,6 @@ const MarketplaceSection = ({
   errors,
   handleMarketplaceToggle,
 }: IMarketplaceSection) => {
-  console.log({ formState });
-
   return (
     <div>
       <h2 className="font-medium mb-4">

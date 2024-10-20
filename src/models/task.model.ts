@@ -6,7 +6,7 @@ interface SelectedTraits {
     availableInMarketplaces: string[];
   }[];
 }
-interface ITask extends Document {
+export interface ITask extends Document {
   _id: mongoose.Types.ObjectId;
   user: mongoose.Types.ObjectId;
   contract: {

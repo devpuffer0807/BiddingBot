@@ -8,7 +8,6 @@ import MarketplaceSection from "./MarketplaceSection";
 interface FormSectionProps {
   formState: TaskFormState;
   errors: Partial<TaskFormState>;
-  debouncedValidateSlug: (slug: string) => void;
   walletOptions: CustomSelectOption[];
   setFormState: React.Dispatch<React.SetStateAction<TaskFormState>>;
   onWalletModalOpen: () => void;
@@ -24,7 +23,6 @@ interface FormSectionProps {
 const FormSection: React.FC<FormSectionProps> = ({
   formState,
   errors,
-  debouncedValidateSlug,
   walletOptions,
   setFormState,
   onWalletModalOpen,

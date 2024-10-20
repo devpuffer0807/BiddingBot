@@ -3,7 +3,7 @@ import { useWalletStore } from "../../store/wallet.store";
 import { toast } from "react-toastify";
 import { useTaskForm } from "@/hooks/useTaskForm";
 import { Task, useTaskStore } from "@/store";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTagStore } from "@/store/tag.store";
 import FormSection from "./FormSection";
 import TagSection from "./TagSection";
@@ -37,6 +37,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
     handleTagChange,
     handleTraitChange,
     debouncedValidateSlug,
+    validateSlug, // Add this
   } = useTaskForm(
     initialTask
       ? {
@@ -187,6 +188,13 @@ const TaskModal: React.FC<TaskModalProps> = ({
     taskId
   );
 
+  // Add this useEffect
+  useEffect(() => {
+    if (isOpen && taskId && initialTask) {
+      validateSlug(initialTask.contract.slug);
+    }
+  }, [isOpen, taskId, initialTask, validateSlug]);
+
   const walletOptions = wallets.map((wallet) => ({
     value: wallet.address,
     label: wallet.name,
@@ -314,10 +322,11 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
       if (taskId) {
         taskStore.editTask(taskId, taskData);
-      } else {
-        const newTaskId = taskStore.getLastTaskId();
-        taskStore.editTask(newTaskId, taskData);
       }
+      // else {
+      // const newTaskId = taskStore.getLastTaskId();
+      // taskStore.editTask(newTaskId, taskData);
+      // }
       toast.success(
         taskId ? "Task updated successfully!" : "Task created successfully!"
       );
@@ -502,7 +511,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
             <FormSection
               formState={formState}
               errors={errors}
-              debouncedValidateSlug={debouncedValidateSlug}
               walletOptions={walletOptions}
               setFormState={setFormState}
               onWalletModalOpen={handleWalletModalOpen}

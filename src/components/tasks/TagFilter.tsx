@@ -51,16 +51,16 @@ const TagFilter: React.FC<TagFilterProps> = ({ selectedTags, onChange }) => {
     <div className="relative w-full min-w-44" ref={dropdownRef}>
       <button
         type="button"
-        className="w-full border rounded-lg shadow-sm p-3 border-n-5 bg-Neutral/Neutral-300-[night] text-left flex justify-between items-center hover:bg-Neutral/Neutral-400-[night] transition-colors min-h-[50px] "
+        className="w-full border rounded-lg shadow-sm p-3 border-n-5 bg-Neutral/Neutral-300-[night] text-left flex justify-between items-center hover:bg-Neutral/Neutral-400-[night] transition-colors min-h-[50px]"
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex gap-1 w-full text-n-3">
           {selectedTags.length > 0
             ? selectedTags.map((tag, index) => (
                 <div
-                  style={{ backgroundColor: tag.color }}
-                  className={`bg-[${tag.color}] w-5 h-5 rounded-full`}
                   key={index}
+                  style={{ backgroundColor: tag.color }}
+                  className="w-5 h-5 rounded-full"
                 ></div>
               ))
             : "Filter by tags"}
@@ -69,16 +69,15 @@ const TagFilter: React.FC<TagFilterProps> = ({ selectedTags, onChange }) => {
       </button>
       {isOpen && (
         <div className="absolute z-10 w-full mt-1 border rounded-lg shadow-lg border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] max-h-60 overflow-y-auto custom-scrollbar p-0.5">
-          <div className="sticky top-0 z-20 bg-Neutral/Neutral-300-[night]">
+          <div className="sticky top-0 z-20 bg-Neutral/Neutral-300-[night] p-2">
             <input
               type="text"
               placeholder="Search tags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="rounded w-full p-3 bg-n-7"
+              className="w-full p-3 rounded bg-n-7 text-n-3"
             />
           </div>
-
           <div className="max-h-48 overflow-y-auto">
             {filteredTags.map((tag) => (
               <div

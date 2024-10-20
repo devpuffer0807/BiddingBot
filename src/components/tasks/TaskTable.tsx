@@ -4,6 +4,7 @@ import Toggle from "@/components/common/Toggle";
 import EditIcon from "@/assets/svg/EditIcon";
 import { Tag } from "@/store/tag.store";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import Link from "next/link";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -16,6 +17,7 @@ interface TaskTableProps {
   onEditTask: (task: Task) => void;
   filterText: string;
   selectedTags: Tag[];
+  selectedBidTypes?: ("COLLECTION" | "TOKEN" | "TRAIT")[]; // Make this prop optional
 }
 
 const TaskTable: React.FC<TaskTableProps> = ({
@@ -29,6 +31,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
   onEditTask,
   filterText,
   selectedTags,
+  selectedBidTypes = [], // Provide a default empty array
 }) => {
   const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
     .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
@@ -43,7 +46,17 @@ const TaskTable: React.FC<TaskTableProps> = ({
       selectedTags.some((tag) =>
         task.tags.some((taskTag) => taskTag.name === tag.name)
       );
-    return matchesSlug && matchesTags;
+    const bidType =
+      task.bidType.toLowerCase() === "collection" &&
+      Object.keys(task?.selectedTraits || {}).length > 0
+        ? "TRAIT"
+        : task.tokenIds.length > 0
+        ? "TOKEN"
+        : task.bidType.toUpperCase();
+    const matchesBidType =
+      selectedBidTypes.length === 0 ||
+      selectedBidTypes.includes(bidType as any);
+    return matchesSlug && matchesTags && matchesBidType;
   });
 
   return (
@@ -87,6 +100,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
             </th>
             <th scope="col" className="px-6 py-3 text-center">
               Slug
+            </th>
+            <th scope="col" className="px-6 py-3 text-center">
+              Bid Type
             </th>
             <th scope="col" className="px-6 py-3 text-center">
               Min Price
@@ -171,14 +187,20 @@ const TaskTable: React.FC<TaskTableProps> = ({
                 </td>
                 <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                   <span className="sm:hidden font-bold">Slug</span>
-                  <a
-                    href={`https://opensea.io/collection/${task.contract.slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href={`/dashboard/tasks/${task.contract.slug}`}
                     className="text-Brand/Brand-1 underline"
                   >
                     {task.contract.slug}
-                  </a>
+                  </Link>
+                </td>
+                <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
+                  {task.bidType.toLowerCase() === "collection" &&
+                  Object.keys(task?.selectedTraits || {}).length > 0
+                    ? "TRAIT"
+                    : task.tokenIds.length > 0
+                    ? "TOKEN"
+                    : task.bidType.toUpperCase()}
                 </td>
                 <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                   <span className="sm:hidden font-bold">Min Floor Price %</span>

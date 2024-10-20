@@ -22,8 +22,8 @@ export const useTaskForm = (
   const [formState, setFormState] = useState<TaskFormState>({
     ...initialState,
     slugValid: taskId ? true : null,
-    blurValid: taskId ? true : null,
-    magicEdenValid: taskId ? true : null,
+    blurValid: false,
+    magicEdenValid: false,
     slugDirty: false,
     tags: initialState.tags || [],
     selectedTraits: initialState.selectedTraits || {},
@@ -98,9 +98,9 @@ export const useTaskForm = (
     if (!isEqual(initialState, prevInitialStateRef.current)) {
       setFormState((prevState) => ({
         ...initialState,
-        slugValid: taskId ? true : prevState.slugValid,
-        magicEdenValid: taskId ? true : prevState.magicEdenValid,
-        blurValid: taskId ? true : prevState.blurValid,
+        slugValid: prevState.slugValid,
+        magicEdenValid: prevState.magicEdenValid,
+        blurValid: prevState.blurValid,
         slugDirty: prevState.slugDirty,
         tags: initialState.tags || [],
         selectedTraits: initialState.selectedTraits || {},
@@ -251,8 +251,6 @@ export const useTaskForm = (
         slugDirty: true,
         selectedTraits: initialState.selectedTraits || {},
         traits: initialState.traits || { categories: {}, counts: {} },
-        blurValid: taskId ? true : null,
-        magicEdenValid: taskId ? true : null,
       }));
       if (value.length >= 3) {
         debouncedValidateSlug(value);
