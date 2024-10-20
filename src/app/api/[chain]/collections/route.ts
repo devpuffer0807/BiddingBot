@@ -277,37 +277,44 @@ function transformMagicEdenTraits(magicEdenTraits: MagicEdenTraits): Traits {
     counts: {},
   };
 
-  magicEdenTraits.attributes.forEach((attribute) => {
-    const { key, values } = attribute;
-    traits.categories[key] = "string";
-    traits.counts[key] = {};
-    values.forEach((value) => {
-      const { value: itemValue, count } = value;
-      traits.counts[key][itemValue] = count;
+  try {
+    magicEdenTraits.attributes.forEach((attribute) => {
+      const { key, values } = attribute;
+      traits.categories[key] = "string";
+      traits.counts[key] = {};
+      values.forEach((value) => {
+        const { value: itemValue, count } = value;
+        traits.counts[key][itemValue] = count;
+      });
     });
-  });
-
-  return traits;
+    return traits;
+  } catch (error) {
+    return { categories: {}, counts: {} };
+  }
 }
 
 function transformBlurTraits(
   blurTraits: Record<string, Record<string, any>>
 ): Traits {
-  const traits: {
-    categories: Record<string, string>;
-    counts: Record<string, Record<string, number>>;
-  } = {
-    categories: {},
-    counts: {},
-  };
-  for (const category in blurTraits) {
-    traits.categories[category] = "string";
-    traits.counts[category] = {};
-    for (const item in blurTraits[category]) {
-      traits.counts[category][item] = 0;
+  try {
+    const traits: {
+      categories: Record<string, string>;
+      counts: Record<string, Record<string, number>>;
+    } = {
+      categories: {},
+      counts: {},
+    };
+    for (const category in blurTraits) {
+      traits.categories[category] = "string";
+      traits.counts[category] = {};
+      for (const item in blurTraits[category]) {
+        traits.counts[category][item] = 0;
+      }
     }
+    return traits;
+  } catch (error) {
+    return { categories: {}, counts: {} };
   }
-  return traits;
 }
 
 type MagicEdenValue = {
