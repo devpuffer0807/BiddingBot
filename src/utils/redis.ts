@@ -35,7 +35,6 @@ class RedisClient {
         maxRetriesPerRequest: null,
       });
     }
-    console.log("connected to redis");
   }
 
   public getClient(): Redis {

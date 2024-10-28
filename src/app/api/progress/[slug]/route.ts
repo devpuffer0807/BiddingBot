@@ -38,7 +38,13 @@ export async function GET(
       if (isBlur) {
         orderKeys.push(`${baseKey}:default`);
       } else {
-        orderKeys.push(...tokenIds.map((token) => `${baseKey}:${token}`));
+        const pattern = `*:${baseKey}:*[0-9]`;
+        const matchingKeys = await redis.keys(pattern);
+        const tokenKeys = matchingKeys.map((key) => {
+          const parts = key.split(":");
+          return `${baseKey}:${parts[parts.length - 1]}`;
+        });
+        orderKeys.push(...tokenKeys);
       }
     }
   } else if (bidType === "TRAIT") {
@@ -82,13 +88,7 @@ export async function GET(
   const bidData = await Promise.all(
     orderKeys.map(async (key) => {
       const pattern = `*:${key}`;
-
-      console.log({ key });
-
       const matchingKeys = await redis.keys(pattern);
-
-      console.log("Matching keys:", matchingKeys);
-
       if (matchingKeys.length === 0) {
         return null;
       }
@@ -152,8 +152,6 @@ export async function GET(
             offerKey = `${bidCount}:${marketplace}:${slug}:${identifier}`;
           } else if (bidType === "COLLECTION") {
             offerKey = `${bidCount}:${marketplace}:${slug}:collection`;
-
-            console.log({ offerKey });
           } else {
             if (marketplace.toLowerCase() === "magiceden") {
               if (bidType === "TRAIT") {
@@ -184,19 +182,15 @@ export async function GET(
     })
   );
 
-  // Flatten the array of arrays
   const flattenedBidData = bidData.flat();
 
   const bids = flattenedBidData
     .filter((bid) => bid !== null)
     .map((bid) => {
-      const expirationDate = new Date(
-        (currentTimestamp + bid.ttl) * 1000
-      ).toISOString();
       if (bid.marketplace === "magiceden" && bid.value !== null) {
         const value = JSON.parse(bid.value);
         const orderId = value.orderId;
-        return { ...bid, value: orderId, expirationDate };
+        return { ...bid, value: orderId };
       } else if (
         bid.marketplace.toLowerCase() === "blur" &&
         bid.value !== null
@@ -211,21 +205,16 @@ export async function GET(
             console.error("Error parsing Blur trait identifier:", e);
           }
         }
-        return { ...bid, expirationDate };
+        return { ...bid };
       } else {
-        return { ...bid, expirationDate };
+        return { ...bid };
       }
-    });
+    })
+    .sort((a, b) => b.ttl - a.ttl); // Sort bids by ttl in descending order
 
-  const offers = bids
-    .filter((bid) => bid.ttl > 0)
-    .sort((a, b) => b.ttl - a.ttl);
+  const offers = bids.filter((bid) => bid.ttl > 0);
 
-  // console.log("All offers:", offers);
-  console.log(
-    "Blur offers:",
-    offers.filter((item) => item.marketplace.toLowerCase() === "blur")
-  );
+  console.log({ offers });
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

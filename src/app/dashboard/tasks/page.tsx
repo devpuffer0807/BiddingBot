@@ -83,9 +83,6 @@ const Tasks = () => {
       if (event.data.startsWith("{")) {
         handleWebSocketMessage(event.data);
       } else if (event.data === "ping") {
-        console.log("Received ping message");
-      } else {
-        console.warn("Received non-JSON message:", event.data);
       }
     };
 
@@ -184,7 +181,6 @@ const Tasks = () => {
           body: JSON.stringify(updatedTask),
           credentials: "include",
         });
-        console.log("Marketplace updated successfully");
       } catch (error) {
         console.error("Error updating marketplace:", error);
       }

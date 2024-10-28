@@ -7,7 +7,16 @@ interface TraitSelectorProps {
     categories: Record<string, string>;
     counts: Record<
       string,
-      Record<string, { count: number; availableInMarketplaces: string[] }>
+      Record<
+        string,
+        {
+          count: number;
+          availableInMarketplaces: string[];
+          magicedenFloor: number;
+          blurFloor: number;
+          openseaFloor: number;
+        }
+      >
     >;
   };
   onTraitSelect: (
@@ -38,8 +47,6 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
   const toggleCategory = (category: string) => {
     setSelectedCategory(selectedCategory === category ? null : category);
   };
-
-  console.log({ selectedTraits });
 
   const filteredTraits =
     selectedCategory && traits.counts[selectedCategory]
@@ -208,16 +215,26 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
                                   key={index}
                                   className={`py-0.5 px-2 rounded-full text-white text-xs ${
                                     marketplace.toLowerCase() === "opensea"
-                                      ? "bg-[#2081e280]" // Added opacity
+                                      ? "bg-[#2081e280]"
                                       : marketplace.toLowerCase() === "blur"
-                                      ? "bg-[#FF870080]" // Added opacity
+                                      ? "bg-[#FF870080]"
                                       : marketplace.toLowerCase() ===
                                         "magiceden"
-                                      ? "bg-[#e4257580]" // Added opacity
+                                      ? "bg-[#e4257580]"
                                       : ""
                                   }`}
                                 >
-                                  {marketplace}
+                                  {marketplace}{" "}
+                                  {marketplace.toLowerCase() === "opensea" &&
+                                  count.openseaFloor
+                                    ? `${count.openseaFloor} ETH`
+                                    : marketplace.toLowerCase() === "blur" &&
+                                      count.blurFloor
+                                    ? `${count.blurFloor} ETH`
+                                    : marketplace.toLowerCase() ===
+                                        "magiceden" && count.magicedenFloor
+                                    ? `${count.magicedenFloor} ETH`
+                                    : ""}
                                 </span>
                               )
                             )}

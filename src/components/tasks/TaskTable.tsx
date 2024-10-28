@@ -237,7 +237,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     onChange={() => onToggleMarketplace(task._id, "Blur")}
                     activeColor="#FF8700"
                     inactiveColor="#3F3F46"
-                    disabled={!task.blurValid}
+                    disabled={!task.blurValid || task.bidType === "token"}
                   />
                 </td>
                 <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">

@@ -82,7 +82,7 @@ export interface ITask extends Document {
     value: number;
     unit: string;
   };
-  tokenIds: number[];
+  tokenIds: (number | string)[];
   bidType: "collection" | "token";
   bidPriceType: "GENERAL_BID_PRICE" | "MARKETPLACE_BID_PRICE";
   slugValid: boolean;
@@ -164,7 +164,7 @@ const TaskSchema: Schema = new Schema(
       value: { type: Number, required: false, default: 15 },
       unit: { type: String, required: false, default: "minutes" },
     },
-    tokenIds: { type: [Number], required: false },
+    tokenIds: { type: [Schema.Types.Mixed], required: false },
     bidType: {
       type: String,
       enum: ["collection", "token"],

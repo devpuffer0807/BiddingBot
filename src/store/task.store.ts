@@ -200,7 +200,16 @@ export interface Task {
     categories: Record<string, string>;
     counts: Record<
       string,
-      Record<string, { count: number; availableInMarketplaces: string[] }>
+      Record<
+        string,
+        {
+          count: number;
+          availableInMarketplaces: string[];
+          magicedenFloor: number;
+          blurFloor: number;
+          openseaFloor: number;
+        }
+      >
     >;
   };
   outbidOptions: {
@@ -250,7 +259,7 @@ export interface Task {
     triggerStopOptions: boolean;
   };
   bidDuration: { value: number; unit: string };
-  tokenIds: number[];
+  tokenIds: (number | string)[];
   bidType: string;
   loopInterval: { value: number; unit: string };
   bidPriceType: string;

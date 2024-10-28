@@ -82,7 +82,7 @@ export const useTaskForm = (
       value: initialState.loopInterval.value,
       unit: initialState.loopInterval.unit,
     },
-    tokenIds: [],
+    tokenIds: initialState.tokenIds || [],
     bidType: initialState.bidType || "collection",
     bidPriceType: initialState.bidPriceType || "general",
     blurFloorPrice: null,
@@ -472,7 +472,16 @@ export interface TaskFormState {
     categories: Record<string, string>;
     counts: Record<
       string,
-      Record<string, { count: number; availableInMarketplaces: string[] }>
+      Record<
+        string,
+        {
+          count: number;
+          availableInMarketplaces: string[];
+          magicedenFloor: number;
+          blurFloor: number;
+          openseaFloor: number;
+        }
+      >
     >;
   };
   outbidOptions: {
@@ -523,7 +532,7 @@ export interface TaskFormState {
   };
   bidDuration: { value: number; unit: string };
   loopInterval: { value: number; unit: string };
-  tokenIds: number[];
+  tokenIds: (number | string)[];
   bidType: string;
   bidPriceType: string;
   blurFloorPrice: number | null;

@@ -20,7 +20,6 @@ export const importWalletFromMnemonic = (
 ): ethers.HDNodeWallet | null => {
   try {
     const wallet = ethers.HDNodeWallet.fromPhrase(mnemonic);
-    console.log({ wallet });
     return wallet;
   } catch (error) {
     console.error("Error importing wallet from mnemonic:", error);
@@ -33,7 +32,6 @@ export const importWalletFromPrivateKey = (
 ): ethers.Wallet | null => {
   try {
     const wallet = new ethers.Wallet(privateKey);
-    console.log({ wallet });
     return wallet;
   } catch (error) {
     console.error("Error importing wallet from private key:", error);
@@ -48,7 +46,6 @@ export const connectWallet = async (
     try {
       const accounts = await provider.send("eth_requestAccounts", []);
       if (accounts && accounts.length > 0) {
-        console.log("Connected account:", accounts[0]);
         return true;
       } else {
         throw new Error("No accounts found");

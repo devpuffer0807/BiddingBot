@@ -38,7 +38,6 @@ const Page = () => {
         toast.error(data.message || "An error occurred. Please try again.");
       }
     } catch (error) {
-      console.error("Error resetting password:", error);
       toast.error("An unexpected error occurred. Please try again later.");
     } finally {
       setStatus(() => ({ loading: false, submitted: false }));

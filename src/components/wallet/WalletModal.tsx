@@ -55,7 +55,6 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
   const createNewWallet = useCallback(() => {
     try {
       const newWallet = ethers.Wallet.createRandom();
-      console.log("New wallet created:", newWallet);
       return newWallet;
     } catch (error) {
       console.error("Error creating new wallet:", error);

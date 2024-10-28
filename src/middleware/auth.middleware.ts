@@ -36,12 +36,6 @@ export async function authMiddleware(request: NextRequest) {
       response.cookies.delete("token");
       return response;
     }
-
-    // For other errors, log more details and continue without redirecting
-    console.log("Unknown error details:", {
-      name: error instanceof Error ? error.name : "Unknown",
-      message: error instanceof Error ? error.message : String(error),
-    });
     return NextResponse.next();
   }
 }

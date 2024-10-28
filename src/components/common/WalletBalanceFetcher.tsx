@@ -67,7 +67,6 @@ const WalletBalanceFetcher: React.FC<WalletBalanceFetcherProps> = ({
       let provider;
 
       if (window.ethereum == null) {
-        console.log("MetaMask not installed; using read-only defaults");
         provider = ethers.getDefaultProvider();
       } else {
         provider = ethers.getDefaultProvider();

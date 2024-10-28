@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
       fetchBlurTraits(collection.contracts[0].address),
       fetchMagicEdenAttributes(collection.contracts[0].address),
       fetchTraitData(slug),
+      // fetchMagicEdenTokens(collection.contracts[0].address),
     ];
 
     const [
@@ -260,42 +261,6 @@ export async function getOpenseaTraits(collectionSlug: string) {
   } catch (error) {
     console.error("Error fetching collection traits:", error);
     return { categories: {}, counts: {} };
-  }
-}
-
-export async function getAccessToken(
-  url: string,
-  private_key: string
-): Promise<string | undefined> {
-  const provider = new ethers.AlchemyProvider("mainnet", ALCHEMY_API_KEY);
-  const wallet = new Web3Wallet(private_key, provider);
-  const options = { walletAddress: wallet.address };
-
-  const headers = {
-    "content-type": "application/json",
-    "X-NFT-API-Key": API_KEY,
-  };
-
-  try {
-    let response: any = await axios.post(`${url}/auth/challenge`, options, {
-      headers,
-    });
-    const message = response.data.message;
-    const signature = await wallet.signMessage(message);
-    const data = {
-      message: message,
-      walletAddress: wallet.address,
-      expiresOn: response.data.expiresOn,
-      hmac: response.data.hmac,
-      signature: signature,
-    };
-    response = await axios.post(`${url}/auth/login`, data, { headers });
-    return response.data.accessToken;
-  } catch (error: any) {
-    console.error(
-      "getAccessToken Error:",
-      error.response?.data || error.message
-    );
   }
 }
 
@@ -601,11 +566,6 @@ interface Traits {
     [key: string]: Record<string, number>;
   };
 }
-interface TraitDetails {
-  count: number;
-  floor: number;
-}
-
 interface OpenseaTraits {
   data: OpenseaData;
 }

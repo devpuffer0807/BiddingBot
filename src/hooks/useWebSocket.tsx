@@ -10,7 +10,6 @@ export const useWebSocket = (url: string) => {
     ws.current = new WebSocket(url);
 
     ws.current.onopen = () => {
-      console.log("WebSocket connection established");
       setIsConnected(true);
       reconnectAttemptsRef.current = 0;
     };
@@ -20,12 +19,10 @@ export const useWebSocket = (url: string) => {
     };
 
     ws.current.onclose = () => {
-      console.log("WebSocket connection closed");
       setIsConnected(false);
 
       if (reconnectAttemptsRef.current < maxReconnectAttempts) {
         const timeout = Math.pow(2, reconnectAttemptsRef.current) * 1000;
-        console.log(`Attempting to reconnect in ${timeout / 1000} seconds...`);
         setTimeout(connect, timeout);
         reconnectAttemptsRef.current++;
       } else {

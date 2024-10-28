@@ -30,7 +30,6 @@ export const connect = async (): Promise<Connection> => {
         bufferCommands: false,
       })
       .then((mongoose) => {
-        console.log("New database connection established");
         return mongoose.connection;
       })
       .catch((error) => {
@@ -53,6 +52,5 @@ export const disconnect = async (): Promise<void> => {
     await cached.conn.close();
     cached.conn = null;
     cached.promise = null;
-    console.log("Database connection closed");
   }
 };

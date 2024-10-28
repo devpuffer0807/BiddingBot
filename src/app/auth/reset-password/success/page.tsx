@@ -76,7 +76,6 @@ const Verify = () => {
         );
       }
     } catch (error) {
-      console.error(error);
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);

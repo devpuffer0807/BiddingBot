@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TaskFormState } from "@/hooks/useTaskForm";
 import CustomSelect, { CustomSelectOption } from "../common/CustomSelect";
 import Toggle from "../common/Toggle";
@@ -45,6 +45,52 @@ const FormSection: React.FC<FormSectionProps> = ({
     { value: "hours", label: "Hours" },
     { value: "days", label: "Days" },
   ];
+
+  const [tokenIdError, setTokenIdError] = useState<string | null>(null);
+  const [tokenIdInput, setTokenIdInput] = useState("");
+
+  useEffect(() => {
+    if (formState.tokenIds.length > 0) {
+      const botIds = formState.tokenIds.filter(
+        (id) => typeof id === "string" && id.startsWith("bot")
+      );
+      const numericIds = formState.tokenIds
+        .filter((id): id is number => typeof id === "number")
+        .sort((a, b) => a - b);
+
+      const ranges: string[] = [];
+      let rangeStart: number | null = null;
+      let rangeEnd: number | null = null;
+
+      for (let i = 0; i < numericIds.length; i++) {
+        if (rangeStart === null) {
+          rangeStart = numericIds[i];
+          rangeEnd = numericIds[i];
+        } else if (rangeEnd !== null && numericIds[i] === rangeEnd + 1) {
+          rangeEnd = numericIds[i];
+        } else {
+          ranges.push(
+            rangeStart === rangeEnd
+              ? `${rangeStart}`
+              : `${rangeStart}-${rangeEnd}`
+          );
+          rangeStart = numericIds[i];
+          rangeEnd = numericIds[i];
+        }
+      }
+
+      if (rangeStart !== null) {
+        ranges.push(
+          rangeStart === rangeEnd
+            ? `${rangeStart}`
+            : `${rangeStart}-${rangeEnd}`
+        );
+      }
+
+      const formattedIds = [...botIds, ...ranges].join(", ");
+      setTokenIdInput(formattedIds);
+    }
+  }, [formState.tokenIds]);
 
   const updateOutbidOptions = (
     updatedOptions: Partial<typeof formState.outbidOptions>
@@ -123,29 +169,60 @@ const FormSection: React.FC<FormSectionProps> = ({
 
   const handleTokenIdsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
+    setTokenIdInput(value);
     const ranges = value.split(",").map((range) => range.trim());
-    const uniqueNumbers = new Set<number>();
+    const tokenIds: (number | string)[] = [];
 
-    ranges.forEach((range) => {
-      const parts = range.split("-");
-      if (parts.length === 1) {
-        const num = parseInt(parts[0].trim());
-        if (!isNaN(num)) uniqueNumbers.add(num);
-      } else if (parts.length === 2) {
-        const start = parseInt(parts[0].trim());
-        const end = parseInt(parts[1].trim());
-        if (!isNaN(start) && !isNaN(end) && start <= end) {
-          for (let i = start; i <= end; i++) {
-            uniqueNumbers.add(i);
-          }
-        }
+    const isValidRange = (start: number, end: number) => {
+      return (
+        !isNaN(start) &&
+        !isNaN(end) &&
+        start <= end &&
+        Number.isInteger(start) &&
+        Number.isInteger(end)
+      );
+    };
+
+    const isValidInput = ranges.every((range) => {
+      if (/^bot\d+$/.test(range)) {
+        return true;
+      } else if (/^\d+$/.test(range)) {
+        return true;
+      } else if (/^\d+\s*-\s*\d+$/.test(range)) {
+        const [start, end] = range
+          .split("-")
+          .map((num) => parseInt(num.trim()));
+        return isValidRange(start, end);
       }
+      return false;
     });
 
-    setFormState((prev) => ({
-      ...prev,
-      tokenIds: Array.from(uniqueNumbers),
-    }));
+    if (isValidInput) {
+      ranges.forEach((range) => {
+        if (/^bot\d+$/.test(range)) {
+          tokenIds.push(range);
+        } else if (/^\d+$/.test(range)) {
+          tokenIds.push(parseInt(range));
+        } else if (/^\d+\s*-\s*\d+$/.test(range)) {
+          const [start, end] = range
+            .split("-")
+            .map((num) => parseInt(num.trim()));
+          for (let i = start; i <= end; i++) {
+            tokenIds.push(i);
+          }
+        }
+      });
+
+      setFormState((prev) => ({
+        ...prev,
+        tokenIds: Array.from(new Set(tokenIds)),
+      }));
+      setTokenIdError(null);
+    } else {
+      setTokenIdError(
+        "Invalid input. Please use numbers, ranges (e.g., 1-5), or number of bottom listed (e.g., bot10)."
+      );
+    }
   };
 
   const handleBidTypeChange = (type: string) => {
@@ -273,29 +350,29 @@ const FormSection: React.FC<FormSectionProps> = ({
         </div>
       </div>
 
-      {formState.bidType === "token" ? (
+      {formState.bidType === "token" && (
         <div>
           <label htmlFor="tokenIds" className="block text-sm font-medium mb-2">
             Token Range
           </label>
           <div className="flex items-center">
             <input
-              inputMode="text"
               type="text"
               id="tokenIds"
               name="tokenIds"
+              value={tokenIdInput}
               onChange={handleTokenIdsChange}
-              placeholder="1 - 777, 86, 999 - 1456"
-              className="w-full p-3 rounded-l-lg border border-r-0 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night]"
+              placeholder="1-5, 7, bot10, 15-20"
+              className={`w-full p-3 border rounded-lg bg-Neutral/Neutral-300-[night] focus:border-none active:border-none focus-visible:border-none ${
+                tokenIdError ? "border-red-500" : "border-Neutral-BG-[night]"
+              }`}
               autoComplete="off"
             />
           </div>
-          {errors.tokenIds && (
-            <p className="text-red-500 text-sm mt-1">{errors.tokenIds}</p>
+          {tokenIdError && (
+            <p className="text-red-500 text-xs mt-1">{tokenIdError}</p>
           )}
         </div>
-      ) : (
-        <div></div>
       )}
 
       {formState.traits &&
