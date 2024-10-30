@@ -281,6 +281,9 @@ export const useTaskForm = (
       newErrors.wallet = {
         address: "Wallet selection is required",
         privateKey: "",
+        openseaApproval: false,
+        blurApproval: false,
+        magicedenApproval: false,
       };
     }
     if (formState.selectedMarketplaces.length === 0)
@@ -314,6 +317,9 @@ export const useTaskForm = (
         wallet: {
           address: formState.wallet.address,
           privateKey: selectedWallet.privateKey,
+          openseaApproval: selectedWallet.openseaApproval,
+          magicedenApproval: selectedWallet.magicedenApproval,
+          blurApproval: selectedWallet.blurApproval,
         },
         selectedMarketplaces: formState.selectedMarketplaces,
         running: formState.running,
@@ -529,6 +535,9 @@ export interface TaskFormState {
   wallet: {
     address: string;
     privateKey: string;
+    openseaApproval: boolean;
+    blurApproval: boolean;
+    magicedenApproval: boolean;
   };
   bidDuration: { value: number; unit: string };
   loopInterval: { value: number; unit: string };

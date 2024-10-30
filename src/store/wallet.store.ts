@@ -5,6 +5,9 @@ interface Wallet {
   name: string;
   address: string;
   privateKey: string;
+  openseaApproval: boolean;
+  magicedenApproval: boolean;
+  blurApproval: boolean;
 }
 
 interface WalletState {
@@ -27,10 +30,7 @@ export const useWalletStore = create<WalletState>()(
         wallets: [
           ...state.wallets,
           {
-            _id: wallet.address,
-            name: wallet.name,
-            address: wallet.address,
-            privateKey: wallet.privateKey,
+            ...wallet,
           },
         ],
       })),

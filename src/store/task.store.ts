@@ -188,6 +188,9 @@ export interface Task {
   wallet: {
     address: string;
     privateKey: string;
+    openseaApproval: boolean;
+    blurApproval: boolean;
+    magicedenApproval: boolean;
   };
   selectedMarketplaces: string[];
   running: boolean;

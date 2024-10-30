@@ -32,8 +32,7 @@ const FormSection: React.FC<FormSectionProps> = ({
   const GENERAL_BID_PRICE = "GENERAL_BID_PRICE";
   const MARKETPLACE_BID_PRICE = "MARKETPLACE_BID_PRICE";
 
-  const [updatedWalletOptions, setUpdatedWalletOptions] =
-    useState(walletOptions);
+  // const [updatedWalletOptions, setUpdatedWalletOptions] =useState(walletOptions);
 
   const priceTypeOptions: CustomSelectOption[] = [
     { value: "percentage", label: "%" },
@@ -272,7 +271,7 @@ const FormSection: React.FC<FormSectionProps> = ({
         </label>
         <div className="relative">
           <CustomSelect
-            options={updatedWalletOptions}
+            options={walletOptions}
             value={formState.wallet?.address || ""}
             onChange={(selectedValue) =>
               setFormState((prev) => ({

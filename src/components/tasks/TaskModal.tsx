@@ -102,6 +102,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
           wallet: {
             address: initialTask.wallet.address || "",
             privateKey: initialTask.wallet.privateKey || "",
+            openseaApproval: initialTask.wallet.openseaApproval || false,
+            magicedenApproval: initialTask.wallet.magicedenApproval || false,
+            blurApproval: initialTask.wallet.blurApproval || false,
           },
           bidDuration: initialTask.bidDuration || {
             value: 15,
@@ -174,6 +177,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
           wallet: {
             address: "",
             privateKey: "",
+            openseaApproval: false,
+            magicedenApproval: false,
+            blurApproval: false,
           },
           bidDuration: { value: 15, unit: "minutes" },
           loopInterval: { value: 15, unit: "minutes" },
@@ -343,6 +349,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
       wallet: {
         address: "",
         privateKey: "",
+        openseaApproval: false,
+        magicedenApproval: false,
+        blurApproval: false,
       },
       selectedMarketplaces: [],
       running: false,
