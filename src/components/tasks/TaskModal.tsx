@@ -27,6 +27,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [newTagColor, setNewTagColor] = useState("#000000");
   const [showCreateTag, setShowCreateTag] = useState(false);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [tokenIdInput, setTokenIdInput] = useState("");
 
   const {
     formState,
@@ -194,6 +195,51 @@ const TaskModal: React.FC<TaskModalProps> = ({
     taskId
   );
 
+  // Add this useEffect to handle initialTask changes
+  useEffect(() => {
+    if (initialTask?.tokenIds && initialTask.tokenIds.length > 0) {
+      const botIds = initialTask.tokenIds.filter(
+        (id) => typeof id === "string" && id.startsWith("bot")
+      );
+      const numericIds = initialTask.tokenIds
+        .filter((id): id is number => typeof id === "number")
+        .sort((a, b) => a - b);
+
+      const ranges: string[] = [];
+      let rangeStart: number | null = null;
+      let rangeEnd: number | null = null;
+
+      for (let i = 0; i < numericIds.length; i++) {
+        if (rangeStart === null) {
+          rangeStart = numericIds[i];
+          rangeEnd = numericIds[i];
+        } else if (rangeEnd !== null && numericIds[i] === rangeEnd + 1) {
+          rangeEnd = numericIds[i];
+        } else {
+          ranges.push(
+            rangeStart === rangeEnd
+              ? `${rangeStart}`
+              : `${rangeStart}-${rangeEnd}`
+          );
+          rangeStart = numericIds[i];
+          rangeEnd = numericIds[i];
+        }
+      }
+
+      if (rangeStart !== null) {
+        ranges.push(
+          rangeStart === rangeEnd
+            ? `${rangeStart}`
+            : `${rangeStart}-${rangeEnd}`
+        );
+      }
+
+      setTokenIdInput([...botIds, ...ranges].join(", "));
+    } else {
+      setTokenIdInput("");
+    }
+  }, [initialTask?.tokenIds]);
+
   // Add this useEffect
   useEffect(() => {
     if (isOpen && taskId && initialTask) {
@@ -261,6 +307,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const isValid = await handleSubmit();
     if (isValid) {
       const taskStore = useTaskStore.getState();
@@ -456,6 +503,32 @@ const TaskModal: React.FC<TaskModalProps> = ({
     }
   };
 
+  const processTokenIds = (input: string): (number | string)[] => {
+    if (!input.trim()) return [];
+
+    const ranges = input.split(",").map((range) => range.trim());
+    const tokenIds: (number | string)[] = [];
+
+    ranges.forEach((range) => {
+      if (/^bot\d+$/.test(range)) {
+        tokenIds.push(range);
+      } else if (/^\d+$/.test(range)) {
+        tokenIds.push(parseInt(range));
+      } else if (/^\d+\s*-\s*\d+$/.test(range)) {
+        const [start, end] = range
+          .split("-")
+          .map((num) => parseInt(num.trim()));
+        if (!isNaN(start) && !isNaN(end) && start <= end) {
+          for (let i = start; i <= end; i++) {
+            tokenIds.push(i);
+          }
+        }
+      }
+    });
+
+    return Array.from(new Set(tokenIds));
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -525,6 +598,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
               onWalletModalOpen={handleWalletModalOpen}
               handleTraitChange={handleTraitChange}
               handleMarketplaceToggle={handleMarketplaceToggle}
+              tokenIdInput={tokenIdInput}
+              setTokenIdInput={setTokenIdInput}
             />
 
             {formState.outbidOptions.outbid ? (

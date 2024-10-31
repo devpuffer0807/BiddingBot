@@ -18,6 +18,8 @@ interface FormSectionProps {
     >
   ) => void;
   handleMarketplaceToggle: (marketplace: string) => void;
+  tokenIdInput: string;
+  setTokenIdInput: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const FormSection: React.FC<FormSectionProps> = ({
@@ -28,6 +30,8 @@ const FormSection: React.FC<FormSectionProps> = ({
   onWalletModalOpen,
   handleTraitChange,
   handleMarketplaceToggle,
+  tokenIdInput,
+  setTokenIdInput,
 }) => {
   const GENERAL_BID_PRICE = "GENERAL_BID_PRICE";
   const MARKETPLACE_BID_PRICE = "MARKETPLACE_BID_PRICE";
@@ -46,50 +50,82 @@ const FormSection: React.FC<FormSectionProps> = ({
   ];
 
   const [tokenIdError, setTokenIdError] = useState<string | null>(null);
-  const [tokenIdInput, setTokenIdInput] = useState("");
 
-  useEffect(() => {
-    if (formState.tokenIds.length > 0) {
-      const botIds = formState.tokenIds.filter(
-        (id) => typeof id === "string" && id.startsWith("bot")
-      );
-      const numericIds = formState.tokenIds
-        .filter((id): id is number => typeof id === "number")
-        .sort((a, b) => a - b);
+  const validateTokenIds = (value: string): boolean => {
+    const ranges = value.split(",").map((range) => range.trim());
 
-      const ranges: string[] = [];
-      let rangeStart: number | null = null;
-      let rangeEnd: number | null = null;
-
-      for (let i = 0; i < numericIds.length; i++) {
-        if (rangeStart === null) {
-          rangeStart = numericIds[i];
-          rangeEnd = numericIds[i];
-        } else if (rangeEnd !== null && numericIds[i] === rangeEnd + 1) {
-          rangeEnd = numericIds[i];
-        } else {
-          ranges.push(
-            rangeStart === rangeEnd
-              ? `${rangeStart}`
-              : `${rangeStart}-${rangeEnd}`
-          );
-          rangeStart = numericIds[i];
-          rangeEnd = numericIds[i];
-        }
-      }
-
-      if (rangeStart !== null) {
-        ranges.push(
-          rangeStart === rangeEnd
-            ? `${rangeStart}`
-            : `${rangeStart}-${rangeEnd}`
+    return ranges.every((range) => {
+      if (/^bot\d+$/.test(range)) {
+        return true;
+      } else if (/^\d+$/.test(range)) {
+        return true;
+      } else if (/^\d+\s*-\s*\d+$/.test(range)) {
+        const [start, end] = range
+          .split("-")
+          .map((num) => parseInt(num.trim()));
+        return (
+          !isNaN(start) &&
+          !isNaN(end) &&
+          start <= end &&
+          Number.isInteger(start) &&
+          Number.isInteger(end)
         );
       }
+      return false;
+    });
+  };
 
-      const formattedIds = [...botIds, ...ranges].join(", ");
-      setTokenIdInput(formattedIds);
+  const handleTokenIdsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setTokenIdInput(value);
+
+    if (value.trim() === "") {
+      setTokenIdError(null);
+      setFormState((prev) => ({
+        ...prev,
+        tokenIds: [],
+      }));
+      return;
     }
-  }, [formState.tokenIds]);
+
+    const isValid = validateTokenIds(value);
+    setTokenIdError(
+      isValid
+        ? null
+        : "Invalid input. Please use numbers, ranges (e.g., 1-5), or number of bottom listed (e.g., bot10)."
+    );
+
+    // If input is valid, update formState's tokenIds
+    if (isValid) {
+      const processedIds = processTokenIds(value);
+      setFormState((prev) => ({
+        ...prev,
+        tokenIds: processedIds,
+      }));
+    }
+  };
+
+  const processTokenIds = (input: string): (number | string)[] => {
+    const ranges = input.split(",").map((range) => range.trim());
+    const tokenIds: (number | string)[] = [];
+
+    ranges.forEach((range) => {
+      if (/^bot\d+$/.test(range)) {
+        tokenIds.push(range);
+      } else if (/^\d+$/.test(range)) {
+        tokenIds.push(parseInt(range));
+      } else if (/^\d+\s*-\s*\d+$/.test(range)) {
+        const [start, end] = range
+          .split("-")
+          .map((num) => parseInt(num.trim()));
+        for (let i = start; i <= end; i++) {
+          tokenIds.push(i);
+        }
+      }
+    });
+
+    return Array.from(new Set(tokenIds));
+  };
 
   const updateOutbidOptions = (
     updatedOptions: Partial<typeof formState.outbidOptions>
@@ -164,64 +200,6 @@ const FormSection: React.FC<FormSectionProps> = ({
         [name]: value,
       },
     }));
-  };
-
-  const handleTokenIdsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    setTokenIdInput(value);
-    const ranges = value.split(",").map((range) => range.trim());
-    const tokenIds: (number | string)[] = [];
-
-    const isValidRange = (start: number, end: number) => {
-      return (
-        !isNaN(start) &&
-        !isNaN(end) &&
-        start <= end &&
-        Number.isInteger(start) &&
-        Number.isInteger(end)
-      );
-    };
-
-    const isValidInput = ranges.every((range) => {
-      if (/^bot\d+$/.test(range)) {
-        return true;
-      } else if (/^\d+$/.test(range)) {
-        return true;
-      } else if (/^\d+\s*-\s*\d+$/.test(range)) {
-        const [start, end] = range
-          .split("-")
-          .map((num) => parseInt(num.trim()));
-        return isValidRange(start, end);
-      }
-      return false;
-    });
-
-    if (isValidInput) {
-      ranges.forEach((range) => {
-        if (/^bot\d+$/.test(range)) {
-          tokenIds.push(range);
-        } else if (/^\d+$/.test(range)) {
-          tokenIds.push(parseInt(range));
-        } else if (/^\d+\s*-\s*\d+$/.test(range)) {
-          const [start, end] = range
-            .split("-")
-            .map((num) => parseInt(num.trim()));
-          for (let i = start; i <= end; i++) {
-            tokenIds.push(i);
-          }
-        }
-      });
-
-      setFormState((prev) => ({
-        ...prev,
-        tokenIds: Array.from(new Set(tokenIds)),
-      }));
-      setTokenIdError(null);
-    } else {
-      setTokenIdError(
-        "Invalid input. Please use numbers, ranges (e.g., 1-5), or number of bottom listed (e.g., bot10)."
-      );
-    }
   };
 
   const handleBidTypeChange = (type: string) => {
