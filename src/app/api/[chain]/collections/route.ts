@@ -3,7 +3,7 @@ import { ethers, Wallet as Web3Wallet } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 
 const API_KEY = "d3348c68-097d-48b5-b5f0-0313cc05e92d";
-const ALCHEMY_API_KEY = "HGWgCONolXMB2op5UjPH1YreDCwmSbvx";
+const ALCHEMY_API_KEY = "0rk2kbu11E5PDyaUqX1JjrNKwG7s4ty5";
 const GOLD = "\x1b[33m";
 export const RESET = "\x1b[0m";
 
