@@ -140,6 +140,8 @@ export async function DELETE(
   const userId = await getUserIdFromCookies(request);
   const taskId = params.id;
 
+  console.log({ taskId });
+
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

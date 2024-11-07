@@ -20,11 +20,11 @@ export async function GET(
   const tokenIds = task.tokenIds;
   const bidType =
     task.bidType.toLowerCase() === "collection" &&
-    Object.keys(task?.selectedTraits || {}).length > 0
+      Object.keys(task?.selectedTraits || {}).length > 0
       ? "TRAIT"
       : task.tokenIds.length > 0
-      ? "TOKEN"
-      : "COLLECTION";
+        ? "TOKEN"
+        : "COLLECTION";
 
   const selectedMarketplaces = task.selectedMarketplaces;
   const selectedTraits = task.selectedTraits;
@@ -65,9 +65,7 @@ export async function GET(
               const blurTraitObject = {
                 [traitType]: trait.name,
               };
-              // Convert the object to a JSON string
               const jsonString = JSON.stringify(blurTraitObject);
-              // Ensure the JSON string is correctly formatted
               orderKeys.push(`${baseKey}:${jsonString}`);
               break;
             case "opensea":
@@ -93,7 +91,6 @@ export async function GET(
         return null;
       }
 
-      // Process all matching keys
       return await Promise.all(
         matchingKeys.map(async (fullKey) => {
           const [bidCount, marketplace, , slug, ...rest] = fullKey.split(":");
@@ -162,9 +159,8 @@ export async function GET(
                 offerKey = `${bidCount}:${marketplace}:${slug}:${identifier}`;
               }
             } else {
-              offerKey = `${bidCount}:${marketplace}:${slug}:${
-                identifier === "default" ? "collection" : identifier
-              }`;
+              offerKey = `${bidCount}:${marketplace}:${slug}:${identifier === "default" ? "collection" : identifier
+                }`;
             }
           }
           const offerPrice = await redis.get(offerKey);
@@ -195,7 +191,6 @@ export async function GET(
         bid.marketplace.toLowerCase() === "blur" &&
         bid.value !== null
       ) {
-        // Modify the identifier for blur marketplace
         if (bidType === "TRAIT") {
           try {
             const traitObj = JSON.parse(bid.identifier);
@@ -210,12 +205,9 @@ export async function GET(
         return { ...bid };
       }
     })
-    .sort((a, b) => b.ttl - a.ttl); // Sort bids by ttl in descending order
+    .sort((a, b) => b.ttl - a.ttl);
 
   const offers = bids.filter((bid) => bid.ttl > 0);
-
-  console.log({ offers });
-
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
