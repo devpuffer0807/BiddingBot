@@ -67,9 +67,15 @@ const WalletBalanceFetcher: React.FC<WalletBalanceFetcherProps> = ({
       let provider;
 
       if (window.ethereum == null) {
-        provider = ethers.getDefaultProvider();
+        provider = new ethers.AlchemyProvider(
+          "mainnet",
+          NEXT_PUBLIC_ALCHEMY_API_KEY
+        );
       } else {
-        provider = ethers.getDefaultProvider();
+        provider = new ethers.AlchemyProvider(
+          "mainnet",
+          NEXT_PUBLIC_ALCHEMY_API_KEY
+        );
       }
       setProvider(provider);
     };

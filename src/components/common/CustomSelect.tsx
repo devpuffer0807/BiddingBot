@@ -1,5 +1,6 @@
 import ChevronDown from "@/assets/svg/ChevronDown";
 import { useState } from "react";
+import WalletBalanceFetcher from "./WalletBalanceFetcher";
 
 export type CustomSelectOption = {
   value: string;
@@ -26,7 +27,6 @@ const CustomSelect = ({
   className = "",
 }: CustomSelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
-
   const selectedOption = options.find((opt) => opt.value === value);
 
   return (

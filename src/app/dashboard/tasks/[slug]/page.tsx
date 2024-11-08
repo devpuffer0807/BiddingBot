@@ -1,5 +1,4 @@
 "use client";
-import CancelIcon from "@/assets/svg/CancelIcon";
 import EditIcon from "@/assets/svg/EditIcon";
 import Toggle from "@/components/common/Toggle";
 import MarketplaceFilter, {
@@ -10,6 +9,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { Task, useTaskStore } from "@/store";
 import { useCallback, useState } from "react";
 import useSWR from "swr";
+import { toast } from "react-toastify";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
@@ -33,7 +33,7 @@ function formatTimeRemaining(seconds: number): string {
 
 export default function Page({ params }: { params: { slug: string } }) {
   const [selectAll, setSelectAll] = useState(false);
-  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+  const [selectedBids, setSelectedBids] = useState<OfferData[]>([]);
   const [recordsPerPage, setRecordsPerPage] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedMarketplaces, setSelectedMarketplaces] = useState<
@@ -47,8 +47,6 @@ export default function Page({ params }: { params: { slug: string } }) {
 
   const {
     data,
-    error,
-    isLoading,
   }: {
     data: OfferData[];
     error: any;
@@ -60,14 +58,18 @@ export default function Page({ params }: { params: { slug: string } }) {
 
   const toggleSelectAll = () => {
     setSelectAll(!selectAll);
-    setSelectedTasks(selectAll ? [] : data.map((task) => task.value));
+    setSelectedBids(selectAll ? [] : data);
   };
 
-  const toggleBid = (value: string) => {
-    setSelectedTasks((prev) => {
-      const newSelection = prev.includes(value)
-        ? prev.filter((id) => id !== value)
-        : [...prev, value];
+  const toggleBid = (key: string) => {
+    const offer = data.find((item) => item.key === key);
+    if (!offer) return;
+
+    setSelectedBids((prev) => {
+      const isSelected = prev.some((task) => task.key === key);
+      const newSelection = isSelected
+        ? prev.filter((task) => task.key !== key)
+        : [...prev, offer];
       setSelectAll(newSelection.length === data.length);
       return newSelection;
     });
@@ -160,6 +162,30 @@ export default function Page({ params }: { params: { slug: string } }) {
     setEditingTask(null);
   }, []);
 
+  async function cancelBid() {
+    try {
+      const response = await fetch(`/api/task/cancel/${params.slug}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(selectedBids),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to cancel bids");
+      }
+
+      toast.success("Bids cancelled successfully");
+    } catch (error) {
+      toast.error(
+        "Failed to cancel bids: " +
+          (error instanceof Error ? error.message : "Unknown error")
+      );
+    }
+  }
+
   return (
     <section className="ml-0 sm:ml-20 p-4 sm:p-6 pb-24">
       Task: {params.slug} ({data?.length} SUCCESSFUL BIDS)
@@ -170,7 +196,7 @@ export default function Page({ params }: { params: { slug: string } }) {
         />
         <button
           className="w-full sm:w-auto dashboard-btn uppercase bg-red-500 text-xs py-3 px-4 sm:text-sm sm:px-6 md:px-8"
-          onClick={() => {}}
+          onClick={cancelBid}
         >
           Cancel Selected
         </button>
@@ -249,7 +275,7 @@ export default function Page({ params }: { params: { slug: string } }) {
               />
               <div
                 className={`relative w-11 h-6 bg-gray-200 rounded-full transition-colors duration-200 ease-in-out ${
-                  task?.running ? "!bg-Brand/Brand-1" : ""
+                  task?.running ? "bg-red-500" : "!bg-Brand/Brand-1"
                 }`}
               >
                 <div
@@ -312,9 +338,6 @@ export default function Page({ params }: { params: { slug: string } }) {
               <th scope="col" className="px-6 py-3 text-center">
                 Expires In
               </th>
-              <th scope="col" className="px-6 py-3 text-center">
-                Cancel Bid
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -332,17 +355,23 @@ export default function Page({ params }: { params: { slug: string } }) {
                         <input
                           type="checkbox"
                           className="sr-only"
-                          checked={selectedTasks.includes(bid.value)}
-                          onChange={() => toggleBid(bid.value)}
+                          checked={selectedBids
+                            .map((offer) => offer.key)
+                            .includes(bid.key)}
+                          onChange={() => toggleBid(bid.key)}
                         />
                         <div
                           className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors duration-200 ease-in-out ${
-                            selectedTasks.includes(bid.value)
+                            selectedBids
+                              .map((offer) => offer.key)
+                              .includes(bid.key)
                               ? "bg-[#7F56D9] border-[#7F56D9]"
                               : "bg-transparent border-gray-400"
                           }`}
                         >
-                          {selectedTasks.includes(bid.value) && (
+                          {selectedBids
+                            .map((offer) => offer.key)
+                            .includes(bid.key) && (
                             <svg
                               className="w-3 h-3 text-white"
                               viewBox="0 0 16 16"
@@ -443,14 +472,6 @@ export default function Page({ params }: { params: { slug: string } }) {
                     </td>
                     <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                       {formatTimeRemaining(bid.ttl)}
-                    </td>
-                    <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
-                      <span className="sm:hidden font-bold">Edit</span>
-                      <div className="flex items-center justify-end sm:justify-center">
-                        <button onClick={() => {}}>
-                          <CancelIcon />
-                        </button>
-                      </div>
                     </td>
                   </tr>
                 );
