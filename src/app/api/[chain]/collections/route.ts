@@ -29,7 +29,6 @@ export async function GET(request: NextRequest) {
       fetchBlurTraits(collection.contracts[0].address),
       fetchMagicEdenAttributes(collection.contracts[0].address),
       fetchTraitData(slug),
-      // fetchMagicEdenTokens(collection.contracts[0].address),
     ];
 
     const [

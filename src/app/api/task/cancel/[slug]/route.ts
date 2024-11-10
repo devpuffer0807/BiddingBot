@@ -9,6 +9,7 @@ import axiosRetry, { IAxiosRetryConfig } from "axios-retry";
 import PQueue from "p-queue";
 
 const API_KEY = "d3348c68-097d-48b5-b5f0-0313cc05e92d";
+const BLUR_API_URL = "https://api.nfttools.website/blur";
 
 const redis = redisClient.getClient();
 const ALCHEMY_API_KEY = "0rk2kbu11E5PDyaUqX1JjrNKwG7s4ty5";
@@ -107,6 +108,7 @@ export async function POST(
     const privateKey = task.wallet.privateKey;
     const magicedenBids = bids.filter((bid) => bid.marketplace === "magiceden");
     const openseaBids = bids.filter((bid) => bid.marketplace === "opensea");
+    const blurBids = bids.filter((bid) => bid.marketplace === "blur");
 
     if (magicedenBids.length > 0) {
       await cancelMagicEdenBid(
@@ -128,11 +130,90 @@ export async function POST(
         })
       );
     }
+
+    if (blurBids.length > 0) {
+      await queue.addAll(
+        blurBids.map((item) => async () => {
+          const payload = JSON.parse(item.value);
+          const privateKey = task.wallet.privateKey;
+          const data: BlurCancelPayload = { payload, privateKey };
+          await cancelBlurBid(data);
+          await redis.del(item.key);
+        })
+      );
+    }
     return NextResponse.json(bids, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
       { status: 500 }
+    );
+  }
+}
+
+export async function cancelBlurBid(data: BlurCancelPayload) {
+  try {
+    const { payload, privateKey } = data;
+    const wallet = new Wallet(privateKey, provider);
+    const walletAddress = wallet.address;
+    const accessToken = await getAccessToken(BLUR_API_URL, privateKey);
+    const endpoint = `${BLUR_API_URL}/v1/collection-bids/cancel`;
+    const { data: cancelResponse } = await limiter.schedule(() =>
+      axiosInstance.post(endpoint, payload, {
+        headers: {
+          "content-type": "application/json",
+          authToken: accessToken,
+          walletAddress: walletAddress.toLowerCase(),
+          "X-NFT-API-Key": API_KEY,
+        },
+      })
+    );
+    console.log(JSON.stringify(cancelResponse));
+  } catch (error: any) {
+    console.log(error.response.data);
+  }
+}
+
+async function getAccessToken(
+  url: string,
+  private_key: string
+): Promise<string | undefined> {
+  const wallet = new Wallet(private_key, provider);
+  const options = { walletAddress: wallet.address };
+
+  const headers = {
+    "content-type": "application/json",
+    "X-NFT-API-Key": API_KEY,
+  };
+
+  try {
+    const key = `blur-access-token-${wallet.address}`;
+    const cachedToken = await redis.get(key);
+    if (cachedToken) {
+      return cachedToken;
+    }
+    let response: any = await limiter.schedule(() =>
+      axiosInstance.post(`${url}/auth/challenge`, options, { headers })
+    );
+    const message = response.data.message;
+    const signature = await wallet.signMessage(message);
+    const data = {
+      message: message,
+      walletAddress: wallet.address,
+      expiresOn: response.data.expiresOn,
+      hmac: response.data.hmac,
+      signature: signature,
+    };
+    response = await limiter.schedule(() =>
+      axiosInstance.post(`${url}/auth/login`, data, { headers })
+    );
+    const accessToken = response.data.accessToken;
+    await redis.set(key, accessToken, "EX", 2 * 60 * 60);
+    return accessToken;
+  } catch (error: any) {
+    console.error(
+      "getAccessToken Error:",
+      error.response?.data || error.message
     );
   }
 }
@@ -355,4 +436,18 @@ interface ValueCancel {
 interface BodyCancel {
   orderIds: string[];
   orderKind: string;
+}
+
+interface BlurCancelPayload {
+  payload: {
+    contractAddress: string;
+    criteriaPrices: Array<{
+      price: string;
+      criteria?: {
+        type: string;
+        value: Record<string, string>;
+      };
+    }>;
+  };
+  privateKey: string;
 }
