@@ -159,9 +159,13 @@ export const useTaskForm = (
     if (slug.length < 3) {
       setFormState((prev) => ({
         ...prev,
-        slugValid: false,
-        magicEdenValid: false,
-        blurValid: false,
+        ...(taskId
+          ? {}
+          : {
+              slugValid: false,
+              magicEdenValid: false,
+              blurValid: false,
+            }),
         blurFloorPrice: null,
         magicedenFloorPrice: null,
         openseaFloorPrice: null,
@@ -188,13 +192,18 @@ export const useTaskForm = (
 
         setFormState((prev) => ({
           ...prev,
-          slugValid: !!contractAddress,
           contract: {
             ...prev.contract,
             contractAddress,
           },
-          magicEdenValid: magicEdenValid,
-          blurValid: blurValid,
+
+          ...(taskId
+            ? {}
+            : {
+                slugValid: !!contractAddress,
+                magicEdenValid: magicEdenValid,
+                blurValid: blurValid,
+              }),
           blurFloorPrice: blurFLoorPrice,
           magicedenFloorPrice: magicedenFloorPrice,
           openseaFloorPrice: openseaFloorPrice,
