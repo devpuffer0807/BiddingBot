@@ -111,11 +111,15 @@ export async function POST(
     const blurBids = bids.filter((bid) => bid.marketplace === "blur");
 
     if (magicedenBids.length > 0) {
-      await cancelMagicEdenBid(
-        magicedenBids.map((bid) => bid.value),
-        privateKey
-      );
-      await Promise.all(magicedenBids.map((bid) => redis.del(bid.key)));
+      const BATCH_SIZE = 1000;
+      for (let i = 0; i < magicedenBids.length; i += BATCH_SIZE) {
+        const batch = magicedenBids.slice(i, i + BATCH_SIZE);
+        await cancelMagicEdenBid(
+          batch.map((bid) => bid.value),
+          privateKey
+        );
+        await Promise.all(batch.map((bid) => redis.del(bid.key)));
+      }
     }
 
     if (openseaBids.length > 0) {
