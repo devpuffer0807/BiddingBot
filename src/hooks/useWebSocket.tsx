@@ -7,9 +7,11 @@ export const useWebSocket = (url: string) => {
   const maxReconnectAttempts = 5;
 
   const connect = useCallback(() => {
+    console.log("Connecting to WebSocket:", url);
     ws.current = new WebSocket(url);
 
     ws.current.onopen = () => {
+      console.log("WebSocket connected successfully");
       setIsConnected(true);
       reconnectAttemptsRef.current = 0;
     };
