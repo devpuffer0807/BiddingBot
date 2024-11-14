@@ -248,26 +248,122 @@ const TaskTable: React.FC<TaskTableProps> = ({
                       : task.bidType.toUpperCase()}
                   </td>
                   <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
-                    <span className="sm:hidden font-bold">
-                      Min Floor Price %
-                    </span>
-                    <span>
-                      {bidPrice.min}{" "}
-                      {bidPrice.minType === "percentage"
-                        ? "%"
-                        : bidPrice.minType.toUpperCase()}
-                    </span>
+                    <div className="flex flex-col">
+                      {task.bidPrice.min && task.bidPrice.minType ? (
+                        <span>
+                          {task.bidPrice.min}{" "}
+                          {task.bidPrice.minType === "percentage"
+                            ? "%"
+                            : "ETH".toUpperCase()}
+                        </span>
+                      ) : null}
+
+                      {task.openseaBidPrice.min &&
+                      task.openseaBidPrice.minType ? (
+                        <span className="text-[#2081e2]">
+                          {task.openseaBidPrice.min}{" "}
+                          {task.openseaBidPrice.minType === "percentage"
+                            ? "%"
+                            : "WETH".toUpperCase()}
+                        </span>
+                      ) : null}
+
+                      {task.blurBidPrice.min && task.blurBidPrice.minType ? (
+                        <span className="text-[#FF8700]">
+                          {task.blurBidPrice.min}{" "}
+                          {task.blurBidPrice.minType === "percentage"
+                            ? "%"
+                            : "BETH".toUpperCase()}
+                        </span>
+                      ) : null}
+
+                      {task.magicEdenBidPrice.min &&
+                      task.magicEdenBidPrice.minType ? (
+                        <span className="text-[#e42575]">
+                          {task.magicEdenBidPrice.min}{" "}
+                          {task.magicEdenBidPrice.minType === "percentage"
+                            ? "%"
+                            : "WETH".toUpperCase()}
+                        </span>
+                      ) : null}
+                    </div>
                   </td>
                   <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
-                    <span className="sm:hidden font-bold">
-                      Max Floor Price %
-                    </span>
-                    <span>
-                      {bidPrice.max}{" "}
-                      {bidPrice.maxType === "percentage"
-                        ? "%"
-                        : bidPrice.maxType.toUpperCase()}
-                    </span>
+                    <div className="flex flex-col">
+                      {task.bidPrice.max &&
+                      task.bidPrice.maxType &&
+                      task.outbidOptions.outbid ? (
+                        <span>
+                          {task.bidPrice.max}{" "}
+                          {task.bidPrice.maxType === "percentage"
+                            ? "%"
+                            : "ETH".toUpperCase()}
+                        </span>
+                      ) : task.bidPrice.min && task.bidPrice.minType ? (
+                        <span>
+                          {task.bidPrice.min}{" "}
+                          {task.bidPrice.minType === "percentage"
+                            ? "%"
+                            : "ETH".toUpperCase()}
+                        </span>
+                      ) : null}
+
+                      {task.openseaBidPrice.max &&
+                      task.openseaBidPrice.maxType &&
+                      task.outbidOptions.outbid ? (
+                        <span className="text-[#2081e2]">
+                          {task.openseaBidPrice.max}{" "}
+                          {task.openseaBidPrice.maxType === "percentage"
+                            ? "%"
+                            : "ETH".toUpperCase()}
+                        </span>
+                      ) : task.openseaBidPrice.min &&
+                        task.openseaBidPrice.minType ? (
+                        <span className="text-[#2081e2]">
+                          {task.openseaBidPrice.min}{" "}
+                          {task.openseaBidPrice.minType === "percentage"
+                            ? "%"
+                            : "WETH".toUpperCase()}
+                        </span>
+                      ) : null}
+
+                      {task.blurBidPrice.max &&
+                      task.blurBidPrice.maxType &&
+                      task.outbidOptions.outbid ? (
+                        <span className="text-[#FF8700]">
+                          {task.blurBidPrice.max}{" "}
+                          {task.blurBidPrice.maxType === "percentage"
+                            ? "%"
+                            : "ETH".toUpperCase()}
+                        </span>
+                      ) : task.blurBidPrice.min && task.blurBidPrice.minType ? (
+                        <span className="text-[#FF8700]">
+                          {task.blurBidPrice.min}{" "}
+                          {task.blurBidPrice.minType === "percentage"
+                            ? "%"
+                            : "BETH".toUpperCase()}
+                        </span>
+                      ) : null}
+
+                      {task.magicEdenBidPrice.max &&
+                      task.magicEdenBidPrice.maxType &&
+                      task.outbidOptions.outbid ? (
+                        <span className="text-[#e42575]">
+                          {task.magicEdenBidPrice.max}{" "}
+                          {task.magicEdenBidPrice.maxType === "percentage"
+                            ? "%"
+                            : "ETH".toUpperCase()}
+                        </span>
+                      ) : task.magicEdenBidPrice.min &&
+                        task.magicEdenBidPrice.minType ? (
+                        <span className="text-[#e42575]">
+                          {task.magicEdenBidPrice.min}{" "}
+                          {task.magicEdenBidPrice.minType === "percentage"
+                            ? "%"
+                            : "WETH".toUpperCase()}
+                        </span>
+                      ) : null}
+                    </div>
                   </td>
                   <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                     <span className="sm:hidden font-bold">OpenSea</span>
