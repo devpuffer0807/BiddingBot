@@ -105,6 +105,30 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
     return selectedTraits[category] && selectedTraits[category].length > 0;
   };
 
+  const areAllTraitsSelected = (category: string) => {
+    if (!traits.counts[category] || !selectedTraits[category]) return false;
+    const totalTraits = Object.keys(traits.counts[category]).length;
+    return selectedTraits[category].length === totalTraits;
+  };
+
+  const handleSelectAllTraits = (category: string) => {
+    const updatedTraits = { ...selectedTraits };
+
+    if (areAllTraitsSelected(category)) {
+      delete updatedTraits[category];
+    } else {
+      updatedTraits[category] = Object.entries(traits.counts[category]).map(
+        ([trait, data]) => ({
+          name: trait,
+          availableInMarketplaces: data.availableInMarketplaces,
+        })
+      );
+    }
+
+    setSelectedTraits(updatedTraits);
+    onTraitSelect(updatedTraits);
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -146,7 +170,45 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span>{category}</span>
+                    <div className="flex items-center">
+                      <div className="relative mr-2">
+                        <input
+                          type="checkbox"
+                          checked={areAllTraitsSelected(category)}
+                          className="sr-only"
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleSelectAllTraits(category);
+                          }}
+                        />
+                        <div
+                          className={`w-5 h-5 border-2 rounded-sm flex items-center justify-center ${
+                            areAllTraitsSelected(category)
+                              ? "bg-Brand/Brand-1 border-Brand/Brand-1"
+                              : "border-gray-400"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectAllTraits(category);
+                          }}
+                        >
+                          {areAllTraitsSelected(category) && (
+                            <svg
+                              className="w-3 h-3 text-white"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      <span>{category}</span>
+                    </div>
                     <div className="flex items-center">
                       <span className="mr-2">
                         {traits.counts[category] &&
