@@ -54,7 +54,12 @@ const CustomSelect = ({
                 <div className="text-sm">{option.label}</div>
                 {option.address && (
                   <div className="text-xs text-Neutral/Neutral-600-[night]">
-                    {option.address}
+                    {option.address
+                      ? `${option.address.slice(
+                          0,
+                          6
+                        )} ... ${option.address.slice(-4)}`
+                      : ""}
                   </div>
                 )}
                 <div className="flex flex-col gap-1 text-sm mt-2">
