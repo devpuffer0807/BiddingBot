@@ -13,6 +13,7 @@ import {
 } from "@/utils";
 import { toast } from "react-toastify";
 import { useWalletStore } from "@/store";
+import CopyIcon from "@/assets/svg/CopyIcon";
 
 const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
   const [walletName, setWalletName] = useState("");
@@ -34,22 +35,6 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
       }
     };
     setupProvider();
-  }, []);
-
-  useEffect(() => {
-    const fetchWallets = async () => {
-      try {
-        const response = await fetch("/api/wallet"); // Fetch wallets from the API
-        if (!response.ok) throw new Error("Failed to fetch wallets");
-        const wallets = await response.json();
-        // Optionally, you can set the fetched wallets to state or store
-      } catch (error) {
-        console.error("Error fetching wallets:", error);
-        toast.error("Error fetching wallets");
-      }
-    };
-
-    fetchWallets();
   }, []);
 
   const createNewWallet = useCallback(() => {
@@ -97,11 +82,16 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
 
         if (!response.ok) throw new Error("Failed to add wallet to database");
 
+        const data = await response.json();
+
         addWallet({
-          _id: newWallet.address,
+          _id: data._id,
           name: walletName || generateWalletName(),
           address: newWallet.address,
           privateKey: newWallet.privateKey,
+          openseaApproval: false,
+          magicedenApproval: false,
+          blurApproval: false,
         });
 
         setStep(2);
@@ -127,6 +117,18 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
 
   const handleContentClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+  };
+
+  const copyToClipboard = (text: string, message: string) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        toast.success(message);
+      })
+      .catch((error) => {
+        console.error("Failed to copy: ", error);
+        toast.error("Failed to copy content.");
+      });
   };
 
   return (
@@ -216,20 +218,50 @@ const WalletModal = ({ isOpen, onClose }: WalletModalProps) => {
               Wallet Details
             </h2>
             <div className="flex flex-col space-y-4">
-              <p>Address: {wallet?.address}</p>
-              <div>
-                <p>Private Key:</p>
+              <p>Address:</p>
+
+              <div className="flex gap-1">
                 <p className="break-all">
-                  {visible
-                    ? wallet?.privateKey
-                    : "••••••••••••••••••••••••••••••••••••••••••••"}
+                  {wallet?.address
+                    ? `${wallet.address.slice(0, 6)} ... ${wallet.address.slice(
+                        -4
+                      )}`
+                    : ""}
                 </p>
                 <button
-                  onClick={() => setVisible(!visible)}
+                  onClick={() => {
+                    if (wallet?.address) {
+                      copyToClipboard(
+                        wallet.address,
+                        "COPIED ADDRESS TO CLIPBOARD"
+                      );
+                    }
+                  }}
                   className="text-sm text-Brand/Brand-1 mt-1"
                 >
-                  {visible ? "Hide" : "Show"} Private Key
+                  <CopyIcon />
                 </button>
+              </div>
+              <div>
+                <p>Private Key:</p>
+                <div className="flex gap-1 items-center">
+                  <p className="break-all">
+                    ••••••••••••••••••••••••••••••••••••••••••••
+                  </p>
+                  <button
+                    onClick={() => {
+                      if (wallet?.privateKey) {
+                        copyToClipboard(
+                          wallet.privateKey,
+                          "COPIED PRIVATE KEY TO CLIPBOARD"
+                        );
+                      }
+                    }}
+                    className="text-sm text-Brand/Brand-1 mt-1"
+                  >
+                    <CopyIcon />
+                  </button>
+                </div>
               </div>
               <div
                 className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4"
