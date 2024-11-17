@@ -10,6 +10,9 @@ import { useTaskStore } from "@/store/task.store";
 import { toast } from "react-toastify";
 import DeleteModal from "./DeleteTaskModal";
 
+const GENERAL_BID_PRICE = "GENERAL_BID_PRICE";
+const MARKETPLACE_BID_PRICE = "MARKETPLACE_BID_PRICE";
+
 interface TaskTableProps {
   tasks: Task[];
   selectedTasks: string[];
@@ -177,19 +180,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
           </thead>
           <tbody>
             {filteredTasks.map((task) => {
-              const bidPrice =
-                task.bidPriceType === "GENERAL_BID_PRICE"
-                  ? task.bidPrice
-                  : task.openseaBidPrice.min > 0 &&
-                    task.bidPriceType === "MARKETPLACE_BID_PRICE"
-                  ? task.openseaBidPrice
-                  : task.blurBidPrice.min > 0 &&
-                    task.bidPriceType === "MARKETPLACE_BID_PRICE"
-                  ? task.blurBidPrice
-                  : task.magicEdenBidPrice.min > 0 &&
-                    task.bidPriceType === "MARKETPLACE_BID_PRICE"
-                  ? task.magicEdenBidPrice
-                  : task.bidPrice;
               return (
                 <tr
                   key={task._id}
@@ -249,7 +239,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
                   </td>
                   <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
                     <div className="flex flex-col">
-                      {task.bidPrice.min && task.bidPrice.minType ? (
+                      {task.bidPrice.min &&
+                      task.bidPrice.minType &&
+                      task.bidPriceType === GENERAL_BID_PRICE ? (
                         <span>
                           {task.bidPrice.min}{" "}
                           {task.bidPrice.minType === "percentage"
@@ -259,7 +251,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
                       ) : null}
 
                       {task.openseaBidPrice.min &&
-                      task.openseaBidPrice.minType ? (
+                      task.openseaBidPrice.minType &&
+                      task.bidPriceType === MARKETPLACE_BID_PRICE ? (
                         <span className="text-[#2081e2]">
                           {task.openseaBidPrice.min}{" "}
                           {task.openseaBidPrice.minType === "percentage"
@@ -268,7 +261,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
                         </span>
                       ) : null}
 
-                      {task.blurBidPrice.min && task.blurBidPrice.minType ? (
+                      {task.blurBidPrice.min &&
+                      task.blurBidPrice.minType &&
+                      task.bidPriceType === MARKETPLACE_BID_PRICE ? (
                         <span className="text-[#FF8700]">
                           {task.blurBidPrice.min}{" "}
                           {task.blurBidPrice.minType === "percentage"
@@ -278,7 +273,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
                       ) : null}
 
                       {task.magicEdenBidPrice.min &&
-                      task.magicEdenBidPrice.minType ? (
+                      task.magicEdenBidPrice.minType &&
+                      task.bidPriceType === MARKETPLACE_BID_PRICE ? (
                         <span className="text-[#e42575]">
                           {task.magicEdenBidPrice.min}{" "}
                           {task.magicEdenBidPrice.minType === "percentage"
@@ -292,6 +288,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     <div className="flex flex-col">
                       {task.bidPrice.max &&
                       task.bidPrice.maxType &&
+                      task.bidPriceType === GENERAL_BID_PRICE &&
                       task.outbidOptions.outbid ? (
                         <span>
                           {task.bidPrice.max}{" "}
@@ -299,7 +296,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
                             ? "%"
                             : "ETH".toUpperCase()}
                         </span>
-                      ) : task.bidPrice.min && task.bidPrice.minType ? (
+                      ) : task.bidPrice.min &&
+                        task.bidPrice.minType &&
+                        task.bidPriceType === GENERAL_BID_PRICE ? (
                         <span>
                           {task.bidPrice.min}{" "}
                           {task.bidPrice.minType === "percentage"
@@ -310,6 +309,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
 
                       {task.openseaBidPrice.max &&
                       task.openseaBidPrice.maxType &&
+                      task.bidPriceType === MARKETPLACE_BID_PRICE &&
                       task.outbidOptions.outbid ? (
                         <span className="text-[#2081e2]">
                           {task.openseaBidPrice.max}{" "}
@@ -318,7 +318,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
                             : "ETH".toUpperCase()}
                         </span>
                       ) : task.openseaBidPrice.min &&
-                        task.openseaBidPrice.minType ? (
+                        task.openseaBidPrice.minType &&
+                        task.bidPriceType === MARKETPLACE_BID_PRICE ? (
                         <span className="text-[#2081e2]">
                           {task.openseaBidPrice.min}{" "}
                           {task.openseaBidPrice.minType === "percentage"
@@ -329,6 +330,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
 
                       {task.blurBidPrice.max &&
                       task.blurBidPrice.maxType &&
+                      task.bidPriceType === MARKETPLACE_BID_PRICE &&
                       task.outbidOptions.outbid ? (
                         <span className="text-[#FF8700]">
                           {task.blurBidPrice.max}{" "}
@@ -336,7 +338,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
                             ? "%"
                             : "ETH".toUpperCase()}
                         </span>
-                      ) : task.blurBidPrice.min && task.blurBidPrice.minType ? (
+                      ) : task.blurBidPrice.min &&
+                        task.blurBidPrice.minType &&
+                        task.bidPriceType === MARKETPLACE_BID_PRICE ? (
                         <span className="text-[#FF8700]">
                           {task.blurBidPrice.min}{" "}
                           {task.blurBidPrice.minType === "percentage"
@@ -347,6 +351,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
 
                       {task.magicEdenBidPrice.max &&
                       task.magicEdenBidPrice.maxType &&
+                      task.bidPriceType === MARKETPLACE_BID_PRICE &&
                       task.outbidOptions.outbid ? (
                         <span className="text-[#e42575]">
                           {task.magicEdenBidPrice.max}{" "}
@@ -355,7 +360,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
                             : "ETH".toUpperCase()}
                         </span>
                       ) : task.magicEdenBidPrice.min &&
-                        task.magicEdenBidPrice.minType ? (
+                        task.magicEdenBidPrice.minType &&
+                        task.bidPriceType === MARKETPLACE_BID_PRICE ? (
                         <span className="text-[#e42575]">
                           {task.magicEdenBidPrice.min}{" "}
                           {task.magicEdenBidPrice.minType === "percentage"
