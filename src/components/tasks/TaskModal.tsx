@@ -14,6 +14,19 @@ import WalletModal from "../wallet/WalletModal";
 import XIcon from "@/assets/svg/XIcon";
 import CheckIcon from "@/assets/svg/CheckIcon";
 import LoadingIcon from "@/assets/svg/LoadingIcon";
+import axios from "axios";
+import isEqual from "lodash/isEqual";
+
+interface MagicEdenQueryParams {
+  excludeSpam: boolean;
+  excludeBurnt: boolean;
+  collection: string;
+  attributes: Record<string, string[]>;
+  excludeSources: string[];
+  continuation?: string | null;
+}
+
+const API_KEY = "d3348c68-097d-48b5-b5f0-0313cc05e92d";
 
 const TaskModal: React.FC<TaskModalProps> = ({
   isOpen,
@@ -28,6 +41,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [showCreateTag, setShowCreateTag] = useState(false);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [tokenIdInput, setTokenIdInput] = useState("");
+  const [isFetchingTokens, setIsFetchingTokens] = useState(false);
 
   const {
     formState,
@@ -371,97 +385,99 @@ const TaskModal: React.FC<TaskModalProps> = ({
         bidDuration: formState.bidDuration,
         loopInterval: formState.loopInterval,
         bidType: formState.bidType,
+        ...(taskId
+          ? {}
+          : {
+              slugValid: formState.slugValid,
+              blurValid: formState.blurValid,
+              magicEdenValid: formState.magicEdenValid,
+            }),
       };
 
       if (taskId) {
         taskStore.editTask(taskId, taskData);
+        toast.success("Task updated successfully!");
+        onClose();
+      } else {
+        setFormState({
+          contract: {
+            slug: "",
+            contractAddress: "",
+          },
+          wallet: {
+            address: "",
+            privateKey: "",
+            openseaApproval: false,
+            magicedenApproval: false,
+            blurApproval: false,
+          },
+          selectedMarketplaces: [],
+          running: false,
+          slugValid: false,
+          magicEdenValid: false,
+          blurValid: false,
+          slugDirty: false,
+          tags: [],
+          selectedTraits: {},
+          traits: { categories: {}, counts: {} },
+          outbidOptions: {
+            outbid: false,
+            blurOutbidMargin: "",
+            openseaOutbidMargin: "",
+            magicedenOutbidMargin: "",
+            counterbid: false,
+          },
+          stopOptions: {
+            minFloorPrice: "",
+            maxFloorPrice: "",
+            minTraitPrice: "",
+            maxTraitPrice: "",
+            maxPurchase: "",
+            pauseAllBids: false,
+            stopAllBids: false,
+            cancelAllBids: false,
+            triggerStopOptions: false,
+          },
+          bidPrice: {
+            min: "",
+            max: "",
+            minType: "percentage",
+            maxType: "percentage",
+          },
+          openseaBidPrice: {
+            min: "",
+            max: "",
+            minType: "percentage",
+            maxType: "percentage",
+          },
+          blurBidPrice: {
+            min: "",
+            max: "",
+            minType: "percentage",
+            maxType: "percentage",
+          },
+          magicEdenBidPrice: {
+            min: "",
+            max: "",
+            minType: "percentage",
+            maxType: "percentage",
+          },
+          bidDuration: { value: 15, unit: "minutes" },
+          loopInterval: { value: 15, unit: "minutes" },
+          tokenIds: [],
+          bidType: "collection",
+          bidPriceType: "GENERAL_BID_PRICE",
+          blurFloorPrice: null,
+          magicedenFloorPrice: null,
+          openseaFloorPrice: null,
+          validatingSlug: false,
+        });
+        toast.success("Task created successfully!");
+        onClose();
       }
-      // else {
-      // const newTaskId = taskStore.getLastTaskId();
-      // taskStore.editTask(newTaskId, taskData);
-      // }
-      toast.success(
-        taskId ? "Task updated successfully!" : "Task created successfully!"
-      );
-      onClose();
     } else {
       toast.error("Please fill in all required fields correctly.");
     }
-
-    setFormState({
-      contract: {
-        slug: "",
-        contractAddress: "",
-      },
-      wallet: {
-        address: "",
-        privateKey: "",
-        openseaApproval: false,
-        magicedenApproval: false,
-        blurApproval: false,
-      },
-      selectedMarketplaces: [],
-      running: false,
-      slugValid: false,
-      magicEdenValid: false,
-      blurValid: false,
-      slugDirty: false,
-      tags: [],
-      selectedTraits: {},
-      traits: { categories: {}, counts: {} },
-      outbidOptions: {
-        outbid: false,
-        blurOutbidMargin: "",
-        openseaOutbidMargin: "",
-        magicedenOutbidMargin: "",
-        counterbid: false,
-      },
-      stopOptions: {
-        minFloorPrice: "",
-        maxFloorPrice: "",
-        minTraitPrice: "",
-        maxTraitPrice: "",
-        maxPurchase: "",
-        pauseAllBids: false,
-        stopAllBids: false,
-        cancelAllBids: false,
-        triggerStopOptions: false,
-      },
-      bidPrice: {
-        min: "",
-        max: "",
-        minType: "percentage",
-        maxType: "percentage",
-      },
-      openseaBidPrice: {
-        min: "",
-        max: "",
-        minType: "percentage",
-        maxType: "percentage",
-      },
-      blurBidPrice: {
-        min: "",
-        max: "",
-        minType: "percentage",
-        maxType: "percentage",
-      },
-      magicEdenBidPrice: {
-        min: "",
-        max: "",
-        minType: "percentage",
-        maxType: "percentage",
-      },
-      bidDuration: { value: 15, unit: "minutes" },
-      loopInterval: { value: 15, unit: "minutes" },
-      tokenIds: [],
-      bidType: "collection",
-      bidPriceType: "GENERAL_BID_PRICE",
-      // Add the missing properties
-      blurFloorPrice: null,
-      magicedenFloorPrice: null,
-      openseaFloorPrice: null,
-      validatingSlug: false,
-    });
   };
 
   const handleWalletModalOpen = () => {
@@ -480,6 +496,11 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
+    const taskStore = useTaskStore.getState();
+    const existingTask = taskId
+      ? taskStore.tasks.find((task) => task._id === taskId)
+      : null;
+
     setFormState((prev) => ({
       ...prev,
       contract: {
@@ -492,14 +513,32 @@ const TaskModal: React.FC<TaskModalProps> = ({
         categories: {},
         counts: {},
       },
-      blurValid: false,
-      magicEdenValid: false,
-      slugValid: false,
+      ...(taskId && existingTask
+        ? {
+            blurValid: existingTask.blurValid,
+            magicEdenValid: existingTask.magicEdenValid,
+            slugValid: existingTask.slugValid,
+          }
+        : {
+            blurValid: false,
+            magicEdenValid: false,
+            slugValid: false,
+          }),
     }));
+
     if (value.length >= 3) {
       debouncedValidateSlug(value);
     } else {
-      setFormState((prev) => ({ ...prev, slugValid: false }));
+      setFormState((prev) => ({
+        ...prev,
+        ...(taskId && existingTask
+          ? {
+              slugValid: existingTask.slugValid,
+            }
+          : {
+              slugValid: false,
+            }),
+      }));
     }
   };
 
@@ -528,6 +567,116 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
     return Array.from(new Set(tokenIds));
   };
+
+  // Update the useEffect
+  useEffect(() => {
+    if (
+      Object.keys(formState.selectedTraits).length === 0 ||
+      (taskId && isEqual(formState.selectedTraits, initialTask?.selectedTraits))
+    ) {
+      setIsFetchingTokens(false);
+      return;
+    }
+
+    const fetchNFTsWithTraits = async () => {
+      if (
+        formState.bidType === "token" &&
+        Object.keys(formState.selectedTraits).length > 0
+      ) {
+        setIsFetchingTokens(true);
+
+        const attributesForQuery: Record<string, string[]> = {};
+        Object.entries(formState.selectedTraits).forEach(
+          ([category, traits]) => {
+            attributesForQuery[category] = traits.map((trait) => trait.name);
+          }
+        );
+
+        const queryParams: MagicEdenQueryParams = {
+          excludeSpam: true,
+          excludeBurnt: true,
+          collection: formState.contract.contractAddress,
+          attributes: attributesForQuery,
+          excludeSources: ["nftx.io", "sudoswap.xyz"],
+        };
+
+        try {
+          let allTokenIds: number[] = [];
+          let continuation = "";
+
+          do {
+            const { data } = await axios.get<TokenResponse>(
+              "https://api.nfttools.website/magiceden/v3/rtp/ethereum/tokens/v7",
+              {
+                headers: { "X-NFT-API-Key": API_KEY },
+                params: {
+                  ...queryParams,
+                  ...(continuation && { continuation }),
+                },
+                paramsSerializer: (params) => {
+                  const searchParams = new URLSearchParams();
+
+                  Object.entries(params).forEach(([key, value]) => {
+                    if (key === "attributes") {
+                      Object.entries(value as Record<string, string[]>).forEach(
+                        ([attr, values]) => {
+                          values.forEach((val) => {
+                            searchParams.append(`attributes[${attr}]`, val);
+                          });
+                        }
+                      );
+                    } else if (key === "excludeSources") {
+                      (value as string[]).forEach((source: string) => {
+                        searchParams.append(key, source);
+                      });
+                    } else if (value) {
+                      searchParams.append(key, String(value));
+                    }
+                  });
+                  return searchParams.toString();
+                },
+              }
+            );
+
+            const newTokenIds =
+              data && data.tokens && data.tokens.length > 0
+                ? data.tokens.map((token) => +token.token.tokenId)
+                : [];
+            allTokenIds = [...allTokenIds, ...newTokenIds];
+            continuation = data.continuation || "";
+          } while (
+            continuation &&
+            Object.keys(formState.selectedTraits).length > 0
+          );
+
+          console.log(`Total tokens found: ${allTokenIds.length}`);
+
+          if (allTokenIds.length > 0) {
+            setTokenIdInput(allTokenIds.join(", "));
+          }
+
+          setFormState((prev) => ({
+            ...prev,
+            tokenIds: allTokenIds,
+          }));
+        } catch (error) {
+          console.error("Error fetching NFTs:", error);
+          toast.error("Failed to fetch NFTs with selected traits");
+        } finally {
+          setIsFetchingTokens(false);
+        }
+      }
+    };
+
+    fetchNFTsWithTraits();
+  }, [
+    formState.selectedTraits,
+    formState.bidType,
+    formState.contract.contractAddress,
+    setFormState,
+    taskId,
+    initialTask?.selectedTraits,
+  ]);
 
   return (
     <Modal
@@ -600,6 +749,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               handleMarketplaceToggle={handleMarketplaceToggle}
               tokenIdInput={tokenIdInput}
               setTokenIdInput={setTokenIdInput}
+              isFetchingTokens={isFetchingTokens}
             />
 
             {formState.outbidOptions.outbid ? (
@@ -645,4 +795,109 @@ interface TaskModalProps {
   onClose: () => void;
   taskId?: string;
   initialTask?: Task | null;
+}
+
+interface TokenResponse {
+  tokens: TokenData[];
+  continuation: string;
+}
+
+interface TokenData {
+  token: Token;
+  market: Market;
+  updatedAt: string;
+  media: Media;
+}
+
+interface Token {
+  chainId: number;
+  contract: string;
+  tokenId: string;
+  name: string;
+  description: null | string;
+  image: string;
+  imageSmall: string;
+  imageLarge: string;
+  metadata: TokenMetadata;
+  media: null | any;
+  kind: string;
+  isFlagged: boolean;
+  isSpam: boolean;
+  isNsfw: boolean;
+  metadataDisabled: boolean;
+  lastFlagUpdate: string;
+  lastFlagChange: string;
+  supply: string;
+  remainingSupply: string;
+  rarity: number;
+  rarityRank: number;
+  collection: Collection;
+  owner: string;
+  mintedAt: string;
+  createdAt: string;
+  decimals: null | number;
+  mintStages: any[];
+}
+
+interface TokenMetadata {
+  imageOriginal: string;
+  imageMimeType: string;
+  tokenURI: string;
+}
+
+interface Collection {
+  id: string;
+  name: string;
+  image: string;
+  slug: string;
+  symbol: string;
+  creator: string;
+  tokenCount: number;
+  metadataDisabled: boolean;
+  floorAskPrice: FloorAskPrice;
+}
+
+interface FloorAskPrice {
+  currency: Currency;
+  amount: Amount;
+}
+
+interface Currency {
+  contract: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
+interface Amount {
+  raw: string;
+  decimal: number;
+  usd: number;
+  native: number;
+}
+
+interface Market {
+  floorAsk: FloorAsk;
+}
+
+interface FloorAsk {
+  id: string;
+  price: FloorAskPrice;
+  maker: string;
+  validFrom: number;
+  validUntil: number;
+  source: Source;
+}
+
+interface Source {
+  id: string;
+  domain: string;
+  name: string;
+  icon: string;
+  url: string;
+}
+
+interface Media {
+  image: string;
+  imageMimeType: string;
 }

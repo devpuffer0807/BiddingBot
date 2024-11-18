@@ -5,6 +5,7 @@ import Toggle from "../common/Toggle";
 import TraitSelector from "./TraitSelector";
 import MarketplaceSection from "./MarketplaceSection";
 import WalletBalanceFetcher from "../common/WalletBalanceFetcher";
+import LoadingIcon from "@/assets/svg/LoadingIcon";
 
 interface FormSectionProps {
   formState: TaskFormState;
@@ -21,6 +22,7 @@ interface FormSectionProps {
   handleMarketplaceToggle: (marketplace: string) => void;
   tokenIdInput: string;
   setTokenIdInput: React.Dispatch<React.SetStateAction<string>>;
+  isFetchingTokens: boolean;
 }
 
 const FormSection: React.FC<FormSectionProps> = ({
@@ -33,6 +35,7 @@ const FormSection: React.FC<FormSectionProps> = ({
   handleMarketplaceToggle,
   tokenIdInput,
   setTokenIdInput,
+  isFetchingTokens,
 }) => {
   const GENERAL_BID_PRICE = "GENERAL_BID_PRICE";
   const MARKETPLACE_BID_PRICE = "MARKETPLACE_BID_PRICE";
@@ -350,7 +353,15 @@ const FormSection: React.FC<FormSectionProps> = ({
                 tokenIdError ? "border-red-500" : "border-Neutral-BG-[night]"
               }`}
               autoComplete="off"
+              disabled={isFetchingTokens}
             />
+            {isFetchingTokens && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <LoadingIcon width={72} height={72} />
+                </div>
+              </div>
+            )}
           </div>
           {tokenIdError && (
             <p className="text-red-500 text-xs mt-1">{tokenIdError}</p>

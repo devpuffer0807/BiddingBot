@@ -28,6 +28,9 @@ export const useTaskStore = create(
               ? {
                   ...task,
                   ...updatedTask,
+                  slugValid: task.slugValid,
+                  magicEdenValid: task.magicEdenValid,
+                  blurValid: task.blurValid,
                   bidDuration: updatedTask.bidDuration ?? task.bidDuration,
                   loopInterval: updatedTask.loopInterval ?? task.loopInterval,
                   bidPrice: {

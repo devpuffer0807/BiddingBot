@@ -289,13 +289,13 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
                                   {marketplace}{" "}
                                   {marketplace.toLowerCase() === "opensea" &&
                                   count.openseaFloor
-                                    ? `${count.openseaFloor} ETH`
+                                    ? `${count.openseaFloor.toFixed(4)} ETH`
                                     : marketplace.toLowerCase() === "blur" &&
                                       count.blurFloor
-                                    ? `${count.blurFloor} ETH`
+                                    ? `${count.blurFloor.toFixed(4)} ETH`
                                     : marketplace.toLowerCase() ===
                                         "magiceden" && count.magicedenFloor
-                                    ? `${count.magicedenFloor} ETH`
+                                    ? `${count.magicedenFloor.toFixed(4)} ETH`
                                     : ""}
                                 </span>
                               )

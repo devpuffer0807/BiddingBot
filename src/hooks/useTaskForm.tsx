@@ -155,95 +155,119 @@ export const useTaskForm = (
     }
   }, [initialState, taskId]);
 
-  const validateSlug = useCallback(async (slug: string) => {
-    if (slug.length < 3) {
-      setFormState((prev) => ({
-        ...prev,
-        ...(taskId
-          ? {}
-          : {
-              slugValid: false,
-              magicEdenValid: false,
-              blurValid: false,
-            }),
-        blurFloorPrice: null,
-        magicedenFloorPrice: null,
-        openseaFloorPrice: null,
-        validatingSlug: false,
-      }));
-      return;
-    }
+  const validateSlug = useCallback(
+    async (slug: string) => {
+      let isMounted = true;
+      const taskStore = useTaskStore.getState();
+      const existingTask = taskId
+        ? taskStore.tasks.find((task) => task._id === taskId)
+        : null;
 
-    setFormState((prev) => ({
-      ...prev,
-      validatingSlug: true,
-    }));
-
-    try {
-      const response = await fetch(`/api/ethereum/collections?slug=${slug}`);
-      if (response.status === 200) {
-        const data = await response.json();
-        const contractAddress = data.contracts[0]?.address || "";
-        const magicEdenValid = data.magicEdenValid;
-        const blurValid = data.blurValid;
-        const blurFLoorPrice = data.blurFLoorPrice;
-        const magicedenFloorPrice = data.magicedenFloorPrice;
-        const openseaFloorPrice = data.openseaFloorPrice;
-
+      if (slug.length < 3) {
         setFormState((prev) => ({
           ...prev,
-          contract: {
-            ...prev.contract,
-            contractAddress,
-          },
-
           ...(taskId
             ? {}
             : {
-                slugValid: !!contractAddress,
-                magicEdenValid: magicEdenValid,
-                blurValid: blurValid,
+                slugValid: false,
+                magicEdenValid: false,
+                blurValid: false,
               }),
-          blurFloorPrice: blurFLoorPrice,
-          magicedenFloorPrice: magicedenFloorPrice,
-          openseaFloorPrice: openseaFloorPrice,
+          blurFloorPrice: null,
+          magicedenFloorPrice: null,
+          openseaFloorPrice: null,
+          validatingSlug: false,
         }));
+        return;
+      }
 
-        if (data.traits) {
+      setFormState((prev) => ({
+        ...prev,
+        validatingSlug: true,
+      }));
+
+      try {
+        const response = await fetch(`/api/ethereum/collections?slug=${slug}`);
+        if (!isMounted) return;
+
+        if (response.status === 200) {
+          const data = await response.json();
+          const contractAddress = data.contracts[0]?.address || "";
+          const blurFLoorPrice = data.blurFLoorPrice;
+          const magicedenFloorPrice = data.magicedenFloorPrice;
+          const openseaFloorPrice = data.openseaFloorPrice;
+
           setFormState((prev) => ({
             ...prev,
-            traits: data.traits,
+            contract: {
+              ...prev.contract,
+              contractAddress,
+            },
+            ...(taskId
+              ? {}
+              : {
+                  slugValid: !!contractAddress,
+                  magicEdenValid: data.magicEdenValid,
+                  blurValid: data.blurValid,
+                }),
+            blurFloorPrice: blurFLoorPrice,
+            magicedenFloorPrice: magicedenFloorPrice,
+            openseaFloorPrice: openseaFloorPrice,
+          }));
+
+          if (data.traits) {
+            setFormState((prev) => ({
+              ...prev,
+              traits: data.traits,
+            }));
+          }
+        } else {
+          setFormState((prev) => ({
+            ...prev,
+            ...(taskId
+              ? {}
+              : {
+                  slugValid: false,
+                  magicEdenValid: false,
+                  blurValid: false,
+                }),
+            blurFloorPrice: null,
+            magicedenFloorPrice: null,
+            openseaFloorPrice: null,
           }));
         }
-      } else {
+      } catch (error) {
+        if (!isMounted) return;
+
+        console.error("Error validating slug:", error);
         setFormState((prev) => ({
           ...prev,
-          slugValid: false,
-          magicEdenValid: false,
-          blurValid: false,
+          ...(taskId
+            ? {}
+            : {
+                slugValid: false,
+                magicEdenValid: false,
+                blurValid: false,
+              }),
           blurFloorPrice: null,
           magicedenFloorPrice: null,
           openseaFloorPrice: null,
         }));
+      } finally {
+        if (!isMounted) return;
+
+        setFormState((prev) => ({
+          ...prev,
+          validatingSlug: false,
+        }));
       }
-    } catch (error) {
-      console.error("Error validating slug:", error);
-      setFormState((prev) => ({
-        ...prev,
-        slugValid: false,
-        magicEdenValid: false,
-        blurValid: false,
-        blurFloorPrice: null,
-        magicedenFloorPrice: null,
-        openseaFloorPrice: null,
-      }));
-    } finally {
-      setFormState((prev) => ({
-        ...prev,
-        validatingSlug: false,
-      }));
-    }
-  }, []);
+
+      return () => {
+        isMounted = false;
+      };
+    },
+    [taskId]
+  );
 
   const debouncedValidateSlug = useMemo(
     () => debounce(validateSlug, 500),
