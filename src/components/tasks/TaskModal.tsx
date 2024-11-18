@@ -24,6 +24,7 @@ interface MagicEdenQueryParams {
   attributes: Record<string, string[]>;
   excludeSources: string[];
   continuation?: string | null;
+  limit?: number;
 }
 
 const API_KEY = "d3348c68-097d-48b5-b5f0-0313cc05e92d";
@@ -611,6 +612,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           collection: formState.contract.contractAddress,
           attributes: attributesForQuery,
           excludeSources: ["nftx.io", "sudoswap.xyz"],
+          limit: 50,
         };
 
         try {
