@@ -129,20 +129,36 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
     onTraitSelect(updatedTraits);
   };
 
+  const handleClearAll = () => {
+    setSelectedTraits({});
+    onTraitSelect({});
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
-        type="button"
-        className="w-full border rounded-lg shadow-sm p-3 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] text-left flex justify-between items-center hover:bg-Neutral/Neutral-400-[night] transition-colors"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <span>
-          {getSelectedTraitsCount() > 0
-            ? `${getSelectedTraitsCount()} traits selected`
-            : "Select traits"}
-        </span>
-        <ChevronDown />
-      </button>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className="flex-1 border rounded-lg shadow-sm p-3 border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] text-left flex justify-between items-center hover:bg-Neutral/Neutral-400-[night] transition-colors"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span>
+            {getSelectedTraitsCount() > 0
+              ? `${getSelectedTraitsCount()} traits selected`
+              : "Select traits"}
+          </span>
+          <ChevronDown />
+        </button>
+        {getSelectedTraitsCount() > 0 && (
+          <button
+            type="button"
+            onClick={handleClearAll}
+            className="px-4 border rounded-lg shadow-sm border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] hover:bg-Neutral/Neutral-400-[night] transition-colors"
+          >
+            Clear
+          </button>
+        )}
+      </div>
       {isOpen && (
         <div className="absolute z-10 w-full mt-1 border rounded-lg shadow-lg border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] max-h-80 overflow-y-auto custom-scrollbar p-0.5">
           <div className="sticky top-0 z-20 bg-Neutral/Neutral-300-[night]">

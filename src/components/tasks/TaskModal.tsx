@@ -209,6 +209,19 @@ const TaskModal: React.FC<TaskModalProps> = ({
     taskId
   );
 
+  // Modified useEffect to prevent infinite loop
+  useEffect(() => {
+    const currentBidType = formState.bidType;
+    if (currentBidType) {
+      setFormState((prev) => ({
+        ...prev,
+        selectedTraits: {},
+        tokenIds: [],
+      }));
+      setTokenIdInput("");
+    }
+  }, [formState.bidType, setFormState]); // Only trigger when bidType changes
+
   // Add this useEffect to handle initialTask changes
   useEffect(() => {
     if (initialTask?.tokenIds && initialTask.tokenIds.length > 0) {
