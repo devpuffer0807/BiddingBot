@@ -15,80 +15,88 @@ export const useTaskForm = (
 ) => {
   const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
     .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
-  const { addTask, editTask } = useTaskStore();
+  const { addTask, editTask, tasks } = useTaskStore();
   const { wallets } = useWalletStore();
   const { sendMessage } = useWebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
 
-  const [formState, setFormState] = useState<TaskFormState>({
-    ...initialState,
-    slugValid: taskId ? true : null,
-    blurValid: false,
-    magicEdenValid: false,
-    slugDirty: false,
-    tags: initialState.tags || [],
-    selectedTraits: initialState.selectedTraits || {},
-    traits: {
-      categories: {},
-      counts: {},
-    },
-    outbidOptions: {
-      outbid: initialState.outbidOptions.outbid,
-      blurOutbidMargin: initialState.outbidOptions.blurOutbidMargin || "",
-      openseaOutbidMargin: initialState.outbidOptions.openseaOutbidMargin || "",
-      magicedenOutbidMargin:
-        initialState.outbidOptions.magicedenOutbidMargin || "",
-      counterbid: initialState.outbidOptions.counterbid,
-    },
-    stopOptions: {
-      minFloorPrice: initialState.stopOptions.minFloorPrice || null,
-      maxFloorPrice: initialState.stopOptions.maxFloorPrice || null,
-      minTraitPrice: initialState.stopOptions.minTraitPrice || null,
-      maxTraitPrice: initialState.stopOptions.maxTraitPrice || null,
-      maxPurchase: initialState.stopOptions.maxPurchase || null,
-      pauseAllBids: initialState.stopOptions.pauseAllBids || false,
-      stopAllBids: initialState.stopOptions.stopAllBids || false,
-      cancelAllBids: initialState.stopOptions.cancelAllBids || false,
-      triggerStopOptions: initialState.stopOptions.triggerStopOptions || false,
-    },
-    bidPrice: {
-      min: initialState.bidPrice.min,
-      max: initialState.bidPrice.max,
-      minType: initialState.bidPrice?.minType || "percentage",
-      maxType: initialState.bidPrice?.maxType || "percentage",
-    },
-    openseaBidPrice: {
-      min: initialState.openseaBidPrice.min,
-      max: initialState.openseaBidPrice.max,
-      minType: initialState.openseaBidPrice?.minType || "percentage",
-      maxType: initialState.openseaBidPrice?.maxType || "percentage",
-    },
-    blurBidPrice: {
-      min: initialState.blurBidPrice.min,
-      max: initialState.blurBidPrice.max,
-      minType: initialState.blurBidPrice?.minType || "percentage",
-      maxType: initialState.blurBidPrice?.maxType || "percentage",
-    },
-    magicEdenBidPrice: {
-      min: initialState.magicEdenBidPrice.min,
-      max: initialState.magicEdenBidPrice.max,
-      minType: initialState.magicEdenBidPrice?.minType || "percentage",
-      maxType: initialState.magicEdenBidPrice?.maxType || "percentage",
-    },
-    bidDuration: {
-      value: initialState.bidDuration.value,
-      unit: initialState.bidDuration.unit,
-    },
-    loopInterval: {
-      value: initialState.loopInterval.value,
-      unit: initialState.loopInterval.unit,
-    },
-    tokenIds: initialState.tokenIds || [],
-    bidType: initialState.bidType || "collection",
-    bidPriceType: initialState.bidPriceType || "general",
-    blurFloorPrice: null,
-    magicedenFloorPrice: null,
-    openseaFloorPrice: null,
-    validatingSlug: false,
+  const existingTask = useMemo(() => {
+    return taskId ? tasks.find((task) => task._id === taskId) : null;
+  }, [taskId, tasks]);
+
+  const [formState, setFormState] = useState<TaskFormState>(() => {
+    return {
+      ...initialState,
+      slugValid: existingTask ? existingTask.slugValid : false,
+      blurValid: existingTask ? existingTask.blurValid : false,
+      magicEdenValid: existingTask ? existingTask.magicEdenValid : false,
+      slugDirty: false,
+      tags: initialState.tags || [],
+      selectedTraits: initialState.selectedTraits || {},
+      traits: {
+        categories: {},
+        counts: {},
+      },
+      outbidOptions: {
+        outbid: initialState.outbidOptions.outbid,
+        blurOutbidMargin: initialState.outbidOptions.blurOutbidMargin || "",
+        openseaOutbidMargin:
+          initialState.outbidOptions.openseaOutbidMargin || "",
+        magicedenOutbidMargin:
+          initialState.outbidOptions.magicedenOutbidMargin || "",
+        counterbid: initialState.outbidOptions.counterbid,
+      },
+      stopOptions: {
+        minFloorPrice: initialState.stopOptions.minFloorPrice || null,
+        maxFloorPrice: initialState.stopOptions.maxFloorPrice || null,
+        minTraitPrice: initialState.stopOptions.minTraitPrice || null,
+        maxTraitPrice: initialState.stopOptions.maxTraitPrice || null,
+        maxPurchase: initialState.stopOptions.maxPurchase || null,
+        pauseAllBids: initialState.stopOptions.pauseAllBids || false,
+        stopAllBids: initialState.stopOptions.stopAllBids || false,
+        cancelAllBids: initialState.stopOptions.cancelAllBids || false,
+        triggerStopOptions:
+          initialState.stopOptions.triggerStopOptions || false,
+      },
+      bidPrice: {
+        min: initialState.bidPrice.min,
+        max: initialState.bidPrice.max,
+        minType: initialState.bidPrice?.minType || "percentage",
+        maxType: initialState.bidPrice?.maxType || "percentage",
+      },
+      openseaBidPrice: {
+        min: initialState.openseaBidPrice.min,
+        max: initialState.openseaBidPrice.max,
+        minType: initialState.openseaBidPrice?.minType || "percentage",
+        maxType: initialState.openseaBidPrice?.maxType || "percentage",
+      },
+      blurBidPrice: {
+        min: initialState.blurBidPrice.min,
+        max: initialState.blurBidPrice.max,
+        minType: initialState.blurBidPrice?.minType || "percentage",
+        maxType: initialState.blurBidPrice?.maxType || "percentage",
+      },
+      magicEdenBidPrice: {
+        min: initialState.magicEdenBidPrice.min,
+        max: initialState.magicEdenBidPrice.max,
+        minType: initialState.magicEdenBidPrice?.minType || "percentage",
+        maxType: initialState.magicEdenBidPrice?.maxType || "percentage",
+      },
+      bidDuration: {
+        value: initialState.bidDuration.value,
+        unit: initialState.bidDuration.unit,
+      },
+      loopInterval: {
+        value: initialState.loopInterval.value,
+        unit: initialState.loopInterval.unit,
+      },
+      tokenIds: initialState.tokenIds || [],
+      bidType: initialState.bidType || "collection",
+      bidPriceType: initialState.bidPriceType || "general",
+      blurFloorPrice: null,
+      magicedenFloorPrice: null,
+      openseaFloorPrice: null,
+      validatingSlug: false,
+    };
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
@@ -98,9 +106,10 @@ export const useTaskForm = (
     if (!isEqual(initialState, prevInitialStateRef.current)) {
       setFormState((prevState) => ({
         ...initialState,
-        slugValid: prevState.slugValid,
-        magicEdenValid: prevState.magicEdenValid,
-        blurValid: prevState.blurValid,
+        slugValid: taskId && existingTask ? existingTask?.slugValid : false,
+        magicEdenValid:
+          taskId && existingTask ? existingTask?.magicEdenValid : false,
+        blurValid: taskId && existingTask ? existingTask?.blurValid : false,
         slugDirty: prevState.slugDirty,
         tags: initialState.tags || [],
         selectedTraits: initialState.selectedTraits || {},
@@ -153,7 +162,7 @@ export const useTaskForm = (
       }));
       prevInitialStateRef.current = initialState;
     }
-  }, [initialState, taskId]);
+  }, [existingTask, initialState, taskId]);
 
   const validateSlug = useCallback(
     async (slug: string) => {
@@ -252,22 +261,21 @@ export const useTaskForm = (
           blurFloorPrice: null,
           magicedenFloorPrice: null,
           openseaFloorPrice: null,
+          validatingSlug: false,
         }));
-      } finally {
-        if (!isMounted) return;
 
+        toast.error("Failed to validate collection slug");
+      } finally {
         setFormState((prev) => ({
           ...prev,
           validatingSlug: false,
         }));
       }
-
-      return () => {
-        isMounted = false;
-      };
     },
     [taskId]
   );
+
+  // ... rest of the code ...
 
   const debouncedValidateSlug = useMemo(
     () => debounce(validateSlug, 500),
@@ -498,9 +506,9 @@ export interface TaskFormState {
   };
   selectedMarketplaces: string[];
   running: boolean;
-  slugValid: boolean | null;
-  blurValid: boolean | null;
-  magicEdenValid: boolean | null;
+  slugValid: boolean;
+  blurValid: boolean;
+  magicEdenValid: boolean;
   slugDirty: boolean;
   tags: { name: string; color: string }[];
   selectedTraits: Record<

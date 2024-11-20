@@ -269,7 +269,7 @@ export interface Task {
   bidType: string;
   loopInterval: { value: number; unit: string };
   bidPriceType: string;
-  slugValid: boolean | null;
-  magicEdenValid: boolean | null;
-  blurValid: boolean | null;
+  slugValid: boolean;
+  magicEdenValid: boolean;
+  blurValid: boolean;
 }

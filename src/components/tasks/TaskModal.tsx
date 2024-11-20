@@ -3,7 +3,7 @@ import { useWalletStore } from "../../store/wallet.store";
 import { toast } from "react-toastify";
 import { useTaskForm } from "@/hooks/useTaskForm";
 import { Task, useTaskStore } from "@/store";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useTagStore } from "@/store/tag.store";
 import FormSection from "./FormSection";
 import TagSection from "./TagSection";
@@ -37,6 +37,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
 }) => {
   const { wallets } = useWalletStore();
   const { addTag } = useTagStore();
+  const { tasks } = useTaskStore();
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("#000000");
   const [showCreateTag, setShowCreateTag] = useState(false);
@@ -210,19 +211,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
     taskId
   );
 
-  // Modified useEffect to prevent infinite loop
-  useEffect(() => {
-    const currentBidType = formState.bidType;
-    if (currentBidType) {
-      setFormState((prev) => ({
-        ...prev,
-        selectedTraits: {},
-        tokenIds: [],
-      }));
-      setTokenIdInput("");
-    }
-  }, [formState.bidType, setFormState]); // Only trigger when bidType changes
-
   // Add this useEffect to handle initialTask changes
   useEffect(() => {
     if (initialTask?.tokenIds && initialTask.tokenIds.length > 0) {
@@ -335,6 +323,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const existingTask = tasks.find((task) => task._id === taskId);
 
     const isValid = await handleSubmit();
     if (isValid) {
@@ -399,8 +388,12 @@ const TaskModal: React.FC<TaskModalProps> = ({
         bidDuration: formState.bidDuration,
         loopInterval: formState.loopInterval,
         bidType: formState.bidType,
-        ...(taskId
-          ? {}
+        ...(existingTask
+          ? {
+              slugValid: existingTask.slugValid,
+              blurValid: existingTask.blurValid,
+              magicEdenValid: existingTask.magicEdenValid,
+            }
           : {
               slugValid: formState.slugValid,
               blurValid: formState.blurValid,

@@ -56,10 +56,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
         task.tags.some((taskTag) => taskTag.name === tag.name)
       );
     const bidType =
-      task.bidType.toLowerCase() === "collection" &&
       Object.keys(task?.selectedTraits || {}).length > 0
         ? "TRAIT"
-        : task.tokenIds.length > 0
+        : task.bidType === "token" && task.tokenIds.length > 0
         ? "TOKEN"
         : task.bidType.toUpperCase();
     const matchesBidType =
@@ -230,10 +229,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     </Link>
                   </td>
                   <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-center justify-between sm:table-cell">
-                    {task.bidType.toLowerCase() === "collection" &&
-                    Object.keys(task?.selectedTraits || {}).length > 0
+                    {Object.keys(task?.selectedTraits || {}).length > 0
                       ? "TRAIT"
-                      : task.tokenIds.length > 0
+                      : task.bidType === "token" && task.tokenIds.length > 0
                       ? "TOKEN"
                       : task.bidType.toUpperCase()}
                   </td>

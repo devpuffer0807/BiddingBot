@@ -56,6 +56,9 @@ export async function PUT(
   }
 
   const body = await request.json();
+
+  console.log({ body });
+
   const task = await Task.findByIdAndUpdate(
     params.id,
     {
