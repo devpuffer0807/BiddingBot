@@ -101,8 +101,8 @@ const TaskSchema: Schema = new Schema(
       contractAddress: { type: String, required: true },
     },
     wallet: {
-      address: { type: String, required: true },
-      privateKey: { type: String, required: true },
+      address: { type: String },
+      privateKey: { type: String },
       openseaApproval: { type: Boolean, default: false },
       blurApproval: { type: Boolean, default: false },
       magicedenApproval: { type: Boolean, default: false },

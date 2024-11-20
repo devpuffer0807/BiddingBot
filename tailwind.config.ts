@@ -34,7 +34,7 @@ const config: Config = {
         n: {
           1: "#FFFFFF",
           2: "#CAC6DD",
-          3: "#ADA8C3",
+          3: "#www",
           4: "#757185",
           5: "#3F3A52",
           6: "#252134",

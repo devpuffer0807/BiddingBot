@@ -13,6 +13,8 @@ import { Tag } from "@/store/tag.store";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import BidTypeFilter, { BidType } from "@/components/tasks/BidTypeFilter";
 import FilterInput from "@/components/tasks/FilterInput";
+import DownloadIcon from "@/assets/svg/DownloadIcon";
+// import { ChevronDown } from "lucide-react";
 
 const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
   .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
@@ -30,6 +32,7 @@ const Tasks = () => {
   const [filterText, setFilterText] = useState("");
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [selectedBidTypes, setSelectedBidTypes] = useState<BidType[]>([]);
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
 
   const { sendMessage } = useWebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
 
@@ -224,18 +227,145 @@ const Tasks = () => {
     return pageNumbers;
   }, [currentPage, totalPages, paginate]);
 
+  const tasksToExport = tasks.filter((task) =>
+    selectedTasks.includes(task._id)
+  );
+
+  const exportAsJSON = () => {
+    const sanitizedTasks = tasksToExport.map((task) => {
+      const { wallet, ...taskWithoutWallet } = task;
+      return taskWithoutWallet;
+    });
+    const dataStr = JSON.stringify(sanitizedTasks, null, 2);
+    downloadFile(dataStr, "tasks.json", "application/json");
+    setShowExportDropdown(false);
+  };
+
+  const exportAsCSV = () => {
+    const headers = [
+      "Collection Name",
+      "Contract Address",
+      "Running",
+      "Selected Marketplaces",
+      "Tags",
+      "Selected Traits",
+      "Traits",
+      "Outbid Options",
+      "Bid Price",
+      "OpenSea Bid Price",
+      "Blur Bid Price",
+      "MagicEden Bid Price",
+      "Stop Options",
+      "Bid Duration",
+      "Token IDs",
+      "Bid Type",
+      "Loop Interval",
+      "Bid Price Type",
+      "Slug Valid",
+      "MagicEden Valid",
+      "Blur Valid",
+    ];
+
+    const csvData = tasksToExport.map((task) => [
+      task.contract.slug,
+      task.contract.contractAddress,
+      task.running.toString(),
+      task.selectedMarketplaces.join(";"),
+      task.tags.map((tag) => `${tag.name}:${tag.color}`).join(";"),
+      JSON.stringify(task.selectedTraits),
+      JSON.stringify(task.traits),
+      JSON.stringify(task.outbidOptions),
+      JSON.stringify(task.bidPrice),
+      JSON.stringify(task.openseaBidPrice),
+      JSON.stringify(task.blurBidPrice),
+      JSON.stringify(task.magicEdenBidPrice),
+      JSON.stringify(task.stopOptions),
+      JSON.stringify(task.bidDuration),
+      task.tokenIds.join(";"),
+      task.bidType,
+      JSON.stringify(task.loopInterval),
+      task.bidPriceType,
+      task.slugValid.toString(),
+      task.magicEdenValid.toString(),
+      task.blurValid.toString(),
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...csvData.map((row) => row.join(",")),
+    ].join("\n");
+
+    downloadFile(csvContent, "tasks.csv", "text/csv");
+    setShowExportDropdown(false);
+  };
+
+  const downloadFile = (
+    content: string,
+    fileName: string,
+    contentType: string
+  ) => {
+    const blob = new Blob([content], { type: contentType });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const exportButton = (
+    <div className="relative inline-block">
+      <button
+        className="border rounded-lg shadow-sm p-3 border-n-5 bg-Neutral/Neutral-300-[night] text-left flex items-center hover:bg-Neutral/Neutral-400-[night] transition-colors min-h-[50px] whitespace-nowrap w-full"
+        onClick={() => setShowExportDropdown(!showExportDropdown)}
+        disabled={selectedTasks.length === 0}
+      >
+        <div className="text-n-3 mr-2 flex-grow">Export Selected</div>
+        {/* <ChevronDown className="flex-shrink-0" /> */}
+        <DownloadIcon />
+      </button>
+      {showExportDropdown && (
+        <div className="absolute z-10 mt-1 border rounded-lg shadow-lg border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] max-h-60 overflow-y-auto custom-scrollbar whitespace-nowrap w-full min-w-[195px]">
+          <div
+            onClick={exportAsJSON}
+            className="cursor-pointer p-3 transition-colors hover:bg-Neutral/Neutral-400-[night]"
+          >
+            Export as JSON
+          </div>
+          <div
+            onClick={exportAsCSV}
+            className="cursor-pointer p-3 transition-colors hover:bg-Neutral/Neutral-400-[night]"
+          >
+            Export as CSV
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <section className="ml-0 sm:ml-20 p-4 sm:p-6 pb-24">
       <div className="flex flex-col items-center justify-between mb-4 sm:mb-8 pb-4 sm:flex-row">
         <h1 className="text-xl font-bold mb-4 sm:mb-0 sm:text-2xl md:text-[28px]">
           Manage Tasks
         </h1>
-        <button
-          className="w-full sm:w-auto dashboard-btn uppercase bg-Brand/Brand-1 text-xs py-3 px-4 sm:text-sm sm:px-6 md:px-8"
-          onClick={() => setIsModalOpen(true)}
-        >
-          Create New Task
-        </button>
+
+        <div className="flex gap-4">
+          <button
+            className="w-full sm:w-auto dashboard-btn uppercase bg-Brand/Brand-1 text-xs py-3 px-4 sm:text-sm sm:px-6 md:px-8"
+            onClick={() => setIsModalOpen(true)}
+          >
+            Create New Task
+          </button>
+          <button
+            className="w-full sm:w-auto dashboard-btn uppercase bg-Brand/Brand-1 text-xs py-3 px-4 sm:text-sm sm:px-6 md:px-8"
+            onClick={() => setIsModalOpen(true)}
+          >
+            Import Task
+          </button>
+        </div>
       </div>
       <div className="flex flex-col sm:flex-row  gap-2 sm:gap-4 mb-4 justify-between items-center">
         <div className="flex gap-2 sm:gap-4">
@@ -252,19 +382,20 @@ const Tasks = () => {
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <button
-            className="px-4 py-2 bg-Brand/Brand-1 text-white rounded text-sm w-full sm:w-auto"
+            className="min-h-[50px] px-4 py-2 bg-Brand/Brand-1 text-white rounded text-sm w-full sm:w-auto"
             onClick={() => toggleSelectedTasksStatus(true)}
             disabled={selectedTasks.length === 0}
           >
             Start Selected
           </button>
           <button
-            className="px-4 py-2 bg-Accents/Red text-white rounded text-sm w-full sm:w-auto"
+            className="min-h-[50px] p-3 bg-Accents/Red text-white rounded text-sm w-full sm:w-auto"
             onClick={() => toggleSelectedTasksStatus(false)}
             disabled={selectedTasks.length === 0}
           >
             Stop Selected
           </button>
+          {exportButton}
         </div>
       </div>
       <Accordion title={`Tasks (${tasks.length})`}>

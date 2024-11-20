@@ -16,8 +16,6 @@ export async function GET(
   const task = (await Task.findOne({
     "contract.slug": slug,
   })) as unknown as ITask;
-  const currentTimestamp = Math.floor(Date.now() / 1000);
-  const tokenIds = task.tokenIds;
   const bidType =
     task.bidType.toLowerCase() === "collection" &&
     Object.keys(task?.selectedTraits || {}).length > 0

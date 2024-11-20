@@ -20,17 +20,9 @@ const defaultConfig = {
   },
 };
 
-const bullConfig = {
-  maxRetriesPerRequest: null,
-  retryStrategy: (times: number) => {
-    return Math.min(times * 50, 2000);
-  },
-};
-
 class RedisClient {
   private static instance: RedisClient;
   private client: Redis | null = null;
-  private bullClient: Redis | null = null;
 
   private constructor() {
     this.connect();
@@ -44,19 +36,16 @@ class RedisClient {
   }
 
   private connect() {
-    if (!this.client || !this.bullClient) {
+    if (!this.client) {
       this.client = new Redis(getRedisUrl(), defaultConfig);
-      this.bullClient = new Redis(getRedisUrl(), bullConfig);
 
-      // Set up error handlers for both clients
-      [this.client, this.bullClient].forEach((client) => {
-        client.on("error", (err) => {
-          console.error("Redis Client Error:", err);
-        });
+      // Set up error handlers for the client
+      this.client.on("error", (err) => {
+        console.error("Redis Client Error:", err);
+      });
 
-        client.on("connect", () => {
-          console.log("Successfully connected to Redis");
-        });
+      this.client.on("connect", () => {
+        console.log("Successfully connected to Redis");
       });
     }
   }
@@ -66,13 +55,6 @@ class RedisClient {
       this.connect();
     }
     return this.client!;
-  }
-
-  public getBullClient(): Redis {
-    if (!this.bullClient) {
-      this.connect();
-    }
-    return this.bullClient!;
   }
 }
 

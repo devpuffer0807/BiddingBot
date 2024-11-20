@@ -54,11 +54,7 @@ export async function PUT(
   if (!isOwner) {
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
-
   const body = await request.json();
-
-  console.log({ body });
-
   const task = await Task.findByIdAndUpdate(
     params.id,
     {
