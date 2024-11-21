@@ -14,6 +14,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import BidTypeFilter, { BidType } from "@/components/tasks/BidTypeFilter";
 import FilterInput from "@/components/tasks/FilterInput";
 import DownloadIcon from "@/assets/svg/DownloadIcon";
+import UploadIcon from "@/assets/svg/UploadIcon";
 // import { ChevronDown } from "lucide-react";
 
 const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
@@ -318,13 +319,14 @@ const Tasks = () => {
   const exportButton = (
     <div className="relative inline-block">
       <button
-        className="border rounded-lg shadow-sm p-3 border-n-5 bg-Neutral/Neutral-300-[night] text-left flex items-center hover:bg-Neutral/Neutral-400-[night] transition-colors min-h-[50px] whitespace-nowrap w-full"
+        className="dashboard-button !bg-n-13"
         onClick={() => setShowExportDropdown(!showExportDropdown)}
         disabled={selectedTasks.length === 0}
       >
-        <div className="text-n-3 mr-2 flex-grow">Export Selected</div>
-        {/* <ChevronDown className="flex-shrink-0" /> */}
-        <DownloadIcon />
+        <div className="flex items-center justify-between w-full gap-4">
+          <span>Export Selected</span>
+          <DownloadIcon />
+        </div>
       </button>
       {showExportDropdown && (
         <div className="absolute z-10 mt-1 border rounded-lg shadow-lg border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] max-h-60 overflow-y-auto custom-scrollbar whitespace-nowrap w-full min-w-[195px]">
@@ -354,20 +356,20 @@ const Tasks = () => {
 
         <div className="flex gap-4">
           <button
-            className="w-full sm:w-auto dashboard-btn uppercase bg-Brand/Brand-1 text-xs py-3 px-4 sm:text-sm sm:px-6 md:px-8"
+            className="dashboard-button"
             onClick={() => setIsModalOpen(true)}
           >
             Create New Task
           </button>
-          <button
-            className="w-full sm:w-auto dashboard-btn uppercase bg-Brand/Brand-1 text-xs py-3 px-4 sm:text-sm sm:px-6 md:px-8"
-            onClick={() => setIsModalOpen(true)}
-          >
-            Import Task
+          <button className="dashboard-button !bg-n-13">
+            <div className="flex items-center justify-between w-full gap-4">
+              <span>Import Task</span>
+              <UploadIcon />
+            </div>
           </button>
         </div>
       </div>
-      <div className="flex flex-col sm:flex-row  gap-2 sm:gap-4 mb-4 justify-between items-center">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4 justify-between items-center">
         <div className="flex gap-2 sm:gap-4">
           <FilterInput
             placeholder="Filter by slug"
@@ -382,14 +384,14 @@ const Tasks = () => {
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <button
-            className="min-h-[50px] px-4 py-2 bg-Brand/Brand-1 text-white rounded text-sm w-full sm:w-auto"
+            className="dashboard-button"
             onClick={() => toggleSelectedTasksStatus(true)}
             disabled={selectedTasks.length === 0}
           >
             Start Selected
           </button>
           <button
-            className="min-h-[50px] p-3 bg-Accents/Red text-white rounded text-sm w-full sm:w-auto"
+            className="dashboard-button !bg-[#ef4444]"
             onClick={() => toggleSelectedTasksStatus(false)}
             disabled={selectedTasks.length === 0}
           >

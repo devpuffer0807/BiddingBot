@@ -17,6 +17,8 @@
   --font-roboto: "Roboto", sans-serif;
   --font-montserrat: "Montserrat", sans-serif;
   color-scheme: dark;
+  --brand-1: #7364db;
+  --accent-red: #ef4444;
 }
 
 * {
@@ -179,4 +181,74 @@
 
 .text-security {
   -webkit-text-security: disc;
+}
+
+.dashboard-button {
+  min-height: 50px;
+  padding: 0.75rem 1.5rem;
+  color: white;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+  width: 100%;
+  background-color: var(--brand-1);
+}
+
+@media (min-width: 640px) {
+  .dashboard-button {
+    width: auto;
+  }
+}
+
+.dashboard-button:hover {
+  opacity: 0.9;
+}
+
+.dashboard-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dashboard-button-start {
+  composes: dashboard-button;
+  background-color: var(--brand-1);
+}
+
+.dashboard-button-stop {
+  composes: dashboard-button;
+  background-color: var(--accent-red);
+}
+
+.dashboard-button-export {
+  composes: dashboard-button;
+  background-color: var(--brand-1);
+}
+
+.dashboard-button-create {
+  composes: dashboard-button;
+  background-color: var(--brand-1);
+}
+
+.dashboard-button-import {
+  composes: dashboard-button;
+  background-color: var(--brand-1);
+}
+
+.filter-base {
+  min-height: 50px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--n-5);
+  border-radius: 0.5rem;
+  background-color: var(--neutral-300);
+  color: var(--n-3);
+  font-size: 0.875rem;
+  width: 100%;
+  min-width: 195px;
+  transition: background-color 0.2s;
+}
+
+.filter-base:hover {
+  background-color: var(--neutral-400);
 }

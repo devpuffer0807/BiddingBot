@@ -17,7 +17,7 @@ const CancelIcon: React.FC = () => {
       ></g>
       <g id="SVGRepo_iconCarrier">
         <defs>
-          <style>{`.cls-1{fill:none;stroke:#FF0000;stroke-linecap:round;stroke-linejoin:round;stroke-width:4px;}`}</style>
+          <style>{`.cls-1{fill:none;stroke:#FF0000;strokeLinecap:round;strokeLinejoin:round;strokeWidth:4px;}`}</style>
         </defs>
         <title></title>
         <g id="cross">
