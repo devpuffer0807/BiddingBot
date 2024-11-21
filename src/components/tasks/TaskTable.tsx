@@ -203,7 +203,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                   : ""
               }`}
             ></div>
-            <div>{totalBids[marketplace]}</div>
+            {/* <div>{totalBids[marketplace]}</div> */}
           </div>
         ))}
       </div>
@@ -346,8 +346,13 @@ const TaskTable: React.FC<TaskTableProps> = ({
                                 : Object.keys(task?.selectedTraits || {})
                                     .length > 0
                                 ? Object.values(task.selectedTraits).reduce(
-                                    (acc: number, curr: string[]) =>
-                                      acc + curr.length,
+                                    (
+                                      acc: number,
+                                      curr: {
+                                        name: string;
+                                        availableInMarketplaces: string[];
+                                      }[]
+                                    ) => acc + curr.length,
                                     0
                                   )
                                 : task.tokenIds?.length || 1;
@@ -369,7 +374,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                                   }`}
                                 ></div>
                                 <div>
-                                  {task.bidStats[marketplace]} / {total}
+                                  {/* {task.bidStats[marketplace]} / {total} */}
                                 </div>
                               </div>
                             );

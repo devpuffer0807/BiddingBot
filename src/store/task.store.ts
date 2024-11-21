@@ -10,6 +10,9 @@ interface TaskStore {
   toggleMultipleTasksRunning: (ids: string[], running: boolean) => void;
   getLastTaskId: () => string;
   setTasks: (tasks: Task[]) => void;
+  importedTasks: Task[];
+  addImportedTasks: (tasks: Partial<Task>[]) => void;
+  clearImportedTasks: () => void;
 }
 
 export const useTaskStore = create(
@@ -174,6 +177,30 @@ export const useTaskStore = create(
         return state.tasks[state.tasks.length - 1]?._id;
       },
       setTasks: (tasks) => set({ tasks }),
+      importedTasks: [],
+      addImportedTasks: (newTasks) => {
+        set({
+          importedTasks: newTasks.map(
+            (task) =>
+              ({
+                ...task,
+                _id: crypto.randomUUID(),
+                user: "",
+                running: false,
+                wallet: {
+                  address: "",
+                  privateKey: "",
+                  openseaApproval: false,
+                  blurApproval: false,
+                  magicedenApproval: false,
+                },
+              } as Task)
+          ),
+        });
+      },
+      clearImportedTasks: () => {
+        set({ importedTasks: [] });
+      },
     }),
     {
       name: "tasks",

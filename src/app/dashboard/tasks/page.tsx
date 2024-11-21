@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import TaskModal from "@/components/tasks/TaskModal";
 import { useTaskStore, Task } from "@/store/task.store";
 import React from "react";
@@ -15,15 +15,99 @@ import BidTypeFilter, { BidType } from "@/components/tasks/BidTypeFilter";
 import FilterInput from "@/components/tasks/FilterInput";
 import DownloadIcon from "@/assets/svg/DownloadIcon";
 import UploadIcon from "@/assets/svg/UploadIcon";
-// import { ChevronDown } from "lucide-react";
+import Papa from "papaparse";
 
 const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
   .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
 
+const processJSONImport = (jsonData: any): Partial<Task>[] => {
+  if (Array.isArray(jsonData)) {
+    return jsonData;
+  }
+
+  return [jsonData];
+};
+
+const processCSVImport = (csvText: string): Partial<Task>[] => {
+  const lines = csvText.split("\n");
+  const headers = lines[0].split(",");
+
+  return lines.slice(1).map((line) => {
+    const values = line.split(",");
+    const task: Partial<Task> = {};
+
+    headers.forEach((header, index) => {
+      const value = values[index]?.trim();
+      if (!value) return;
+
+      const props = header.split(".");
+      let current: any = task;
+
+      props.forEach((prop, i) => {
+        if (i === props.length - 1) {
+          current[prop] = convertValue(prop, value);
+        } else {
+          current[prop] = current[prop] || {};
+          current = current[prop];
+        }
+      });
+    });
+
+    return task;
+  });
+};
+
+const convertValue = (prop: string, value: string): any => {
+  if (value.startsWith("[") && value.endsWith("]")) {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return [];
+    }
+  }
+
+  if (value === "true") return true;
+  if (value === "false") return false;
+
+  if (!isNaN(Number(value)) && value !== "") {
+    return Number(value);
+  }
+
+  if (value.startsWith("{") && value.endsWith("}")) {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return {};
+    }
+  }
+
+  return value;
+};
+
+const safeJSONParse = (value: string | undefined, fallback: any) => {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+};
+
+const getNestedValue = (obj: Record<string, any>, path: string): any => {
+  return path.split(".").reduce((current: any, key: string) => {
+    return current && current[key] !== undefined ? current[key] : "";
+  }, obj);
+};
+
 const Tasks = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { tasks, setTasks, toggleTaskRunning, toggleMultipleTasksRunning } =
-    useTaskStore();
+  const {
+    tasks,
+    setTasks,
+    toggleTaskRunning,
+    toggleMultipleTasksRunning,
+    addImportedTasks,
+  } = useTaskStore();
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -41,7 +125,7 @@ const Tasks = () => {
     const fetchTasks = async () => {
       try {
         const response = await fetch("/api/task", {
-          credentials: "include", // This ensures cookies are sent with the request
+          credentials: "include",
         });
         if (!response.ok) throw new Error("Failed to fetch tasks");
         const fetchedTasks = await response.json();
@@ -234,7 +318,17 @@ const Tasks = () => {
 
   const exportAsJSON = () => {
     const sanitizedTasks = tasksToExport.map((task) => {
-      const { wallet, ...taskWithoutWallet } = task;
+      const taskWithoutWallet = {
+        ...task,
+        wallet: {
+          address: "",
+          privateKey: "",
+          blurApproval: false,
+
+          openseaApproval: false,
+          magicedenApproval: false,
+        },
+      };
       return taskWithoutWallet;
     });
     const dataStr = JSON.stringify(sanitizedTasks, null, 2);
@@ -243,61 +337,40 @@ const Tasks = () => {
   };
 
   const exportAsCSV = () => {
-    const headers = [
-      "Collection Name",
-      "Contract Address",
-      "Running",
-      "Selected Marketplaces",
-      "Tags",
-      "Selected Traits",
-      "Traits",
-      "Outbid Options",
-      "Bid Price",
-      "OpenSea Bid Price",
-      "Blur Bid Price",
-      "MagicEden Bid Price",
-      "Stop Options",
-      "Bid Duration",
-      "Token IDs",
-      "Bid Type",
-      "Loop Interval",
-      "Bid Price Type",
-      "Slug Valid",
-      "MagicEden Valid",
-      "Blur Valid",
-    ];
+    const sanitizedTasks = tasksToExport.map((task) => {
+      const taskWithoutWallet = {
+        ...task,
+        wallet: {
+          address: "",
+          privateKey: "",
+          blurApproval: false,
+          openseaApproval: false,
+          magicedenApproval: false,
+        },
+      };
+      return taskWithoutWallet;
+    });
 
-    const csvData = tasksToExport.map((task) => [
-      task.contract.slug,
-      task.contract.contractAddress,
-      task.running.toString(),
-      task.selectedMarketplaces.join(";"),
-      task.tags.map((tag) => `${tag.name}:${tag.color}`).join(";"),
-      JSON.stringify(task.selectedTraits),
-      JSON.stringify(task.traits),
-      JSON.stringify(task.outbidOptions),
-      JSON.stringify(task.bidPrice),
-      JSON.stringify(task.openseaBidPrice),
-      JSON.stringify(task.blurBidPrice),
-      JSON.stringify(task.magicEdenBidPrice),
-      JSON.stringify(task.stopOptions),
-      JSON.stringify(task.bidDuration),
-      task.tokenIds.join(";"),
-      task.bidType,
-      JSON.stringify(task.loopInterval),
-      task.bidPriceType,
-      task.slugValid.toString(),
-      task.magicEdenValid.toString(),
-      task.blurValid.toString(),
-    ]);
+    const processedData = processData(sanitizedTasks);
 
+    if (processedData.length === 0) return;
+
+    const headers = Object.keys(processedData[0]);
     const csvContent = [
       headers.join(","),
-      ...csvData.map((row) => row.join(",")),
+      ...processedData.map((row: Record<string, any>) =>
+        headers
+          .map((header) => {
+            const value = row[header];
+            const cellValue =
+              value === null || value === undefined ? "" : String(value);
+            return `"${cellValue.replace(/"/g, '""')}"`;
+          })
+          .join(",")
+      ),
     ].join("\n");
 
-    downloadFile(csvContent, "tasks.csv", "text/csv");
-    setShowExportDropdown(false);
+    downloadFile(csvContent, "tasks.csv", "text/csv;charset=utf-8;");
   };
 
   const downloadFile = (
@@ -347,6 +420,51 @@ const Tasks = () => {
     </div>
   );
 
+  const handleImportTasks = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        let tasks: Partial<Task>[];
+
+        if (file.name.endsWith(".json")) {
+          const jsonData = JSON.parse(text);
+          tasks = processJSONImport(jsonData);
+        } else if (file.name.endsWith(".csv")) {
+          tasks = convertCSVToTasks(text);
+        } else {
+          throw new Error("Unsupported file format");
+        }
+        console.log({ tasks });
+        addImportedTasks(tasks);
+      } catch (error) {
+        console.error("Error importing tasks:", error);
+      }
+
+      event.target.value = "";
+    },
+    [addImportedTasks]
+  );
+
+  const importButton = (
+    <div className="relative">
+      <input
+        type="file"
+        accept=".json,.csv"
+        onChange={handleImportTasks}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      />
+      <button className="dashboard-button !bg-n-13">
+        <div className="flex items-center justify-between w-full gap-4">
+          <span>Import Task</span>
+          <UploadIcon />
+        </div>
+      </button>
+    </div>
+  );
+
   return (
     <section className="ml-0 sm:ml-20 p-4 sm:p-6 pb-24">
       <div className="flex flex-col items-center justify-between mb-4 sm:mb-8 pb-4 sm:flex-row">
@@ -361,12 +479,7 @@ const Tasks = () => {
           >
             Create New Task
           </button>
-          <button className="dashboard-button !bg-n-13">
-            <div className="flex items-center justify-between w-full gap-4">
-              <span>Import Task</span>
-              <UploadIcon />
-            </div>
-          </button>
+          {importButton}
         </div>
       </div>
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4 justify-between items-center">
@@ -448,3 +561,194 @@ function determineMarketplace(domain: string): string {
       return "Unknown";
   }
 }
+
+const processData = (data: Task[]) => {
+  const baseFields = [
+    "contract.slug",
+    "contract.contractAddress",
+    "outbidOptions.outbid",
+    "outbidOptions.blurOutbidMargin",
+    "outbidOptions.openseaOutbidMargin",
+    "outbidOptions.magicedenOutbidMargin",
+    "outbidOptions.counterbid",
+    "bidPrice.min",
+    "bidPrice.max",
+    "bidPrice.minType",
+    "bidPrice.maxType",
+    "openseaBidPrice.min",
+    "openseaBidPrice.max",
+    "openseaBidPrice.minType",
+    "openseaBidPrice.maxType",
+    "blurBidPrice.min",
+    "blurBidPrice.max",
+    "blurBidPrice.minType",
+    "blurBidPrice.maxType",
+    "magicEdenBidPrice.min",
+    "magicEdenBidPrice.max",
+    "magicEdenBidPrice.minType",
+    "magicEdenBidPrice.maxType",
+    "stopOptions.minFloorPrice",
+    "stopOptions.maxFloorPrice",
+    "stopOptions.minTraitPrice",
+    "stopOptions.maxTraitPrice",
+    "stopOptions.maxPurchase",
+    "stopOptions.pauseAllBids",
+    "stopOptions.stopAllBids",
+    "stopOptions.cancelAllBids",
+    "stopOptions.triggerStopOptions",
+    "bidDuration.value",
+    "bidDuration.unit",
+    "loopInterval.value",
+    "loopInterval.unit",
+    "selectedMarketplaces",
+    "running",
+    "bidType",
+    "bidPriceType",
+    "slugValid",
+    "magicEdenValid",
+    "blurValid",
+  ];
+
+  const getNestedValue = (obj: Record<string, any>, path: string): any => {
+    return path.split(".").reduce((current, key) => {
+      return current && current[key] !== undefined ? current[key] : "";
+    }, obj);
+  };
+
+  return data.map((item) => {
+    const row = {};
+
+    baseFields.forEach((field) => {
+      let value = getNestedValue(item, field);
+      if (Array.isArray(value)) {
+        value = JSON.stringify(value);
+      }
+      (row as Record<string, any>)[field] = value;
+    });
+
+    (row as Record<string, any>)["tokenIds"] = JSON.stringify(
+      item.tokenIds || []
+    );
+
+    if (item.selectedTraits) {
+      (row as Record<string, any>)["selectedTraits"] = JSON.stringify(
+        item.selectedTraits
+      );
+    }
+
+    if (item.traits) {
+      (row as Record<string, any>)["traits"] = JSON.stringify(item.traits);
+    }
+
+    return row;
+  });
+};
+
+const convertCSVToTasks = (csvContent: string): Task[] => {
+  const { data } = Papa.parse(csvContent, {
+    header: true,
+    skipEmptyLines: true,
+  });
+
+  return data.map((row: any) => {
+    const selectedTraits = JSON.parse(row.selectedTraits || "{}");
+    const traits = JSON.parse(row.traits || "{}");
+    const tokenIds = JSON.parse(row.tokenIds || "[]");
+    const selectedMarketplaces = JSON.parse(row.selectedMarketplaces || "[]");
+
+    const stringToBoolean = (value: string) => value.toLowerCase() === "true";
+
+    const stringToNumberOrNull = (value: string) => {
+      if (value === "" || value === "null") return null;
+      const num = Number(value);
+      return isNaN(num) ? null : num;
+    };
+
+    const task: Task = {
+      _id: row._id || crypto.randomUUID(),
+      user: row.user || "",
+      contract: {
+        slug: row["contract.slug"] || "",
+        contractAddress: row["contract.contractAddress"] || "",
+      },
+      wallet: {
+        address: "",
+        privateKey: "",
+        openseaApproval: false,
+        blurApproval: false,
+        magicedenApproval: false,
+      },
+      selectedMarketplaces,
+      running: stringToBoolean(row.running),
+      tags: [{ name: "token bid", color: "#e7c208" }],
+      selectedTraits,
+      traits,
+      outbidOptions: {
+        outbid: stringToBoolean(row["outbidOptions.outbid"]),
+        blurOutbidMargin: stringToNumberOrNull(
+          row["outbidOptions.blurOutbidMargin"]
+        ),
+        openseaOutbidMargin: stringToNumberOrNull(
+          row["outbidOptions.openseaOutbidMargin"]
+        ),
+        magicedenOutbidMargin: stringToNumberOrNull(
+          row["outbidOptions.magicedenOutbidMargin"]
+        ),
+        counterbid: stringToBoolean(row["outbidOptions.counterbid"]),
+      },
+      bidPrice: {
+        min: Number(row["bidPrice.min"]) || 0,
+        max: stringToNumberOrNull(row["bidPrice.max"]),
+        minType: row["bidPrice.minType"] as "percentage" | "eth",
+        maxType: row["bidPrice.maxType"] as "percentage" | "eth",
+      },
+      openseaBidPrice: {
+        min: Number(row["openseaBidPrice.min"]) || 0,
+        max: stringToNumberOrNull(row["openseaBidPrice.max"]),
+        minType: row["openseaBidPrice.minType"] as "percentage" | "eth",
+        maxType: row["openseaBidPrice.maxType"] as "percentage" | "eth",
+      },
+      blurBidPrice: {
+        min: Number(row["blurBidPrice.min"]) || 0,
+        max: stringToNumberOrNull(row["blurBidPrice.max"]),
+        minType: row["blurBidPrice.minType"] as "percentage" | "eth",
+        maxType: row["blurBidPrice.maxType"] as "percentage" | "eth",
+      },
+      magicEdenBidPrice: {
+        min: Number(row["magicEdenBidPrice.min"]) || 0,
+        max: stringToNumberOrNull(row["magicEdenBidPrice.max"]),
+        minType: row["magicEdenBidPrice.minType"] as "percentage" | "eth",
+        maxType: row["magicEdenBidPrice.maxType"] as "percentage" | "eth",
+      },
+      stopOptions: {
+        minFloorPrice: stringToNumberOrNull(row["stopOptions.minFloorPrice"]),
+        maxFloorPrice: stringToNumberOrNull(row["stopOptions.maxFloorPrice"]),
+        minTraitPrice: stringToNumberOrNull(row["stopOptions.minTraitPrice"]),
+        maxTraitPrice: stringToNumberOrNull(row["stopOptions.maxTraitPrice"]),
+        maxPurchase: stringToNumberOrNull(row["stopOptions.maxPurchase"]),
+        pauseAllBids: stringToBoolean(row["stopOptions.pauseAllBids"]),
+        stopAllBids: stringToBoolean(row["stopOptions.stopAllBids"]),
+        cancelAllBids: stringToBoolean(row["stopOptions.cancelAllBids"]),
+        triggerStopOptions: stringToBoolean(
+          row["stopOptions.triggerStopOptions"]
+        ),
+      },
+      bidDuration: {
+        value: Number(row["bidDuration.value"]) || 0,
+        unit: row["bidDuration.unit"] || "",
+      },
+      tokenIds,
+      bidType: row.bidType || "",
+      loopInterval: {
+        value: Number(row["loopInterval.value"]) || 0,
+        unit: row["loopInterval.unit"] || "",
+      },
+      bidPriceType: row.bidPriceType || "",
+      slugValid: stringToBoolean(row.slugValid),
+      magicEdenValid: stringToBoolean(row.magicEdenValid),
+      blurValid: stringToBoolean(row.blurValid),
+    };
+
+    return task;
+  });
+};
