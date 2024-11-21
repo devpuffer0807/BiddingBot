@@ -209,7 +209,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
       </div>
       <div className="border rounded-2xl py-3 sm:py-5 px-2 sm:px-6 bg-[#1f2129] border-Neutral/Neutral-Border-[night] h-full">
         <div className="overflow-x-auto w-full">
-          <table className="min-w-full table-fixed whitespace-nowrap">
+          <table className="min-w-full table-fixed whitespace-nowrap text-sm">
             <thead className="hidden sm:table-header-group">
               <tr className="border-b border-Neutral/Neutral-Border-[night]">
                 <th scope="col" className="px-6 py-3 text-center w-[100px]">
@@ -611,15 +611,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
                           <DeleteIcon />
                         </button>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 text-center w-[150px]">
-                      {task.bidStats.OpenSea}
-                    </td>
-                    <td className="px-6 py-4 text-center w-[150px]">
-                      {task.bidStats.MagicEden}
-                    </td>
-                    <td className="px-6 py-4 text-center w-[150px]">
-                      {task.bidStats.Blur}
                     </td>
                   </tr>
                 );
