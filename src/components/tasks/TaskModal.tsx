@@ -29,11 +29,20 @@ interface MagicEdenQueryParams {
 
 const API_KEY = "d3348c68-097d-48b5-b5f0-0313cc05e92d";
 
+interface TaskModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  taskId?: string;
+  initialTask: Task | null;
+  isVerificationMode?: boolean;
+}
+
 const TaskModal: React.FC<TaskModalProps> = ({
   isOpen,
   onClose,
   taskId,
   initialTask,
+  isVerificationMode = false,
 }) => {
   const { wallets } = useWalletStore();
   const { addTag } = useTagStore();
@@ -797,13 +806,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
 };
 
 export default TaskModal;
-
-interface TaskModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  taskId?: string;
-  initialTask?: Task | null;
-}
 
 interface TokenResponse {
   tokens: TokenData[];

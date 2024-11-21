@@ -187,6 +187,7 @@ export const useTaskStore = create(
                 _id: crypto.randomUUID(),
                 user: "",
                 running: false,
+                traits: task.traits || { categories: {}, counts: {} },
                 wallet: {
                   address: "",
                   privateKey: "",

@@ -369,7 +369,7 @@ const FormSection: React.FC<FormSectionProps> = ({
         </div>
       )}
 
-      {formState.traits &&
+      {formState.traits?.categories &&
         Object.keys(formState.traits.categories).length > 0 && (
           <div className="col-span-2 mt-6">
             <h3 className="mb-2 font-medium">Select Traits</h3>

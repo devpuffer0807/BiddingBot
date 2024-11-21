@@ -16,6 +16,7 @@ import FilterInput from "@/components/tasks/FilterInput";
 import DownloadIcon from "@/assets/svg/DownloadIcon";
 import UploadIcon from "@/assets/svg/UploadIcon";
 import Papa from "papaparse";
+import { useRouter } from "next/navigation";
 
 const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
   .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
@@ -120,6 +121,7 @@ const Tasks = () => {
   const [showExportDropdown, setShowExportDropdown] = useState(false);
 
   const { sendMessage } = useWebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -437,15 +439,16 @@ const Tasks = () => {
         } else {
           throw new Error("Unsupported file format");
         }
-        console.log({ tasks });
-        addImportedTasks(tasks);
+
+        useTaskStore.getState().addImportedTasks(tasks);
+        router.push("/dashboard/import-verification");
       } catch (error) {
         console.error("Error importing tasks:", error);
       }
 
       event.target.value = "";
     },
-    [addImportedTasks]
+    [router]
   );
 
   const importButton = (

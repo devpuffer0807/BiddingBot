@@ -25,6 +25,7 @@ interface TaskTableProps {
   filterText: string;
   selectedTags: Tag[];
   selectedBidTypes?: ("COLLECTION" | "TOKEN" | "TRAIT")[]; // Make this prop optional
+  isVerificationMode?: boolean;
   // onDeleteTask: (taskId: string) => void;
 }
 
@@ -40,6 +41,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
   filterText,
   selectedTags,
   selectedBidTypes = [], // Provide a default empty array
+  isVerificationMode = false,
   // onDeleteTask,
 }) => {
   const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
@@ -84,7 +86,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
       selectedMarketplaces: task.selectedMarketplaces,
     }));
 
-    if (!runningTasks.length) return;
+    if (!runningTasks.length || isVerificationMode) return;
 
     try {
       const response = await fetch("/api/progress", {
@@ -187,26 +189,34 @@ const TaskTable: React.FC<TaskTableProps> = ({
     });
   }, [totalBids]);
 
+  const handleDelete = (taskId: string) => {
+    if (isVerificationMode) {
+      deleteTask(taskId);
+    }
+  };
+
   return (
     <>
-      <div className="flex my-4 gap-4">
-        {["opensea", "blur", "magiceden"].map((marketplace, index) => (
-          <div className="flex gap-2 items-center" key={index}>
-            <div
-              className={`w-4 h-4 rounded-full ${
-                marketplace === "opensea"
-                  ? "bg-[#2081e2]"
-                  : marketplace === "blur"
-                  ? "bg-[#FF8700]"
-                  : marketplace === "magiceden"
-                  ? "bg-[#e42575]"
-                  : ""
-              }`}
-            ></div>
-            {/* <div>{totalBids[marketplace]}</div> */}
-          </div>
-        ))}
-      </div>
+      {isVerificationMode ? null : (
+        <div className="flex my-4 gap-4">
+          {["opensea", "blur", "magiceden"].map((marketplace, index) => (
+            <div className="flex gap-2 items-center" key={index}>
+              <div
+                className={`w-4 h-4 rounded-full ${
+                  marketplace === "opensea"
+                    ? "bg-[#2081e2]"
+                    : marketplace === "blur"
+                    ? "bg-[#FF8700]"
+                    : marketplace === "magiceden"
+                    ? "bg-[#e42575]"
+                    : ""
+                }`}
+              ></div>
+              {/* <div>{totalBids[marketplace]}</div> */}
+            </div>
+          ))}
+        </div>
+      )}
       <div className="border rounded-2xl py-3 sm:py-5 px-2 sm:px-6 bg-[#1f2129] border-Neutral/Neutral-Border-[night] h-full">
         <div className="overflow-x-auto w-full">
           <table className="min-w-full table-fixed whitespace-nowrap text-sm">
@@ -249,9 +259,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
                 <th scope="col" className="px-6 py-3 text-center w-[150px]">
                   Slug
                 </th>
-                <th scope="col" className="px-6 py-3 text-center w-[150px]">
-                  Progress
-                </th>
+                {isVerificationMode ? null : (
+                  <th scope="col" className="px-6 py-3 text-center w-[150px]">
+                    Progress
+                  </th>
+                )}
                 <th scope="col" className="px-6 py-3 text-center w-[120px]">
                   Bid Type
                 </th>
@@ -273,9 +285,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
                 <th scope="col" className="px-6 py-3 text-center w-[100px]">
                   Tags
                 </th>
-                <th scope="col" className="px-6 py-3 text-center w-[100px]">
-                  Start
-                </th>
+                {isVerificationMode ? null : (
+                  <th scope="col" className="px-6 py-3 text-center w-[100px]">
+                    Start
+                  </th>
+                )}
                 <th scope="col" className="px-6 py-3 text-center w-[80px]">
                   Edit
                 </th>
@@ -333,56 +347,59 @@ const TaskTable: React.FC<TaskTableProps> = ({
                         {task.contract.slug}
                       </Link>
                     </td>
-                    <td className="px-6 py-4 text-center w-[150px] text-sm">
-                      {task.selectedMarketplaces.length > 0 ? (
-                        task.selectedMarketplaces
-                          .map((marketplace) => marketplace.toLowerCase())
-                          .map((marketplace, index) => {
-                            const total =
-                              task.bidType === "collection" &&
-                              Object.keys(task?.selectedTraits || {}).length ==
-                                0
-                                ? 1
-                                : Object.keys(task?.selectedTraits || {})
-                                    .length > 0
-                                ? Object.values(task.selectedTraits).reduce(
-                                    (
-                                      acc: number,
-                                      curr: {
-                                        name: string;
-                                        availableInMarketplaces: string[];
-                                      }[]
-                                    ) => acc + curr.length,
-                                    0
-                                  )
-                                : task.tokenIds?.length || 1;
 
-                            return (
-                              <div
-                                className="flex gap-2 items-center"
-                                key={index}
-                              >
+                    {isVerificationMode ? null : (
+                      <td className="px-6 py-4 text-center w-[150px] text-sm">
+                        {task.selectedMarketplaces.length > 0 ? (
+                          task.selectedMarketplaces
+                            .map((marketplace) => marketplace.toLowerCase())
+                            .map((marketplace, index) => {
+                              const total =
+                                task.bidType === "collection" &&
+                                Object.keys(task?.selectedTraits || {})
+                                  .length == 0
+                                  ? 1
+                                  : Object.keys(task?.selectedTraits || {})
+                                      .length > 0
+                                  ? Object.values(task.selectedTraits).reduce(
+                                      (
+                                        acc: number,
+                                        curr: {
+                                          name: string;
+                                          availableInMarketplaces: string[];
+                                        }[]
+                                      ) => acc + curr.length,
+                                      0
+                                    )
+                                  : task.tokenIds?.length || 1;
+
+                              return (
                                 <div
-                                  className={`w-4 h-4 rounded-full ${
-                                    marketplace === "opensea"
-                                      ? "bg-[#2081e2]"
-                                      : marketplace === "blur"
-                                      ? "bg-[#FF8700]"
-                                      : marketplace === "magiceden"
-                                      ? "bg-[#e42575]"
-                                      : ""
-                                  }`}
-                                ></div>
-                                <div>
-                                  {/* {task.bidStats[marketplace]} / {total} */}
+                                  className="flex gap-2 items-center"
+                                  key={index}
+                                >
+                                  <div
+                                    className={`w-4 h-4 rounded-full ${
+                                      marketplace === "opensea"
+                                        ? "bg-[#2081e2]"
+                                        : marketplace === "blur"
+                                        ? "bg-[#FF8700]"
+                                        : marketplace === "magiceden"
+                                        ? "bg-[#e42575]"
+                                        : ""
+                                    }`}
+                                  ></div>
+                                  <div>
+                                    {/* {task.bidStats[marketplace]} / {total} */}
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })
-                      ) : (
-                        <span>No Marketplaces Selected</span>
-                      )}
-                    </td>
+                              );
+                            })
+                        ) : (
+                          <span>No Marketplaces Selected</span>
+                        )}
+                      </td>
+                    )}
                     <td className="px-6 py-4 text-center w-[120px]">
                       {Object.keys(task?.selectedTraits || {}).length > 0
                         ? "TRAIT"
@@ -572,35 +589,38 @@ const TaskTable: React.FC<TaskTableProps> = ({
                         ))}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-center w-[100px]">
-                      <span className="sm:hidden font-bold">Start</span>
-                      <label className="inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="sr-only"
-                          checked={task.running}
-                          onChange={() => {
-                            onToggleTaskStatus(task._id);
-                            const message = {
-                              endpoint: "toggle-status",
-                              data: task,
-                            };
-                            sendMessage(message);
-                          }}
-                        />
-                        <div
-                          className={`relative w-11 h-6 bg-gray-200 rounded-full transition-colors duration-200 ease-in-out ${
-                            task.running ? "!bg-Brand/Brand-1" : ""
-                          }`}
-                        >
+
+                    {isVerificationMode ? null : (
+                      <td className="px-6 py-4 text-center w-[100px]">
+                        <span className="sm:hidden font-bold">Start</span>
+                        <label className="inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="sr-only"
+                            checked={task.running}
+                            onChange={() => {
+                              onToggleTaskStatus(task._id);
+                              const message = {
+                                endpoint: "toggle-status",
+                                data: task,
+                              };
+                              sendMessage(message);
+                            }}
+                          />
                           <div
-                            className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ease-in-out ${
-                              task.running ? "transform translate-x-5" : ""
+                            className={`relative w-11 h-6 bg-gray-200 rounded-full transition-colors duration-200 ease-in-out ${
+                              task.running ? "!bg-Brand/Brand-1" : ""
                             }`}
-                          ></div>
-                        </div>
-                      </label>
-                    </td>
+                          >
+                            <div
+                              className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ease-in-out ${
+                                task.running ? "transform translate-x-5" : ""
+                              }`}
+                            ></div>
+                          </div>
+                        </label>
+                      </td>
+                    )}
                     <td className="px-6 py-4 text-center w-[80px]">
                       <span className="sm:hidden font-bold">Edit</span>
                       <div className="flex items-center justify-end sm:justify-center">
