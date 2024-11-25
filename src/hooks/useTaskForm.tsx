@@ -433,19 +433,32 @@ export const useTaskForm = (
 
       try {
         if (taskId) {
-          const response = await fetch(`/api/task/${taskId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(taskData),
-            credentials: "include",
-          });
+          // Check if this task exists in importedTasks
+          const isImportedTask = useTaskStore
+            .getState()
+            .importedTasks.some((task) => task._id === taskId);
 
-          if (!response.ok) throw new Error("Failed to update task");
-          const updatedTask = await response.json();
-          const message = { endpoint: "updated-task", data: updatedTask };
+          if (isImportedTask) {
+            // For imported tasks, just update the store
+            const updatedTask = { ...taskData, _id: taskId };
+            useTaskStore.getState().editImportedTask(taskId, updatedTask);
+            return true;
+          } else {
+            // Original API logic for regular tasks
+            const response = await fetch(`/api/task/${taskId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(taskData),
+              credentials: "include",
+            });
 
-          editTask(taskId, updatedTask);
-          sendMessage(message);
+            if (!response.ok) throw new Error("Failed to update task");
+            const updatedTask = await response.json();
+            const message = { endpoint: "updated-task", data: updatedTask };
+
+            editTask(taskId, updatedTask);
+            sendMessage(message);
+          }
         } else {
           const response = await fetch("/api/task", {
             method: "POST",

@@ -6,12 +6,15 @@ import TaskTable from "@/components/tasks/TaskTable";
 import TaskModal from "@/components/tasks/TaskModal";
 import { useTaskStore, Task } from "@/store/task.store";
 import React from "react";
+import { toast } from "react-toastify";
 
 const ImportVerification = () => {
   const router = useRouter();
   const { importedTasks, clearImportedTasks, addTask } = useTaskStore();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingTask, setEditingTask] = React.useState<Task | null>(null);
+  const [selectedTasks, setSelectedTasks] = React.useState<string[]>([]);
+  const [selectAll, setSelectAll] = React.useState(false);
 
   // Redirect if no imported tasks
   useEffect(() => {
@@ -20,13 +23,31 @@ const ImportVerification = () => {
     }
   }, [importedTasks, router]);
 
-  const handleConfirmImport = () => {
-    // Add each imported task to the main tasks list
-    importedTasks.forEach((task) => {
-      addTask(task);
-    });
-    clearImportedTasks();
-    router.push("/dashboard/tasks");
+  const handleConfirmImport = async () => {
+    try {
+      importedTasks.forEach((task) => {
+        addTask(task);
+      });
+
+      const response = await fetch("/api/task/bulk", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(importedTasks),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to import tasks");
+      }
+
+      clearImportedTasks();
+      toast.success("Tasks imported successfully!");
+      router.push("/dashboard/tasks");
+    } catch (error) {
+      console.error("Failed to save imported tasks:", error);
+    }
   };
 
   const handleCancelImport = () => {
@@ -37,6 +58,47 @@ const ImportVerification = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingTask(null);
+  };
+
+  const handleToggleMarketplace = (taskId: string, marketplace: string) => {
+    const task = importedTasks.find((t) => t._id === taskId);
+    if (task) {
+      const updatedMarketplaces = task.selectedMarketplaces.includes(
+        marketplace
+      )
+        ? task.selectedMarketplaces.filter((m) => m !== marketplace)
+        : [...task.selectedMarketplaces, marketplace];
+
+      useTaskStore.getState().editImportedTask(taskId, {
+        selectedMarketplaces: updatedMarketplaces,
+      });
+    }
+  };
+
+  const handleToggleTaskSelection = (taskId: string) => {
+    const task = importedTasks.find((t) => t._id === taskId);
+    // Only allow selection if wallet info is complete
+    if (!task?.wallet?.address || !task?.wallet?.privateKey) return;
+
+    setSelectedTasks((prev) =>
+      prev.includes(taskId)
+        ? prev.filter((id) => id !== taskId)
+        : [...prev, taskId]
+    );
+  };
+
+  const handleToggleSelectAll = () => {
+    // Filter tasks that have complete wallet info
+    const selectableTasks = importedTasks.filter(
+      (task) => task.wallet?.address && task.wallet?.privateKey
+    );
+
+    if (selectAll) {
+      setSelectedTasks([]);
+    } else {
+      setSelectedTasks(selectableTasks.map((task) => task._id));
+    }
+    setSelectAll(!selectAll);
   };
 
   return (
@@ -64,12 +126,12 @@ const ImportVerification = () => {
 
       <TaskTable
         tasks={importedTasks}
-        selectedTasks={[]}
-        selectAll={false}
-        onToggleSelectAll={() => {}}
-        onToggleTaskSelection={() => {}}
+        selectedTasks={selectedTasks}
+        selectAll={selectAll}
+        onToggleSelectAll={handleToggleSelectAll}
+        onToggleTaskSelection={handleToggleTaskSelection}
         onToggleTaskStatus={() => {}}
-        onToggleMarketplace={() => {}}
+        onToggleMarketplace={handleToggleMarketplace}
         onEditTask={(task) => {
           setEditingTask(task);
           setIsModalOpen(true);

@@ -17,6 +17,8 @@ import DownloadIcon from "@/assets/svg/DownloadIcon";
 import UploadIcon from "@/assets/svg/UploadIcon";
 import Papa from "papaparse";
 import { useRouter } from "next/navigation";
+import DeleteModal from "@/components/tasks/DeleteTaskModal";
+import { toast } from "react-toastify";
 
 const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
   .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
@@ -27,77 +29,6 @@ const processJSONImport = (jsonData: any): Partial<Task>[] => {
   }
 
   return [jsonData];
-};
-
-const processCSVImport = (csvText: string): Partial<Task>[] => {
-  const lines = csvText.split("\n");
-  const headers = lines[0].split(",");
-
-  return lines.slice(1).map((line) => {
-    const values = line.split(",");
-    const task: Partial<Task> = {};
-
-    headers.forEach((header, index) => {
-      const value = values[index]?.trim();
-      if (!value) return;
-
-      const props = header.split(".");
-      let current: any = task;
-
-      props.forEach((prop, i) => {
-        if (i === props.length - 1) {
-          current[prop] = convertValue(prop, value);
-        } else {
-          current[prop] = current[prop] || {};
-          current = current[prop];
-        }
-      });
-    });
-
-    return task;
-  });
-};
-
-const convertValue = (prop: string, value: string): any => {
-  if (value.startsWith("[") && value.endsWith("]")) {
-    try {
-      return JSON.parse(value);
-    } catch {
-      return [];
-    }
-  }
-
-  if (value === "true") return true;
-  if (value === "false") return false;
-
-  if (!isNaN(Number(value)) && value !== "") {
-    return Number(value);
-  }
-
-  if (value.startsWith("{") && value.endsWith("}")) {
-    try {
-      return JSON.parse(value);
-    } catch {
-      return {};
-    }
-  }
-
-  return value;
-};
-
-const safeJSONParse = (value: string | undefined, fallback: any) => {
-  if (!value) return fallback;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return fallback;
-  }
-};
-
-const getNestedValue = (obj: Record<string, any>, path: string): any => {
-  return path.split(".").reduce((current: any, key: string) => {
-    return current && current[key] !== undefined ? current[key] : "";
-  }, obj);
 };
 
 const Tasks = () => {
@@ -119,6 +50,7 @@ const Tasks = () => {
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [selectedBidTypes, setSelectedBidTypes] = useState<BidType[]>([]);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const { sendMessage } = useWebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
   const router = useRouter();
@@ -440,7 +372,7 @@ const Tasks = () => {
           throw new Error("Unsupported file format");
         }
 
-        useTaskStore.getState().addImportedTasks(tasks);
+        addImportedTasks(tasks);
         router.push("/dashboard/import-verification");
       } catch (error) {
         console.error("Error importing tasks:", error);
@@ -448,7 +380,7 @@ const Tasks = () => {
 
       event.target.value = "";
     },
-    [router]
+    [addImportedTasks, router]
   );
 
   const importButton = (
@@ -467,6 +399,45 @@ const Tasks = () => {
       </button>
     </div>
   );
+
+  const deleteSelectedTasks = async () => {
+    try {
+      const response = await fetch("/api/task", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedTasks }),
+        credentials: "include",
+      });
+
+      const tasksToDelete = tasks.filter((task) =>
+        selectedTasks.includes(task._id)
+      );
+
+      await Promise.all(
+        tasksToDelete.map((task) =>
+          sendMessage({
+            endpoint: "stop-task",
+            data: task,
+          })
+        )
+      );
+
+      if (!response.ok) throw new Error("Failed to delete tasks");
+
+      setTasks(tasks.filter((task) => !selectedTasks.includes(task._id)));
+      setSelectedTasks([]);
+      setSelectAll(false);
+      toast.success("Tasks deleted successfully");
+    } catch (error) {
+      console.error("Error deleting tasks:", error);
+      toast.error("Failed to delete tasks");
+    }
+  };
+
+  // Get slugs of selected tasks
+  const selectedTaskSlugs = tasks
+    .filter((task) => selectedTasks.includes(task._id))
+    .map((task) => task.contract.slug);
 
   return (
     <section className="ml-0 sm:ml-20 p-4 sm:p-6 pb-24">
@@ -513,6 +484,13 @@ const Tasks = () => {
           >
             Stop Selected
           </button>
+          <button
+            className="dashboard-button !bg-[#ef4444]"
+            onClick={() => setIsDeleteModalOpen(true)}
+            disabled={selectedTasks.length === 0}
+          >
+            Delete Selected
+          </button>
           {exportButton}
         </div>
       </div>
@@ -545,6 +523,12 @@ const Tasks = () => {
         onClose={closeModal}
         taskId={editingTask?._id}
         initialTask={editingTask}
+      />
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={deleteSelectedTasks}
+        taskSlugs={selectedTaskSlugs}
       />
     </section>
   );

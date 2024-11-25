@@ -117,7 +117,8 @@ const TaskSchema: Schema = new Schema(
       categories: { type: Schema.Types.Mixed },
       counts: {
         type: Schema.Types.Mixed,
-        required: true,
+        required: false,
+        default: {},
       },
     },
     outbidOptions: {

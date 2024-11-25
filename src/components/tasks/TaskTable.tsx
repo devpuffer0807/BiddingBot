@@ -80,40 +80,40 @@ const TaskTable: React.FC<TaskTableProps> = ({
     magiceden: 0,
   });
 
-  const getBidStats = useCallback(async () => {
-    const runningTasks = tasks.map((task) => ({
-      slug: task.contract.slug,
-      selectedMarketplaces: task.selectedMarketplaces,
-    }));
+  // const getBidStats = useCallback(async () => {
+  // 	const runningTasks = tasks.map((task) => ({
+  // 		slug: task.contract.slug,
+  // 		selectedMarketplaces: task.selectedMarketplaces,
+  //    taskId: task._id
+  // 	}));
 
-    if (!runningTasks.length || isVerificationMode) return;
+  // 	if (!runningTasks.length || isVerificationMode) return;
 
-    try {
-      const response = await fetch("/api/progress", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ tasks: runningTasks }), // Send the filtered tasks
-      });
+  // 	try {
+  // 		const response = await fetch("/api/progress", {
+  // 			method: "POST",
+  // 			headers: {
+  // 				"Content-Type": "application/json",
+  // 			},
+  // 			body: JSON.stringify({ tasks: runningTasks }), // Send the filtered tasks
+  // 		});
 
-      if (!response.ok) {
-        throw new Error("Failed to post running tasks");
-      }
+  // 		if (!response.ok) {
+  // 			throw new Error("Failed to post running tasks");
+  // 		}
 
-      const data = await response.json();
-      console.log("Response from server:", data);
-      setBidStats((prevStats) => {
-        const updatedStats = { ...prevStats };
-        for (const slug of Object.keys(data)) {
-          updatedStats[slug] = data[slug];
-        }
-        return updatedStats;
-      });
-    } catch (error) {
-      console.error("Error posting running tasks:", error);
-    }
-  }, [tasks]);
+  // 		const data = await response.json();
+  // 		setBidStats((prevStats) => {
+  // 			const updatedStats = { ...prevStats };
+  // 			for (const slug of Object.keys(data)) {
+  // 				updatedStats[slug] = data[slug];
+  // 			}
+  // 			return updatedStats;
+  // 		});
+  // 	} catch (error) {
+  // 		console.error("Error posting running tasks:", error);
+  // 	}
+  // }, [isVerificationMode, tasks]);
 
   const mergedTasks = useMemo(() => {
     return tasks.map((task) => {
@@ -123,15 +123,15 @@ const TaskTable: React.FC<TaskTableProps> = ({
     });
   }, [tasks, bidStats]);
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      getBidStats();
-    }, 2000);
+  // useEffect(() => {
+  // 	const intervalId = setInterval(() => {
+  // 		getBidStats();
+  // 	}, 2000);
 
-    return () => clearInterval(intervalId);
-  }, [getBidStats]);
+  // 	return () => clearInterval(intervalId);
+  // }, [getBidStats]);
 
-  const { deleteTask } = useTaskStore();
+  const { deleteTask, deleteImportedTask } = useTaskStore();
 
   const handleDeleteClick = (task: Task) => {
     setTaskToDelete(task);
@@ -140,26 +140,30 @@ const TaskTable: React.FC<TaskTableProps> = ({
 
   const handleDeleteConfirm = async () => {
     if (taskToDelete) {
-      try {
-        const response = await fetch(`/api/task/${taskToDelete._id}`, {
-          method: "DELETE",
-          credentials: "include",
-        });
+      if (isVerificationMode) {
+        deleteImportedTask(taskToDelete?._id);
+      } else {
+        try {
+          await fetch(`/api/task/${taskToDelete._id}`, {
+            method: "DELETE",
+            credentials: "include",
+          });
 
-        deleteTask(taskToDelete._id);
-        toast.success("Task deleted successfully");
+          deleteTask(taskToDelete._id);
+          toast.success("Task deleted successfully");
 
-        const message = {
-          endpoint: "stop-task",
-          data: taskToDelete,
-        };
-        sendMessage(message);
-      } catch (error) {
-        console.log("handleDeleteConfirm: ", error);
-        toast.error("Failed to delete task");
+          const message = {
+            endpoint: "stop-task",
+            data: taskToDelete,
+          };
+          sendMessage(message);
+        } catch (error) {
+          console.log("handleDeleteConfirm: ", error);
+          toast.error("Failed to delete task");
+        }
+        setDeleteModalOpen(false);
+        setTaskToDelete(null);
       }
-      setDeleteModalOpen(false);
-      setTaskToDelete(null);
     }
   };
 
@@ -212,7 +216,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     : ""
                 }`}
               ></div>
-              {/* <div>{totalBids[marketplace]}</div> */}
+              <div>{totalBids[marketplace as keyof typeof totalBids]}</div>
             </div>
           ))}
         </div>
@@ -390,7 +394,12 @@ const TaskTable: React.FC<TaskTableProps> = ({
                                     }`}
                                   ></div>
                                   <div>
-                                    {/* {task.bidStats[marketplace]} / {total} */}
+                                    {
+                                      task.bidStats[
+                                        marketplace as keyof typeof task.bidStats
+                                      ]
+                                    }{" "}
+                                    / {total}
                                   </div>
                                 </div>
                               );
@@ -637,6 +646,19 @@ const TaskTable: React.FC<TaskTableProps> = ({
                         </button>
                       </div>
                     </td>
+                    {isVerificationMode && (
+                      <td className="px-6 py-4 text-center w-[80px]">
+                        {(!task.wallet?.address ||
+                          !task.wallet?.privateKey) && (
+                          <div
+                            className="flex items-center justify-center"
+                            title="Missing wallet information"
+                          >
+                            ⚠️
+                          </div>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 );
               })}
@@ -652,7 +674,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
           setTaskToDelete(null);
         }}
         onConfirm={handleDeleteConfirm}
-        taskSlug={taskToDelete?.contract.slug || ""}
+        taskSlugs={taskToDelete?.contract.slug || ""}
       />
     </>
   );

@@ -13,6 +13,8 @@ interface TaskStore {
   importedTasks: Task[];
   addImportedTasks: (tasks: Partial<Task>[]) => void;
   clearImportedTasks: () => void;
+  editImportedTask: (id: string, updatedTask: Partial<Task>) => Task;
+  deleteImportedTask: (id: string) => void;
 }
 
 export const useTaskStore = create(
@@ -34,6 +36,7 @@ export const useTaskStore = create(
                   slugValid: task.slugValid,
                   magicEdenValid: task.magicEdenValid,
                   blurValid: task.blurValid,
+                  selectedTraits: updatedTask.selectedTraits ?? {},
                   bidDuration: updatedTask.bidDuration ?? task.bidDuration,
                   loopInterval: updatedTask.loopInterval ?? task.loopInterval,
                   bidPrice: {
@@ -202,6 +205,30 @@ export const useTaskStore = create(
       clearImportedTasks: () => {
         set({ importedTasks: [] });
       },
+      editImportedTask: (id, updatedTask) => {
+        set((state) => ({
+          importedTasks: state.importedTasks.map((task) =>
+            task._id === id
+              ? {
+                  ...task,
+                  ...updatedTask,
+                  slugValid: task.slugValid,
+                  magicEdenValid: task.magicEdenValid,
+                  blurValid: task.blurValid,
+                }
+              : task
+          ),
+        }));
+
+        const task = get().importedTasks.find(
+          (task) => task._id === id
+        ) as Task;
+        return task;
+      },
+      deleteImportedTask: (id) =>
+        set((state) => ({
+          importedTasks: state.importedTasks.filter((task) => task._id !== id),
+        })),
     }),
     {
       name: "tasks",

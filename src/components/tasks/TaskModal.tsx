@@ -35,6 +35,7 @@ interface TaskModalProps {
   taskId?: string;
   initialTask: Task | null;
   isVerificationMode?: boolean;
+  isImportedTask?: boolean;
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({
@@ -43,6 +44,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   taskId,
   initialTask,
   isVerificationMode = false,
+  isImportedTask = false,
 }) => {
   const { wallets } = useWalletStore();
   const { addTag } = useTagStore();
@@ -332,8 +334,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const existingTask = tasks.find((task) => task._id === taskId);
-
     const isValid = await handleSubmit();
     if (isValid) {
       const taskStore = useTaskStore.getState();
@@ -344,7 +344,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         },
         running: formState.running,
         tags: formState.tags,
-        selectedTraits: formState.selectedTraits,
+        selectedTraits: formState.selectedTraits || {},
         outbidOptions: {
           outbid: formState.outbidOptions.outbid,
           blurOutbidMargin: formState.outbidOptions.outbid
@@ -397,11 +397,11 @@ const TaskModal: React.FC<TaskModalProps> = ({
         bidDuration: formState.bidDuration,
         loopInterval: formState.loopInterval,
         bidType: formState.bidType,
-        ...(existingTask
+        ...(isImportedTask
           ? {
-              slugValid: existingTask.slugValid,
-              blurValid: existingTask.blurValid,
-              magicEdenValid: existingTask.magicEdenValid,
+              slugValid: initialTask?.slugValid,
+              blurValid: initialTask?.blurValid,
+              magicEdenValid: initialTask?.magicEdenValid,
             }
           : {
               slugValid: formState.slugValid,
@@ -410,90 +410,43 @@ const TaskModal: React.FC<TaskModalProps> = ({
             }),
       };
 
-      if (taskId) {
-        taskStore.editTask(taskId, taskData);
-        toast.success("Task updated successfully!");
+      try {
+        if (isImportedTask) {
+          // Handle imported task update without server submission
+          if (taskId) {
+            taskStore.editImportedTask(taskId, taskData);
+            toast.success("Imported task updated successfully!");
+          }
+        } else {
+          // Existing server submission logic
+          if (taskId) {
+            const response = await fetch(`/api/task/${taskId}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify(taskData),
+            });
+          } else {
+            const response = await fetch("/api/task", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify(taskData),
+            });
+          }
+        }
         onClose();
-      } else {
-        setFormState({
-          contract: {
-            slug: "",
-            contractAddress: "",
-          },
-          wallet: {
-            address: "",
-            privateKey: "",
-            openseaApproval: false,
-            magicedenApproval: false,
-            blurApproval: false,
-          },
-          selectedMarketplaces: [],
-          running: false,
-          slugValid: false,
-          magicEdenValid: false,
-          blurValid: false,
-          slugDirty: false,
-          tags: [],
-          selectedTraits: {},
-          traits: { categories: {}, counts: {} },
-          outbidOptions: {
-            outbid: false,
-            blurOutbidMargin: "",
-            openseaOutbidMargin: "",
-            magicedenOutbidMargin: "",
-            counterbid: false,
-          },
-          stopOptions: {
-            minFloorPrice: "",
-            maxFloorPrice: "",
-            minTraitPrice: "",
-            maxTraitPrice: "",
-            maxPurchase: "",
-            pauseAllBids: false,
-            stopAllBids: false,
-            cancelAllBids: false,
-            triggerStopOptions: false,
-          },
-          bidPrice: {
-            min: "",
-            max: "",
-            minType: "percentage",
-            maxType: "percentage",
-          },
-          openseaBidPrice: {
-            min: "",
-            max: "",
-            minType: "percentage",
-            maxType: "percentage",
-          },
-          blurBidPrice: {
-            min: "",
-            max: "",
-            minType: "percentage",
-            maxType: "percentage",
-          },
-          magicEdenBidPrice: {
-            min: "",
-            max: "",
-            minType: "percentage",
-            maxType: "percentage",
-          },
-          bidDuration: { value: 15, unit: "minutes" },
-          loopInterval: { value: 15, unit: "minutes" },
-          tokenIds: [],
-          bidType: "collection",
-          bidPriceType: "GENERAL_BID_PRICE",
-          blurFloorPrice: null,
-          magicedenFloorPrice: null,
-          openseaFloorPrice: null,
-          validatingSlug: false,
-        });
-        toast.success("Task created successfully!");
-        onClose();
+        return true;
+      } catch (error) {
+        console.error("Error submitting task:", error);
+        return false;
       }
-    } else {
-      toast.error("Please fill in all required fields correctly.");
     }
+    return false;
   };
 
   const handleWalletModalOpen = () => {
