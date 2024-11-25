@@ -129,6 +129,25 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
     onTraitSelect(updatedTraits);
   };
 
+  const handleSelectAll = () => {
+    const allTraits: Record<
+      string,
+      { name: string; availableInMarketplaces: string[] }[]
+    > = {};
+
+    Object.keys(traits.categories).forEach((category) => {
+      allTraits[category] = Object.entries(traits.counts[category]).map(
+        ([trait, data]) => ({
+          name: trait,
+          availableInMarketplaces: data.availableInMarketplaces,
+        })
+      );
+    });
+
+    setSelectedTraits(allTraits);
+    onTraitSelect(allTraits);
+  };
+
   const handleClearAll = () => {
     setSelectedTraits({});
     onTraitSelect({});
@@ -149,15 +168,24 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
           </span>
           <ChevronDown />
         </button>
-        {getSelectedTraitsCount() > 0 && (
+        <>
           <button
             type="button"
-            onClick={handleClearAll}
+            onClick={handleSelectAll}
             className="px-4 border rounded-lg shadow-sm border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] hover:bg-Neutral/Neutral-400-[night] transition-colors"
           >
-            Clear
+            Select All
           </button>
-        )}
+          {getSelectedTraitsCount() > 0 && (
+            <button
+              type="button"
+              onClick={handleClearAll}
+              className="px-4 border rounded-lg shadow-sm border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] hover:bg-Neutral/Neutral-400-[night] transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </>
       </div>
       {isOpen && (
         <div className="absolute z-10 w-full mt-1 border rounded-lg shadow-lg border-Neutral-BG-[night] bg-Neutral/Neutral-300-[night] max-h-80 overflow-y-auto custom-scrollbar p-0.5">
