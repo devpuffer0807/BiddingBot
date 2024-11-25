@@ -112,3 +112,20 @@ export async function PATCH(request: NextRequest) {
     { status: 200 }
   );
 }
+
+export async function DELETE(request: NextRequest) {
+  await connect();
+  const userId = await getUserIdFromCookies(request);
+  const { ids } = await request.json();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const result = await Task.deleteMany({ _id: { $in: ids }, user: userId });
+
+  return NextResponse.json(
+    { deletedCount: result.deletedCount },
+    { status: 200 }
+  );
+}
