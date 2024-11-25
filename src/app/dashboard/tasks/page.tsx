@@ -255,10 +255,9 @@ const Tasks = () => {
       const taskWithoutWallet = {
         ...task,
         wallet: {
-          address: "",
+          address: task.wallet.address,
           privateKey: "",
           blurApproval: false,
-
           openseaApproval: false,
           magicedenApproval: false,
         },
@@ -275,7 +274,7 @@ const Tasks = () => {
       const taskWithoutWallet = {
         ...task,
         wallet: {
-          address: "",
+          address: task.wallet.address,
           privateKey: "",
           blurApproval: false,
           openseaApproval: false,
@@ -553,6 +552,7 @@ const processData = (data: Task[]) => {
   const baseFields = [
     "contract.slug",
     "contract.contractAddress",
+    "wallet.address",
     "outbidOptions.outbid",
     "outbidOptions.blurOutbidMargin",
     "outbidOptions.openseaOutbidMargin",
@@ -659,7 +659,7 @@ const convertCSVToTasks = (csvContent: string): Task[] => {
         contractAddress: row["contract.contractAddress"] || "",
       },
       wallet: {
-        address: "",
+        address: row["wallet.address"] || "",
         privateKey: "",
         openseaApproval: false,
         blurApproval: false,

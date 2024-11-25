@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { Wallet } from "./wallet.store";
 
 interface TaskStore {
   tasks: Task[];
@@ -181,26 +182,62 @@ export const useTaskStore = create(
       },
       setTasks: (tasks) => set({ tasks }),
       importedTasks: [],
-      addImportedTasks: (newTasks) => {
-        set({
-          importedTasks: newTasks.map(
-            (task) =>
-              ({
+      addImportedTasks: async (newTasks) => {
+        try {
+          // Fetch wallets from API
+          const response = await fetch("/api/wallet");
+          if (!response.ok) {
+            throw new Error("Failed to fetch wallets");
+          }
+          const wallets: Wallet[] = await response.json();
+
+          set({
+            importedTasks: newTasks.map((task) => {
+              const existingWallet = wallets.find(
+                (w) =>
+                  w.address.toLowerCase() ===
+                  task.wallet?.address?.toLowerCase()
+              );
+
+              return {
                 ...task,
                 _id: crypto.randomUUID(),
                 user: "",
                 running: false,
                 traits: task.traits || { categories: {}, counts: {} },
-                wallet: {
+                wallet: existingWallet || {
                   address: "",
                   privateKey: "",
                   openseaApproval: false,
                   blurApproval: false,
                   magicedenApproval: false,
                 },
-              } as Task)
-          ),
-        });
+              } as Task;
+            }),
+          });
+        } catch (error) {
+          console.error("Error fetching wallets:", error);
+          // If fetch fails, proceed with empty wallet details
+          set({
+            importedTasks: newTasks.map(
+              (task) =>
+                ({
+                  ...task,
+                  _id: crypto.randomUUID(),
+                  user: "",
+                  running: false,
+                  traits: task.traits || { categories: {}, counts: {} },
+                  wallet: {
+                    address: "",
+                    privateKey: "",
+                    openseaApproval: false,
+                    blurApproval: false,
+                    magicedenApproval: false,
+                  },
+                } as Task)
+            ),
+          });
+        }
       },
       clearImportedTasks: () => {
         set({ importedTasks: [] });
