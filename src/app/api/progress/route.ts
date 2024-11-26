@@ -4,29 +4,46 @@ import { NextRequest, NextResponse } from "next/server";
 
 const redis = redisClient.getClient();
 
+type Marketplace = "opensea" | "magiceden" | "blur";
+
+// Add this interface before the POST function
+interface Task {
+  slug: string;
+  selectedMarketplaces: Marketplace[];
+  taskId: string;
+}
+
 export async function POST(request: NextRequest) {
   const userId = await getUserIdFromCookies(request);
-  const {
-    tasks,
-  }: { tasks: { slug: string; selectedMarketplaces: string[] }[] } =
-    await request.json();
-  const orderCounts: { [slug: string]: { [key: string]: number } } = {};
-
-  for (const task of tasks) {
-    const { slug, selectedMarketplaces } = task; // Destructure slug and selectedMarketplaces
-
-    for (const marketplace of selectedMarketplaces) {
-      const pattern = `*:${marketplace.toLowerCase()}:order:${slug}:*`;
-      const keys = await redis.keys(pattern);
-      if (!orderCounts[slug]) {
-        orderCounts[slug] = {};
-      }
-      orderCounts[slug][marketplace.toLowerCase()] = keys.length;
-    }
-  }
-
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { tasks }: { tasks: Task[] } = await request.json();
+  const orderCounts: BidStats = {};
+
+  await Promise.all(
+    tasks.map(async ({ selectedMarketplaces, taskId }) => {
+      orderCounts[taskId] = { opensea: 0, magiceden: 0, blur: 0 };
+
+      await Promise.all(
+        selectedMarketplaces.map(async (marketplace: Marketplace) => {
+          const key = `${marketplace.toLowerCase()}:${taskId}:count`;
+          const count = (await redis.get(key)) ?? "";
+          orderCounts[taskId][marketplace.toLowerCase() as Marketplace] =
+            parseInt(count, 10);
+        })
+      );
+    })
+  );
+
   return NextResponse.json(orderCounts, { status: 200 });
+}
+
+interface BidStats {
+  [key: string]: {
+    opensea: number;
+    magiceden: number;
+    blur: number;
+  };
 }

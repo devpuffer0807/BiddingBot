@@ -12,9 +12,9 @@ export async function GET(
 ) {
   await connect();
   const userId = await getUserIdFromCookies(request);
-  const slug = params.slug;
+  const taskId = params.slug;
   const task = (await Task.findOne({
-    "contract.slug": slug,
+    _id: taskId,
   })) as unknown as ITask;
   const bidType =
     task.bidType.toLowerCase() === "collection" &&
@@ -31,12 +31,14 @@ export async function GET(
   if (bidType === "TOKEN") {
     for (const marketplace of selectedMarketplaces) {
       const isBlur = marketplace.toLowerCase() === "blur";
-      const baseKey = `${marketplace.toLowerCase()}:order:${slug}`;
+      const baseKey = `${marketplace.toLowerCase()}:order:${
+        task.contract.slug
+      }`;
 
       if (isBlur) {
         orderKeys.push(`${baseKey}:default`);
       } else {
-        const pattern = `*:${baseKey}:*[0-9]`;
+        const pattern = `*:${taskId}:${baseKey}:*[0-9]`;
         const matchingKeys = await redis.keys(pattern);
         const tokenKeys = matchingKeys.map((key) => {
           const parts = key.split(":");
@@ -47,7 +49,9 @@ export async function GET(
     }
   } else if (bidType === "TRAIT") {
     for (const marketplace of selectedMarketplaces) {
-      const baseKey = `${marketplace.toLowerCase()}:order:${slug}`;
+      const baseKey = `${marketplace.toLowerCase()}:order:${
+        task.contract.slug
+      }`;
 
       for (const traitType in selectedTraits) {
         for (const trait of selectedTraits[traitType]) {
@@ -77,13 +81,15 @@ export async function GET(
     }
   } else if (bidType === "COLLECTION") {
     for (const marketplace of selectedMarketplaces) {
-      const baseKey = `${marketplace.toLowerCase()}:order:${slug}`;
+      const baseKey = `${marketplace.toLowerCase()}:order:${
+        task.contract.slug
+      }`;
       orderKeys.push(`${baseKey}:default`);
     }
   }
   const bidData = await Promise.all(
     orderKeys.map(async (key) => {
-      const pattern = `*:${key}`;
+      const pattern = `*:${taskId}:${key}`;
       const matchingKeys = await redis.keys(pattern);
       if (matchingKeys.length === 0) {
         return null;
@@ -91,7 +97,12 @@ export async function GET(
 
       return await Promise.all(
         matchingKeys.map(async (fullKey) => {
-          const [bidCount, marketplace, , slug, ...rest] = fullKey.split(":");
+          const parts = fullKey.split(":");
+          const bidCount = parts[0];
+          const taskId = parts[1];
+          const marketplace = parts[2];
+          const slug = parts[4];
+          const rest = parts.slice(5);
           let identifier: any = rest.join(":");
 
           if (marketplace.toLowerCase() === "opensea" && bidType === "TRAIT") {
@@ -130,37 +141,30 @@ export async function GET(
             redis.get(fullKey),
             redis.ttl(fullKey),
           ]);
-          let offerKey;
+          let offerKey = `${bidCount}:${taskId}:${marketplace}:${slug}`;
           if (marketplace.toLowerCase() === "opensea" && bidType === "TRAIT") {
-            offerKey = `${bidCount}:${marketplace}:${slug}:${JSON.stringify(
-              identifier
-            )}`;
+            offerKey += `:${JSON.stringify(identifier)}`;
           } else if (marketplace.toLowerCase() === "blur") {
             if (bidType === "TRAIT") {
-              offerKey = `${bidCount}:${marketplace}:${slug}:${identifier}`;
+              offerKey += `:${identifier}`;
             } else if (bidType === "COLLECTION") {
-              offerKey = `${bidCount}:${marketplace}:${slug}:collection`;
+              offerKey += `:collection`;
             } else {
-              offerKey = `${bidCount}:${marketplace}:${slug}:${identifier}`;
+              offerKey += `:${identifier}`;
             }
           } else if (bidType === "TOKEN") {
-            offerKey = `${bidCount}:${marketplace}:${slug}:${identifier}`;
+            offerKey += `:${identifier}`;
           } else if (bidType === "COLLECTION") {
-            offerKey = `${bidCount}:${marketplace}:${slug}:collection`;
+            offerKey += `:collection`;
+          } else if (marketplace.toLowerCase() === "magiceden") {
+            offerKey +=
+              bidType === "TRAIT"
+                ? `:${JSON.stringify(identifier)}`
+                : `:${identifier}`;
           } else {
-            if (marketplace.toLowerCase() === "magiceden") {
-              if (bidType === "TRAIT") {
-                offerKey = `${bidCount}:${marketplace}:${slug}:${JSON.stringify(
-                  identifier
-                )}`;
-              } else {
-                offerKey = `${bidCount}:${marketplace}:${slug}:${identifier}`;
-              }
-            } else {
-              offerKey = `${bidCount}:${marketplace}:${slug}:${
-                identifier === "default" ? "collection" : identifier
-              }`;
-            }
+            offerKey += `:${
+              identifier === "default" ? "collection" : identifier
+            }`;
           }
           const offerPrice = await redis.get(offerKey);
           return {
@@ -204,6 +208,8 @@ export async function GET(
         return { ...bid };
       }
     });
+
+  console.log(bids);
 
   const offers = bids.filter((bid) => bid.ttl > 0);
   if (!userId) {

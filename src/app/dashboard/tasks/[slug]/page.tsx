@@ -119,9 +119,7 @@ export default function Page({ params }: { params: { slug: string } }) {
     return pageNumbers;
   }, [currentPage, totalPages, paginate]);
 
-  const task = tasks.find(
-    (item) => item.contract.slug.toLowerCase() === params.slug.toLowerCase()
-  );
+  const task = tasks.find((item) => item._id === params.slug);
 
   const toggleMarketplace = (taskId: string, marketplace: string) => {
     const task = tasks.find((t) => t._id === taskId);
@@ -188,7 +186,7 @@ export default function Page({ params }: { params: { slug: string } }) {
 
   return (
     <section className="ml-0 sm:ml-20 p-4 sm:p-6 pb-24">
-      Task: {params.slug} ({data?.length} SUCCESSFUL BIDS)
+      Task: {task?.contract.slug} ({data?.length} SUCCESSFUL BIDS)
       <div className="flex items-center justify-between my-4">
         <MarketplaceFilter
           selectedMarketplaces={selectedMarketplaces}
@@ -407,7 +405,7 @@ export default function Page({ params }: { params: { slug: string } }) {
                       </div>
                     </td>
                     <td className="px-2 sm:px-6 py-2 sm:py-4 text-left sm:text-center flex items-end justify-center gap-2 flex-row">
-                      <span>{params.slug}</span>
+                      <span>{task?.contract.slug}</span>
                       <div className="flex flex-row">
                         {(() => {
                           if (

@@ -412,18 +412,15 @@ const Tasks = () => {
         selectedTasks.includes(task._id)
       );
 
-      await Promise.all(
-        tasksToDelete.map((task) =>
-          sendMessage({
-            endpoint: "stop-task",
-            data: task,
-          })
-        )
-      );
-
       if (!response.ok) throw new Error("Failed to delete tasks");
 
       setTasks(tasks.filter((task) => !selectedTasks.includes(task._id)));
+      for (const task of tasksToDelete) {
+        sendMessage({
+          endpoint: "stop-task",
+          data: task,
+        });
+      }
       setSelectedTasks([]);
       setSelectAll(false);
       toast.success("Tasks deleted successfully");

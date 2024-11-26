@@ -29,6 +29,14 @@ interface TaskTableProps {
   // onDeleteTask: (taskId: string) => void;
 }
 
+interface BidStats {
+  [key: string]: {
+    opensea: number;
+    magiceden: number;
+    blur: number;
+  };
+}
+
 const TaskTable: React.FC<TaskTableProps> = ({
   tasks,
   selectedTasks,
@@ -71,65 +79,53 @@ const TaskTable: React.FC<TaskTableProps> = ({
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-  const [bidStats, setBidStats] = useState<{
-    [key: string]: { opensea: number; magiceden: number; blur: number };
-  }>({});
+  const [bidStats, setBidStats] = useState<BidStats>({});
   const [previousTotalBids, setPreviousTotalBids] = useState({
     opensea: 0,
     blur: 0,
     magiceden: 0,
   });
 
-  // const getBidStats = useCallback(async () => {
-  // 	const runningTasks = tasks.map((task) => ({
-  // 		slug: task.contract.slug,
-  // 		selectedMarketplaces: task.selectedMarketplaces,
-  //    taskId: task._id
-  // 	}));
+  const getBidStats = useCallback(async () => {
+    if (!tasks.length || isVerificationMode) return;
 
-  // 	if (!runningTasks.length || isVerificationMode) return;
+    const runningTasks = tasks.map((task) => ({
+      slug: task.contract.slug,
+      selectedMarketplaces: task.selectedMarketplaces,
+      taskId: task._id,
+    }));
 
-  // 	try {
-  // 		const response = await fetch("/api/progress", {
-  // 			method: "POST",
-  // 			headers: {
-  // 				"Content-Type": "application/json",
-  // 			},
-  // 			body: JSON.stringify({ tasks: runningTasks }), // Send the filtered tasks
-  // 		});
+    try {
+      const response = await fetch("/api/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tasks: runningTasks }),
+      });
 
-  // 		if (!response.ok) {
-  // 			throw new Error("Failed to post running tasks");
-  // 		}
+      if (!response.ok) throw new Error("Failed to fetch bid stats");
 
-  // 		const data = await response.json();
-  // 		setBidStats((prevStats) => {
-  // 			const updatedStats = { ...prevStats };
-  // 			for (const slug of Object.keys(data)) {
-  // 				updatedStats[slug] = data[slug];
-  // 			}
-  // 			return updatedStats;
-  // 		});
-  // 	} catch (error) {
-  // 		console.error("Error posting running tasks:", error);
-  // 	}
-  // }, [isVerificationMode, tasks]);
+      const data: BidStats = await response.json();
+      setBidStats(data);
+    } catch (error) {
+      console.error("Error fetching bid stats:", error);
+    }
+  }, [tasks, isVerificationMode]);
+
+  useEffect(() => {
+    const intervalId = setInterval(getBidStats, 1000);
+    return () => clearInterval(intervalId);
+  }, [getBidStats]);
 
   const mergedTasks = useMemo(() => {
-    return tasks.map((task) => {
-      const slug = task.contract.slug;
-      const stats = bidStats[slug] || { OpenSea: 0, MagicEden: 0, Blur: 0 }; // Default stats if slug not found
-      return { ...task, bidStats: stats };
-    });
+    return tasks.map((task) => ({
+      ...task,
+      bidStats: bidStats[task._id] || {
+        opensea: 0,
+        magiceden: 0,
+        blur: 0,
+      },
+    }));
   }, [tasks, bidStats]);
-
-  // useEffect(() => {
-  // 	const intervalId = setInterval(() => {
-  // 		getBidStats();
-  // 	}, 2000);
-
-  // 	return () => clearInterval(intervalId);
-  // }, [getBidStats]);
 
   const { deleteTask, deleteImportedTask } = useTaskStore();
 
@@ -345,7 +341,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     </td>
                     <td className="px-6 py-4 text-center w-[150px]">
                       <Link
-                        href={`/dashboard/tasks/${task.contract.slug}`}
+                        href={`/dashboard/tasks/${task._id}`}
                         className="text-Brand/Brand-1 underline"
                       >
                         {task.contract.slug}
