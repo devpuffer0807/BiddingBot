@@ -457,6 +457,8 @@ export const useTaskForm = (
             const message = { endpoint: "updated-task", data: updatedTask };
 
             editTask(taskId, updatedTask);
+            console.log("Task updated successfully");
+
             sendMessage(message);
           }
         } else {
@@ -475,6 +477,19 @@ export const useTaskForm = (
 
           addTask(fetchedTask);
           sendMessage(message);
+          toast.success("Task created successfully");
+
+          setFormState({
+            ...initialState,
+            slugValid: false,
+            blurValid: false,
+            magicEdenValid: false,
+            slugDirty: false,
+            blurFloorPrice: null,
+            magicedenFloorPrice: null,
+            openseaFloorPrice: null,
+            validatingSlug: false,
+          });
         }
         return true;
       } catch (error) {
@@ -495,6 +510,8 @@ export const useTaskForm = (
       { name: string; availableInMarketplaces: string[] }[]
     >
   ) => {
+    console.log({ traits });
+
     setFormState((prev) => ({ ...prev, selectedTraits: traits }));
   };
 

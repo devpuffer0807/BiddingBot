@@ -48,7 +48,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
 }) => {
   const { wallets } = useWalletStore();
   const { addTag } = useTagStore();
-  const { tasks } = useTaskStore();
+  const { tasks, editImportedTask } = useTaskStore();
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("#000000");
   const [showCreateTag, setShowCreateTag] = useState(false);
@@ -412,31 +412,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
       try {
         if (isImportedTask) {
-          // Handle imported task update without server submission
           if (taskId) {
-            taskStore.editImportedTask(taskId, taskData);
+            editImportedTask(taskId, taskData);
             toast.success("Imported task updated successfully!");
-          }
-        } else {
-          // Existing server submission logic
-          if (taskId) {
-            const response = await fetch(`/api/task/${taskId}`, {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-              body: JSON.stringify(taskData),
-            });
-          } else {
-            const response = await fetch("/api/task", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-              body: JSON.stringify(taskData),
-            });
           }
         }
         onClose();
