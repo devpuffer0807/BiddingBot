@@ -352,6 +352,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                       <td className="px-6 py-4 text-center w-[150px] text-sm">
                         {task.selectedMarketplaces.length > 0 ? (
                           task.selectedMarketplaces
+                            .sort()
                             .map((marketplace) => marketplace.toLowerCase())
                             .map((marketplace, index) => {
                               const total =

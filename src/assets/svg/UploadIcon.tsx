@@ -11,11 +11,7 @@ const UploadIcon = () => {
       xmlns="http://www.w3.org/2000/svg"
     >
       <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-      <g
-        id="SVGRepo_tracerCarrier"
-        strokeLinecap="round"
-        strokeLinecap="round"
-      ></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round"></g>
       <g id="SVGRepo_iconCarrier">
         {" "}
         <title>upload-cloud</title>{" "}

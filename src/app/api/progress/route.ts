@@ -14,30 +14,39 @@ interface Task {
 }
 
 export async function POST(request: NextRequest) {
-  const userId = await getUserIdFromCookies(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const userId = await getUserIdFromCookies(request);
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { tasks }: { tasks: Task[] } = await request.json();
+    const orderCounts: BidStats = {};
+
+    await Promise.all(
+      tasks.map(async ({ selectedMarketplaces, taskId }) => {
+        orderCounts[taskId] = { opensea: 0, magiceden: 0, blur: 0 };
+
+        await Promise.all(
+          selectedMarketplaces.map(async (marketplace: Marketplace) => {
+            const key = `${marketplace.toLowerCase()}:${taskId}:count`;
+            const count = (await redis.get(key)) ?? "";
+            orderCounts[taskId][marketplace.toLowerCase() as Marketplace] =
+              parseInt(count, 10);
+          })
+        );
+      })
+    );
+
+    return NextResponse.json(orderCounts, { status: 200 });
+  } catch (error) {
+    console.error("Progress API error:", error);
+
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
-
-  const { tasks }: { tasks: Task[] } = await request.json();
-  const orderCounts: BidStats = {};
-
-  await Promise.all(
-    tasks.map(async ({ selectedMarketplaces, taskId }) => {
-      orderCounts[taskId] = { opensea: 0, magiceden: 0, blur: 0 };
-
-      await Promise.all(
-        selectedMarketplaces.map(async (marketplace: Marketplace) => {
-          const key = `${marketplace.toLowerCase()}:${taskId}:count`;
-          const count = (await redis.get(key)) ?? "";
-          orderCounts[taskId][marketplace.toLowerCase() as Marketplace] =
-            parseInt(count, 10);
-        })
-      );
-    })
-  );
-
-  return NextResponse.json(orderCounts, { status: 200 });
 }
 
 interface BidStats {
