@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { Task } from "@/store/task.store";
 import Toggle from "@/components/common/Toggle";
 import EditIcon from "@/assets/svg/EditIcon";
@@ -86,6 +92,12 @@ const TaskTable: React.FC<TaskTableProps> = ({
     magiceden: 0,
   });
 
+  const previousTotalBidsRef = useRef({
+    opensea: 0,
+    blur: 0,
+    magiceden: 0,
+  });
+
   const getBidStats = useCallback(async () => {
     if (!tasks.length || isVerificationMode) return;
 
@@ -112,7 +124,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
   }, [tasks, isVerificationMode]);
 
   useEffect(() => {
-    const intervalId = setInterval(getBidStats, 1000);
+    const intervalId = setInterval(getBidStats, 5000);
     return () => clearInterval(intervalId);
   }, [getBidStats]);
 
@@ -181,12 +193,25 @@ const TaskTable: React.FC<TaskTableProps> = ({
   }, [bidStats]);
 
   useEffect(() => {
-    setPreviousTotalBids((prev) => {
-      if (JSON.stringify(prev) !== JSON.stringify(totalBids)) {
-        return { ...totalBids };
-      }
-      return prev;
-    });
+    // Only update the ref if the totals have changed
+    if (
+      JSON.stringify(previousTotalBidsRef.current) !== JSON.stringify(totalBids)
+    ) {
+      previousTotalBidsRef.current = { ...totalBids };
+    }
+  }, [totalBids]);
+
+  const bidDifference = useMemo(() => {
+    const currentTotal = Object.values(totalBids).reduce(
+      (sum, count) => sum + count,
+      0
+    );
+    const previousTotal = Object.values(previousTotalBidsRef.current).reduce(
+      (sum, count) => sum + count,
+      0
+    );
+    const difference = currentTotal - previousTotal;
+    return difference;
   }, [totalBids]);
 
   const handleDelete = (taskId: string) => {
@@ -215,6 +240,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
               <div>{totalBids[marketplace as keyof typeof totalBids]}</div>
             </div>
           ))}
+
+          <div className="flex gap-4">
+            <p>Bid Per Second:</p>
+            <p>{Math.ceil(bidDifference / 5)} / s</p>
+          </div>
         </div>
       )}
       <div className="border rounded-2xl py-3 sm:py-5 px-2 sm:px-6 bg-[#1f2129] border-Neutral/Neutral-Border-[night] h-full">
