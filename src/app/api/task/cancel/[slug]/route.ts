@@ -7,8 +7,10 @@ import { ethers, Wallet } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import axiosRetry, { IAxiosRetryConfig } from "axios-retry";
 import PQueue from "p-queue";
+import { config } from "dotenv";
 
-const API_KEY = "d3348c68-097d-48b5-b5f0-0313cc05e92d";
+config();
+const API_KEY = process.env.API_KEY as string;
 const BLUR_API_URL = "https://api.nfttools.website/blur";
 
 const redis = redisClient.getClient();

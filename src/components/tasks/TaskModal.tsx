@@ -27,7 +27,7 @@ interface MagicEdenQueryParams {
   limit?: number;
 }
 
-const API_KEY = "d3348c68-097d-48b5-b5f0-0313cc05e92d";
+const API_KEY = process.env.API_KEY as string;
 
 interface TaskModalProps {
   isOpen: boolean;
