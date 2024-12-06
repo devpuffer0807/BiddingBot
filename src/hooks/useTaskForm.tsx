@@ -96,11 +96,13 @@ export const useTaskForm = (
       magicedenFloorPrice: null,
       openseaFloorPrice: null,
       validatingSlug: false,
+      validationComplete: false,
     };
   });
 
   const [errors, setErrors] = useState<Partial<TaskFormState>>({});
   const prevInitialStateRef = useRef(initialState);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!isEqual(initialState, prevInitialStateRef.current)) {
@@ -166,22 +168,20 @@ export const useTaskForm = (
 
   const validateSlug = useCallback(
     async (slug: string) => {
-      let isMounted = true;
-      const taskStore = useTaskStore.getState();
-      const existingTask = taskId
-        ? taskStore.tasks.find((task) => task._id === taskId)
-        : null;
+      // Cancel any ongoing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
 
-      if (slug.length < 3) {
+      // Create new AbortController for this request
+      abortControllerRef.current = new AbortController();
+
+      if (slug.length < 3 && formState.contract.slug.length < 3) {
         setFormState((prev) => ({
           ...prev,
-          ...(taskId
-            ? {}
-            : {
-                slugValid: false,
-                magicEdenValid: false,
-                blurValid: false,
-              }),
+          slugValid: false,
+          magicEdenValid: false,
+          blurValid: false,
           blurFloorPrice: null,
           magicedenFloorPrice: null,
           openseaFloorPrice: null,
@@ -196,15 +196,13 @@ export const useTaskForm = (
       }));
 
       try {
-        const response = await fetch(`/api/ethereum/collections?slug=${slug}`);
-        if (!isMounted) return;
+        const response = await fetch(`/api/ethereum/collections?slug=${slug}`, {
+          signal: abortControllerRef.current.signal,
+        });
 
         if (response.status === 200) {
           const data = await response.json();
           const contractAddress = data.contracts[0]?.address || "";
-          const blurFLoorPrice = data.blurFLoorPrice;
-          const magicedenFloorPrice = data.magicedenFloorPrice;
-          const openseaFloorPrice = data.openseaFloorPrice;
 
           setFormState((prev) => ({
             ...prev,
@@ -212,70 +210,80 @@ export const useTaskForm = (
               ...prev.contract,
               contractAddress,
             },
-            ...(taskId
-              ? {}
-              : {
-                  slugValid: !!contractAddress,
-                  magicEdenValid: data.magicEdenValid,
-                  blurValid: data.blurValid,
-                }),
-            blurFloorPrice: blurFLoorPrice,
-            magicedenFloorPrice: magicedenFloorPrice,
-            openseaFloorPrice: openseaFloorPrice,
+            slugValid: !!contractAddress,
+            validatingSlug: false,
           }));
 
-          if (data.traits) {
-            setFormState((prev) => ({
-              ...prev,
-              traits: data.traits,
-            }));
+          if (!!contractAddress) {
+            try {
+              setFormState((prev) => ({
+                ...prev,
+                validationComplete: false,
+              }));
+              const detailsResponse = await fetch(
+                `/api/ethereum/details?slug=${slug}&address=${contractAddress}`,
+                { signal: abortControllerRef.current.signal }
+              );
+              if (detailsResponse.ok) {
+                const detailsData = await detailsResponse.json();
+                setFormState((prev) => ({
+                  ...prev,
+                  magicEdenValid: detailsData.magicEdenValid,
+                  blurValid: detailsData.blurValid,
+                  blurFloorPrice: detailsData.blurFloorPrice,
+                  magicedenFloorPrice: detailsData.magicedenFloorPrice,
+                  openseaFloorPrice: detailsData.openseaFloorPrice,
+                  traits: detailsData.traits || prev.traits,
+                  validationComplete: true,
+                }));
+              }
+            } catch (error: any) {
+              if (error.name === "AbortError") {
+                // Request was aborted, do nothing
+                return;
+              }
+              console.error("Error fetching collection details:", error);
+            }
           }
         } else {
           setFormState((prev) => ({
             ...prev,
-            ...(taskId
-              ? {}
-              : {
-                  slugValid: false,
-                  magicEdenValid: false,
-                  blurValid: false,
-                }),
+            slugValid: false,
+            magicEdenValid: false,
+            blurValid: false,
             blurFloorPrice: null,
             magicedenFloorPrice: null,
             openseaFloorPrice: null,
+            validatingSlug: false,
+            selectedTraits: {},
+            traits: { categories: {}, counts: {} },
+            validationComplete: true,
           }));
         }
-      } catch (error) {
-        if (!isMounted) return;
+      } catch (error: any) {
+        if (error.name === "AbortError") {
+          // Request was aborted, do nothing
+          return;
+        }
 
         console.error("Error validating slug:", error);
         setFormState((prev) => ({
           ...prev,
-          ...(taskId
-            ? {}
-            : {
-                slugValid: false,
-                magicEdenValid: false,
-                blurValid: false,
-              }),
+          slugValid: false,
+          magicEdenValid: false,
+          blurValid: false,
           blurFloorPrice: null,
           magicedenFloorPrice: null,
           openseaFloorPrice: null,
           validatingSlug: false,
+          validationComplete: true,
         }));
 
         toast.error("Failed to validate collection slug");
-      } finally {
-        setFormState((prev) => ({
-          ...prev,
-          validatingSlug: false,
-        }));
       }
     },
-    [taskId]
+    [formState.contract.slug.length]
   );
-
-  // ... rest of the code ...
 
   const debouncedValidateSlug = useMemo(
     () => debounce(validateSlug, 500),
@@ -619,4 +627,5 @@ export interface TaskFormState {
   magicedenFloorPrice: number | null;
   openseaFloorPrice: number | null;
   validatingSlug: boolean;
+  validationComplete: boolean;
 }

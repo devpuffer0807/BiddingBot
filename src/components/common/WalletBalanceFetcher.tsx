@@ -84,36 +84,56 @@ const WalletBalanceFetcher: React.FC<WalletBalanceFetcherProps> = ({
   }, []);
 
   useEffect(() => {
+    const cache = new Map();
+    const CACHE_DURATION = 10 * 60 * 1000;
     const updateWalletOptionsWithBalances = async () => {
       if (!provider) return;
-
       const updatedOptions = await Promise.all(
         walletOptions.map(async (option) => {
-          const etherBalance = await fetchEtherBalance(
-            option.address || "",
-            provider
-          );
-          const wethBalance = await fetchWethBalance(
-            option.address || "",
-            provider
-          );
-          const blurBalance = await fetchBlurBalance(
-            option.address || "",
-            provider
-          );
-          return {
-            ...option,
-            etherBalance,
-            wethBalance,
-            blurBalance,
-          };
+          const cacheKey = option.address;
+          const cachedData = cache.get(cacheKey);
+          const now = Date.now();
+
+          if (cachedData && now - cachedData.timestamp < CACHE_DURATION) {
+            return {
+              ...option,
+              ...cachedData.balances,
+            };
+          } else {
+            const etherBalance = await fetchEtherBalance(
+              option.address || "",
+              provider
+            );
+            const wethBalance = await fetchWethBalance(
+              option.address || "",
+              provider
+            );
+            const blurBalance = await fetchBlurBalance(
+              option.address || "",
+              provider
+            );
+            const balances = {
+              etherBalance,
+              wethBalance,
+              blurBalance,
+            };
+            cache.set(cacheKey, {
+              timestamp: now,
+              balances,
+            });
+            return {
+              ...option,
+              ...balances,
+            };
+          }
         })
       );
+
       onBalancesFetched(updatedOptions);
     };
 
     updateWalletOptionsWithBalances();
-  }, [walletOptions, onBalancesFetched, provider]);
+  }, [provider, walletOptions, onBalancesFetched]);
 
   return null;
 };

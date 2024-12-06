@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { TaskFormState } from "@/hooks/useTaskForm";
 import CustomSelect, { CustomSelectOption } from "../common/CustomSelect";
 import Toggle from "../common/Toggle";
@@ -238,11 +238,18 @@ const FormSection: React.FC<FormSectionProps> = ({
 
   const minFloorPrice = Math.min(...floorPrices);
 
+  const handleBalancesFetched = useCallback(
+    (updatedOptions: CustomSelectOption[]) => {
+      setUpdatedWalletOptions(updatedOptions);
+    },
+    []
+  );
+
   return (
     <>
       <WalletBalanceFetcher
         walletOptions={walletOptions}
-        onBalancesFetched={setUpdatedWalletOptions}
+        onBalancesFetched={handleBalancesFetched}
       />
       <MarketplaceSection
         formState={formState}

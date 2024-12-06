@@ -425,10 +425,9 @@ const Tasks = () => {
   };
 
   useEffect(() => {
-    if (!getBidStats) return;
-    const intervalId = setInterval(() => getBidStats(), 5000);
+    const intervalId = setInterval(getBidStats, 5000);
     return () => clearInterval(intervalId);
-  }, [getBidStats]);
+  }, []);
 
   const exportButton = (
     <div className="relative inline-block">

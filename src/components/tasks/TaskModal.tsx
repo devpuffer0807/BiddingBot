@@ -149,6 +149,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           magicedenFloorPrice: null,
           openseaFloorPrice: null,
           validatingSlug: false,
+          validationComplete: false,
         }
       : {
           contract: {
@@ -218,6 +219,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           magicedenFloorPrice: null,
           openseaFloorPrice: null,
           validatingSlug: false,
+          validationComplete: false,
         },
     taskId
   );
@@ -267,12 +269,43 @@ const TaskModal: React.FC<TaskModalProps> = ({
     }
   }, [initialTask?.tokenIds]);
 
-  // Add this useEffect
   useEffect(() => {
-    if (isOpen && taskId && initialTask) {
-      validateSlug(initialTask.contract.slug);
-    }
-  }, [isOpen, taskId, initialTask, validateSlug]);
+    const fetchDetails = async () => {
+      if (
+        isOpen &&
+        initialTask?.contract.slug &&
+        initialTask?.contract.contractAddress
+      ) {
+        try {
+          const detailsResponse = await fetch(
+            `/api/ethereum/details?slug=${initialTask.contract.slug}&address=${initialTask.contract.contractAddress}`
+          );
+          if (detailsResponse.ok) {
+            const detailsData = await detailsResponse.json();
+            setFormState((prev) => ({
+              ...prev,
+              magicEdenValid: detailsData.magicEdenValid,
+              blurValid: detailsData.blurValid,
+              blurFloorPrice: detailsData.blurFloorPrice,
+              magicedenFloorPrice: detailsData.magicedenFloorPrice,
+              openseaFloorPrice: detailsData.openseaFloorPrice,
+              traits: detailsData.traits || prev.traits,
+              validationComplete: true,
+            }));
+          }
+        } catch (error) {
+          console.error("Error fetching collection details:", error);
+        }
+      }
+    };
+
+    fetchDetails();
+  }, [
+    isOpen,
+    initialTask?.contract.slug,
+    initialTask?.contract.contractAddress,
+    setFormState,
+  ]);
 
   const walletOptions = wallets.map((wallet) => ({
     value: wallet.address,
@@ -443,11 +476,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    const taskStore = useTaskStore.getState();
-    const existingTask = taskId
-      ? taskStore.tasks.find((task) => task._id === taskId)
-      : null;
-
     setFormState((prev) => ({
       ...prev,
       contract: {
@@ -460,32 +488,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
         categories: {},
         counts: {},
       },
-      ...(taskId && existingTask
-        ? {
-            blurValid: existingTask.blurValid,
-            magicEdenValid: existingTask.magicEdenValid,
-            slugValid: existingTask.slugValid,
-          }
-        : {
-            blurValid: false,
-            magicEdenValid: false,
-            slugValid: false,
-          }),
     }));
 
     if (value.length >= 3) {
       debouncedValidateSlug(value);
-    } else {
-      setFormState((prev) => ({
-        ...prev,
-        ...(taskId && existingTask
-          ? {
-              slugValid: existingTask.slugValid,
-            }
-          : {
-              slugValid: false,
-            }),
-      }));
     }
   };
 

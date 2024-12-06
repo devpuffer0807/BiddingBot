@@ -14,7 +14,7 @@ const API_KEY = process.env.API_KEY as string;
 const BLUR_API_URL = "https://api.nfttools.website/blur";
 
 const redis = redisClient.getClient();
-const ALCHEMY_API_KEY = "0rk2kbu11E5PDyaUqX1JjrNKwG7s4ty5";
+const ALCHEMY_API_KEY = "HGWgCONolXMB2op5UjPH1YreDCwmSbvx";
 const provider = new ethers.AlchemyProvider("mainnet", ALCHEMY_API_KEY);
 export const SEAPORT_CONTRACT_ADDRESS =
   "0x0000000000000068f116a894984e2db1123eb395";
