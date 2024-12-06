@@ -25,7 +25,10 @@ const ImportVerification = () => {
 
   const handleConfirmImport = async () => {
     try {
-      importedTasks.forEach((task) => {
+      const tasksToImport = importedTasks.filter((task) =>
+        selectedTasks.includes(task._id)
+      );
+      tasksToImport.forEach((task) => {
         addTask(task);
       });
 
@@ -34,7 +37,7 @@ const ImportVerification = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(importedTasks),
+        body: JSON.stringify(tasksToImport),
         credentials: "include",
       });
 
@@ -100,6 +103,8 @@ const ImportVerification = () => {
     }
     setSelectAll(!selectAll);
   };
+
+  console.log({ selectedTasks, importedTasks });
 
   return (
     <section className="ml-0 sm:ml-20 p-4 sm:p-6 pb-24">

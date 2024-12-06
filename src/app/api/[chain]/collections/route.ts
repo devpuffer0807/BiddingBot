@@ -22,17 +22,15 @@ export async function GET(request: NextRequest) {
 
     // Define all tasks
     const tasks = [
-      getOpenseaTraits(slug),
+      fetchTraitData(slug),
       fetchBlurFloorPrice(slug),
-      fetchMagicEdenData(collection.contracts[0].address),
       fetchOpenSeaCollectionStats(slug),
+      fetchMagicEdenData(collection.contracts[0].address),
       fetchBlurTraits(collection.contracts[0].address),
       fetchMagicEdenAttributes(collection.contracts[0].address),
-      fetchTraitData(slug),
     ];
 
     const [
-      openseaTraits,
       blurFLoorPrice,
       magicedenFloorPrice,
       openseaFloorPrice,
@@ -40,6 +38,8 @@ export async function GET(request: NextRequest) {
       magicEdenTraits,
       openseaTraitData,
     ] = await Promise.all(tasks);
+
+    const openseaTraits = transformOpenseaTrait(openseaTraitData);
 
     const combinedTraits: {
       categories: Record<string, string>;
@@ -64,8 +64,8 @@ export async function GET(request: NextRequest) {
     const marketplaces = ["opensea", "magiceden", "blur"] as const;
     const traitsData = [
       openseaTraits,
-      magicEdenTraits.traits,
-      blurTraits.traits,
+      magicEdenTraits?.traits,
+      blurTraits?.traits,
     ];
 
     marketplaces.forEach((marketplace, index) => {
@@ -110,11 +110,11 @@ export async function GET(request: NextRequest) {
           // Add Blur floor price
           if (
             marketplace === "blur" &&
-            blurTraits.blurRaw?.traits &&
-            blurTraits.blurRaw.traits[category]
+            blurTraits?.blurRaw?.traits &&
+            blurTraits?.blurRaw?.traits[category]
           ) {
             const blurFloor =
-              +blurTraits.blurRaw.traits[category][trait]?.floor?.amount || 0;
+              +blurTraits?.blurRaw?.traits[category][trait]?.floor?.amount || 0;
             combinedTraits.counts[category][trait].blurFloor = blurFloor;
           }
 
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
             magicEdenTraits?.magicedenRaw?.attributes
           ) {
             const magicEdenAttribute =
-              magicEdenTraits.magicedenRaw.attributes.find(
+              magicEdenTraits?.magicedenRaw?.attributes.find(
                 (attr: any) => attr.key === category
               );
             if (magicEdenAttribute) {
@@ -144,7 +144,7 @@ export async function GET(request: NextRequest) {
             openseaTraitData?.data?.collection?.stringTraits
           ) {
             const openseaTrait =
-              openseaTraitData.data.collection.stringTraits.find(
+              openseaTraitData?.data?.collection.stringTraits.find(
                 (t: any) => t.key.toLowerCase() === category.toLowerCase()
               );
             if (openseaTrait) {
@@ -240,7 +240,23 @@ export async function fetchBlurFloorPrice(collectionSlug: string) {
   }
 }
 
-export async function getOpenseaTraits(collectionSlug: string) {
+function transformOpenseaTrait(actualData: any) {
+  const result: any = {
+    categories: {},
+    counts: {},
+  };
+  actualData.data.collection.stringTraits.forEach((trait: any) => {
+    result.categories[trait.key] = "string";
+    result.counts[trait.key] = {};
+    trait.counts.forEach((item: any) => {
+      result.counts[trait.key][item.value] = item.count;
+    });
+  });
+
+  return result;
+}
+
+async function getOpenseaTraits(collectionSlug: string) {
   try {
     const response = await fetch(
       `https://api.nfttools.website/opensea/api/v2/traits/${collectionSlug}`,
@@ -253,13 +269,13 @@ export async function getOpenseaTraits(collectionSlug: string) {
     );
 
     if (!response.ok) {
-      return { categories: {}, counts: {} };
+      // return { categories: {}, counts: {} };
     }
     const data = await response.json();
     return data;
   } catch (error) {
     console.error("Error fetching collection traits:", error);
-    return { categories: {}, counts: {} };
+    // return { categories: {}, counts: {} };
   }
 }
 
@@ -303,19 +319,30 @@ function transformMagicEdenTraits(magicEdenTraits: MagicEdenTraits): Traits {
     counts: {},
   };
 
+  // Return empty traits object if magicEdenTraits or attributes is null/undefined
+  if (!magicEdenTraits || !magicEdenTraits.attributes) {
+    return traits;
+  }
+
   try {
     magicEdenTraits.attributes.forEach((attribute) => {
+      if (!attribute || !attribute.key || !attribute.values) return;
+
       const { key, values } = attribute;
       traits.categories[key] = "string";
       traits.counts[key] = {};
+
       values.forEach((value) => {
+        if (!value || !value.value) return;
         const { value: itemValue, count } = value;
         traits.counts[key][itemValue] = count;
       });
     });
+
     return traits;
   } catch (error) {
-    return { categories: {}, counts: {} };
+    console.error("Error transforming Magic Eden traits:", error);
+    return traits;
   }
 }
 

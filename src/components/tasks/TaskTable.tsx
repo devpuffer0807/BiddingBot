@@ -15,6 +15,7 @@ import DeleteIcon from "@/assets/svg/DeleteIcon";
 import { useTaskStore } from "@/store/task.store";
 import { toast } from "react-toastify";
 import DeleteModal from "./DeleteTaskModal";
+import { BidStats, MergedTask } from "@/app/dashboard/tasks/page";
 
 const GENERAL_BID_PRICE = "GENERAL_BID_PRICE";
 const MARKETPLACE_BID_PRICE = "MARKETPLACE_BID_PRICE";
@@ -32,19 +33,25 @@ interface TaskTableProps {
   selectedTags: Tag[];
   selectedBidTypes?: ("COLLECTION" | "TOKEN" | "TRAIT")[]; // Make this prop optional
   isVerificationMode?: boolean;
+  mergedTasks?: MergedTask[];
+  bidStats?: BidStats;
+  getBidStats?: () => Promise<void>;
+  totalBids?: {
+    opensea: number;
+    blur: number;
+    magiceden: number;
+  };
+  previousTotalBidsRef?: React.MutableRefObject<{
+    opensea: number;
+    blur: number;
+    magiceden: number;
+  }>;
+  bidDifference?: number;
+
   // onDeleteTask: (taskId: string) => void;
 }
 
-interface BidStats {
-  [key: string]: {
-    opensea: number;
-    magiceden: number;
-    blur: number;
-  };
-}
-
 const TaskTable: React.FC<TaskTableProps> = ({
-  tasks,
   selectedTasks,
   selectAll,
   onToggleSelectAll,
@@ -52,92 +59,20 @@ const TaskTable: React.FC<TaskTableProps> = ({
   onToggleTaskStatus,
   onToggleMarketplace,
   onEditTask,
-  filterText,
-  selectedTags,
-  selectedBidTypes = [], // Provide a default empty array
   isVerificationMode = false,
-  // onDeleteTask,
+  mergedTasks,
+  getBidStats,
+  totalBids,
+  bidDifference,
+  tasks,
 }) => {
   const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
     .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
 
   const { sendMessage } = useWebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
-  const filteredTasks = tasks.filter((task) => {
-    const matchesSlug = task.contract.slug
-      .toLowerCase()
-      .includes(filterText.toLowerCase());
-    const matchesTags =
-      selectedTags.length === 0 ||
-      selectedTags.some((tag) =>
-        task.tags.some((taskTag) => taskTag.name === tag.name)
-      );
-    const bidType =
-      Object.keys(task?.selectedTraits || {}).length > 0
-        ? "TRAIT"
-        : task.bidType === "token" && task.tokenIds.length > 0
-        ? "TOKEN"
-        : task.bidType.toUpperCase();
-    const matchesBidType =
-      selectedBidTypes.length === 0 ||
-      selectedBidTypes.includes(bidType as any);
-    return matchesSlug && matchesTags && matchesBidType;
-  });
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-  const [bidStats, setBidStats] = useState<BidStats>({});
-  const [previousTotalBids, setPreviousTotalBids] = useState({
-    opensea: 0,
-    blur: 0,
-    magiceden: 0,
-  });
-
-  const previousTotalBidsRef = useRef({
-    opensea: 0,
-    blur: 0,
-    magiceden: 0,
-  });
-
-  const getBidStats = useCallback(async () => {
-    if (!tasks.length || isVerificationMode) return;
-
-    const runningTasks = tasks.map((task) => ({
-      slug: task.contract.slug,
-      selectedMarketplaces: task.selectedMarketplaces,
-      taskId: task._id,
-    }));
-
-    try {
-      const response = await fetch("/api/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tasks: runningTasks }),
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch bid stats");
-
-      const data: BidStats = await response.json();
-      setBidStats(data);
-    } catch (error) {
-      console.error("Error fetching bid stats:", error);
-    }
-  }, [tasks, isVerificationMode]);
-
-  useEffect(() => {
-    const intervalId = setInterval(getBidStats, 5000);
-    return () => clearInterval(intervalId);
-  }, [getBidStats]);
-
-  const mergedTasks = useMemo(() => {
-    return tasks.map((task) => ({
-      ...task,
-      bidStats: bidStats[task._id] || {
-        opensea: 0,
-        magiceden: 0,
-        blur: 0,
-      },
-    }));
-  }, [tasks, bidStats]);
 
   const { deleteTask, deleteImportedTask } = useTaskStore();
 
@@ -175,49 +110,19 @@ const TaskTable: React.FC<TaskTableProps> = ({
     }
   };
 
-  const totalBids = useMemo(() => {
-    return {
-      opensea: Object.values(bidStats).reduce(
-        (sum, stats) => sum + (stats.opensea || 0),
-        0
-      ),
-      blur: Object.values(bidStats).reduce(
-        (sum, stats) => sum + (stats.blur || 0),
-        0
-      ),
-      magiceden: Object.values(bidStats).reduce(
-        (sum, stats) => sum + (stats.magiceden || 0),
-        0
-      ),
-    };
-  }, [bidStats]);
-
   useEffect(() => {
-    // Only update the ref if the totals have changed
-    if (
-      JSON.stringify(previousTotalBidsRef.current) !== JSON.stringify(totalBids)
-    ) {
-      previousTotalBidsRef.current = { ...totalBids };
-    }
-  }, [totalBids]);
+    mergedTasks?.forEach((task) => {
+      if (
+        task.selectedMarketplaces.includes("Blur") &&
+        task.bidType === "token"
+      ) {
+        onToggleMarketplace(task._id, "Blur");
+      }
+    });
+  }, [mergedTasks, onToggleMarketplace]);
 
-  const bidDifference = useMemo(() => {
-    const currentTotal = Object.values(totalBids).reduce(
-      (sum, count) => sum + count,
-      0
-    );
-    const previousTotal = Object.values(previousTotalBidsRef.current).reduce(
-      (sum, count) => sum + count,
-      0
-    );
-    const difference = currentTotal - previousTotal;
-    return difference;
-  }, [totalBids]);
-
-  const handleDelete = (taskId: string) => {
-    if (isVerificationMode) {
-      deleteTask(taskId);
-    }
+  const isMergedTask = (task: Task | MergedTask): task is MergedTask => {
+    return "bidStats" in task;
   };
 
   return (
@@ -237,13 +142,19 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     : ""
                 }`}
               ></div>
-              <div>{totalBids[marketplace as keyof typeof totalBids]}</div>
+              <div>
+                {
+                  (totalBids || { opensea: 0, blur: 0, magiceden: 0 })[
+                    marketplace as keyof typeof totalBids
+                  ]
+                }
+              </div>
             </div>
           ))}
 
           <div className="flex gap-4">
             <p>Bid Per Second:</p>
-            <p>{Math.ceil(bidDifference / 5)} / s</p>
+            <p>{Math.ceil((bidDifference || 0) / 5)} / s</p>
           </div>
         </div>
       )}
@@ -329,366 +240,397 @@ const TaskTable: React.FC<TaskTableProps> = ({
               </tr>
             </thead>
             <tbody>
-              {mergedTasks.map((task) => {
-                return (
-                  <tr
-                    key={task._id}
-                    className="border-b border-Neutral/Neutral-Border-[night] sm:table-row"
-                  >
-                    <td className="px-6 py-4 text-center w-[100px]">
-                      <label className="inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="sr-only"
-                          checked={selectedTasks.includes(task._id)}
-                          onChange={() => onToggleTaskSelection(task._id)}
-                        />
-                        <div
-                          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors duration-200 ease-in-out ${
-                            selectedTasks.includes(task._id)
-                              ? "bg-[#7F56D9] border-[#7F56D9]"
-                              : "bg-transparent border-gray-400"
-                          }`}
-                        >
-                          {selectedTasks.includes(task._id) && (
-                            <svg
-                              className="w-3 h-3 text-white"
-                              viewBox="0 0 16 16"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M13.3333 4L6 11.3333L2.66667 8"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                      </label>
-                    </td>
-                    <td className="px-6 py-4 text-center w-[150px]">
-                      <Link
-                        href={`/dashboard/tasks/${task._id}`}
-                        className="text-Brand/Brand-1 underline"
-                      >
-                        {task.contract.slug}
-                      </Link>
-                    </td>
-
-                    {isVerificationMode ? null : (
-                      <td className="px-6 py-4 text-center w-[150px] text-sm">
-                        {task.selectedMarketplaces.length > 0 ? (
-                          task.selectedMarketplaces
-                            .sort()
-                            .map((marketplace) => marketplace.toLowerCase())
-                            .map((marketplace, index) => {
-                              const total =
-                                task.bidType === "collection" &&
-                                Object.keys(task?.selectedTraits || {})
-                                  .length == 0
-                                  ? 1
-                                  : Object.keys(task?.selectedTraits || {})
-                                      .length > 0
-                                  ? Object.values(task.selectedTraits).reduce(
-                                      (
-                                        acc: number,
-                                        curr: {
-                                          name: string;
-                                          availableInMarketplaces: string[];
-                                        }[]
-                                      ) => acc + curr.length,
-                                      0
-                                    )
-                                  : task.tokenIds?.length || 1;
-
-                              return (
-                                <div
-                                  className="flex gap-2 items-center"
-                                  key={index}
-                                >
-                                  <div
-                                    className={`w-4 h-4 rounded-full ${
-                                      marketplace === "opensea"
-                                        ? "bg-[#2081e2]"
-                                        : marketplace === "blur"
-                                        ? "bg-[#FF8700]"
-                                        : marketplace === "magiceden"
-                                        ? "bg-[#e42575]"
-                                        : ""
-                                    }`}
-                                  ></div>
-                                  <div>
-                                    {
-                                      task.bidStats[
-                                        marketplace as keyof typeof task.bidStats
-                                      ]
-                                    }{" "}
-                                    / {total}
-                                  </div>
-                                </div>
-                              );
-                            })
-                        ) : (
-                          <span>No Marketplaces Selected</span>
-                        )}
-                      </td>
-                    )}
-                    <td className="px-6 py-4 text-center w-[120px]">
-                      {Object.keys(task?.selectedTraits || {}).length > 0
-                        ? "TRAIT"
-                        : task.bidType === "token" && task.tokenIds.length > 0
-                        ? "TOKEN"
-                        : task.bidType.toUpperCase()}
-                    </td>
-                    <td className="px-6 py-4 text-center w-[120px]">
-                      <div className="flex flex-col">
-                        {task.bidPrice.min &&
-                        task.bidPrice.minType &&
-                        task.bidPriceType === GENERAL_BID_PRICE ? (
-                          <span>
-                            {task.bidPrice.min}{" "}
-                            {task.bidPrice.minType === "percentage"
-                              ? "%"
-                              : "ETH".toUpperCase()}
-                          </span>
-                        ) : null}
-
-                        {task.openseaBidPrice.min &&
-                        task.openseaBidPrice.minType &&
-                        task.bidPriceType === MARKETPLACE_BID_PRICE ? (
-                          <span className="text-[#2081e2]">
-                            {task.openseaBidPrice.min}{" "}
-                            {task.openseaBidPrice.minType === "percentage"
-                              ? "%"
-                              : "WETH".toUpperCase()}
-                          </span>
-                        ) : null}
-
-                        {task.blurBidPrice.min &&
-                        task.blurBidPrice.minType &&
-                        task.bidPriceType === MARKETPLACE_BID_PRICE ? (
-                          <span className="text-[#FF8700]">
-                            {task.blurBidPrice.min}{" "}
-                            {task.blurBidPrice.minType === "percentage"
-                              ? "%"
-                              : "BETH".toUpperCase()}
-                          </span>
-                        ) : null}
-
-                        {task.magicEdenBidPrice.min &&
-                        task.magicEdenBidPrice.minType &&
-                        task.bidPriceType === MARKETPLACE_BID_PRICE ? (
-                          <span className="text-[#e42575]">
-                            {task.magicEdenBidPrice.min}{" "}
-                            {task.magicEdenBidPrice.minType === "percentage"
-                              ? "%"
-                              : "WETH".toUpperCase()}
-                          </span>
-                        ) : null}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center w-[120px]">
-                      <div className="flex flex-col">
-                        {task.bidPrice.max &&
-                        task.bidPrice.maxType &&
-                        task.bidPriceType === GENERAL_BID_PRICE &&
-                        task.outbidOptions.outbid ? (
-                          <span>
-                            {task.bidPrice.max}{" "}
-                            {task.bidPrice.maxType === "percentage"
-                              ? "%"
-                              : "ETH".toUpperCase()}
-                          </span>
-                        ) : task.bidPrice.min &&
-                          task.bidPrice.minType &&
-                          task.bidPriceType === GENERAL_BID_PRICE ? (
-                          <span>
-                            {task.bidPrice.min}{" "}
-                            {task.bidPrice.minType === "percentage"
-                              ? "%"
-                              : "ETH".toUpperCase()}
-                          </span>
-                        ) : null}
-
-                        {task.openseaBidPrice.max &&
-                        task.openseaBidPrice.maxType &&
-                        task.bidPriceType === MARKETPLACE_BID_PRICE &&
-                        task.outbidOptions.outbid ? (
-                          <span className="text-[#2081e2]">
-                            {task.openseaBidPrice.max}{" "}
-                            {task.openseaBidPrice.maxType === "percentage"
-                              ? "%"
-                              : "ETH".toUpperCase()}
-                          </span>
-                        ) : task.openseaBidPrice.min &&
-                          task.openseaBidPrice.minType &&
-                          task.bidPriceType === MARKETPLACE_BID_PRICE ? (
-                          <span className="text-[#2081e2]">
-                            {task.openseaBidPrice.min}{" "}
-                            {task.openseaBidPrice.minType === "percentage"
-                              ? "%"
-                              : "WETH".toUpperCase()}
-                          </span>
-                        ) : null}
-
-                        {task.blurBidPrice.max &&
-                        task.blurBidPrice.maxType &&
-                        task.bidPriceType === MARKETPLACE_BID_PRICE &&
-                        task.outbidOptions.outbid ? (
-                          <span className="text-[#FF8700]">
-                            {task.blurBidPrice.max}{" "}
-                            {task.blurBidPrice.maxType === "percentage"
-                              ? "%"
-                              : "ETH".toUpperCase()}
-                          </span>
-                        ) : task.blurBidPrice.min &&
-                          task.blurBidPrice.minType &&
-                          task.bidPriceType === MARKETPLACE_BID_PRICE ? (
-                          <span className="text-[#FF8700]">
-                            {task.blurBidPrice.min}{" "}
-                            {task.blurBidPrice.minType === "percentage"
-                              ? "%"
-                              : "BETH".toUpperCase()}
-                          </span>
-                        ) : null}
-
-                        {task.magicEdenBidPrice.max &&
-                        task.magicEdenBidPrice.maxType &&
-                        task.bidPriceType === MARKETPLACE_BID_PRICE &&
-                        task.outbidOptions.outbid ? (
-                          <span className="text-[#e42575]">
-                            {task.magicEdenBidPrice.max}{" "}
-                            {task.magicEdenBidPrice.maxType === "percentage"
-                              ? "%"
-                              : "ETH".toUpperCase()}
-                          </span>
-                        ) : task.magicEdenBidPrice.min &&
-                          task.magicEdenBidPrice.minType &&
-                          task.bidPriceType === MARKETPLACE_BID_PRICE ? (
-                          <span className="text-[#e42575]">
-                            {task.magicEdenBidPrice.min}{" "}
-                            {task.magicEdenBidPrice.minType === "percentage"
-                              ? "%"
-                              : "WETH".toUpperCase()}
-                          </span>
-                        ) : null}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center w-[100px]">
-                      <span className="sm:hidden font-bold">OpenSea</span>
-                      <Toggle
-                        checked={task.selectedMarketplaces.includes("OpenSea")}
-                        onChange={() =>
-                          onToggleMarketplace(task._id, "OpenSea")
-                        }
-                        activeColor="#2081e2"
-                        inactiveColor="#3F3F46"
-                        disabled={!task.slugValid}
-                      />
-                    </td>
-                    <td className="px-6 py-4 text-center w-[100px]">
-                      <span className="sm:hidden font-bold">Blur</span>
-                      <Toggle
-                        checked={task.selectedMarketplaces.includes("Blur")}
-                        onChange={() => onToggleMarketplace(task._id, "Blur")}
-                        activeColor="#FF8700"
-                        inactiveColor="#3F3F46"
-                        disabled={!task.blurValid || task.bidType === "token"}
-                      />
-                    </td>
-                    <td className="px-6 py-4 text-center w-[100px]">
-                      <span className="sm:hidden font-bold">MagicEden</span>
-                      <Toggle
-                        checked={task.selectedMarketplaces.includes(
-                          "MagicEden"
-                        )}
-                        onChange={() =>
-                          onToggleMarketplace(task._id, "MagicEden")
-                        }
-                        activeColor="#e42575"
-                        inactiveColor="#3F3F46"
-                        disabled={!task.magicEdenValid}
-                      />
-                    </td>
-                    <td className="px-6 py-4 text-center w-[100px]">
-                      <span className="sm:hidden font-bold">Tags</span>
-                      <div className="flex flex-wrap gap-1 items-center justify-center">
-                        {task.tags.map((tag) => (
-                          <span
-                            key={tag.name}
-                            style={{ backgroundColor: tag.color }}
-                            className="w-5 h-5 rounded-full"
-                          ></span>
-                        ))}
-                      </div>
-                    </td>
-
-                    {isVerificationMode ? null : (
+              {(isVerificationMode ? tasks : mergedTasks)?.map(
+                (task: Task | MergedTask) => {
+                  return (
+                    <tr
+                      key={task._id}
+                      className="border-b border-Neutral/Neutral-Border-[night] sm:table-row"
+                    >
                       <td className="px-6 py-4 text-center w-[100px]">
-                        <span className="sm:hidden font-bold">Start</span>
                         <label className="inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
                             className="sr-only"
-                            checked={task.running}
-                            onChange={() => {
-                              onToggleTaskStatus(task._id);
-                              const message = {
-                                endpoint: "toggle-status",
-                                data: task,
-                              };
-                              sendMessage(message);
-                            }}
+                            checked={selectedTasks.includes(task._id)}
+                            onChange={() => onToggleTaskSelection(task._id)}
                           />
                           <div
-                            className={`relative w-11 h-6 bg-gray-200 rounded-full transition-colors duration-200 ease-in-out ${
-                              task.running ? "!bg-Brand/Brand-1" : ""
+                            className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors duration-200 ease-in-out ${
+                              selectedTasks.includes(task._id)
+                                ? "bg-[#7F56D9] border-[#7F56D9]"
+                                : "bg-transparent border-gray-400"
                             }`}
                           >
-                            <div
-                              className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ease-in-out ${
-                                task.running ? "transform translate-x-5" : ""
-                              }`}
-                            ></div>
+                            {selectedTasks.includes(task._id) && (
+                              <svg
+                                className="w-3 h-3 text-white"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M13.3333 4L6 11.3333L2.66667 8"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            )}
                           </div>
                         </label>
                       </td>
-                    )}
-                    <td className="px-6 py-4 text-center w-[80px]">
-                      <span className="sm:hidden font-bold">Edit</span>
-                      <div className="flex items-center justify-end sm:justify-center">
-                        <button onClick={() => onEditTask(task)}>
-                          <EditIcon />
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center w-[80px]">
-                      <span className="sm:hidden font-bold">Delete</span>
-                      <div className="flex items-center justify-end sm:justify-center">
-                        <button onClick={() => handleDeleteClick(task)}>
-                          <DeleteIcon />
-                        </button>
-                      </div>
-                    </td>
-                    {isVerificationMode && (
-                      <td className="px-6 py-4 text-center w-[80px]">
-                        {(!task.wallet?.address ||
-                          !task.wallet?.privateKey) && (
-                          <div
-                            className="flex items-center justify-center"
-                            title="Missing wallet information"
-                          >
-                            ⚠️
-                          </div>
-                        )}
+                      <td className="px-6 py-4 text-center w-[150px]">
+                        <Link
+                          href={`/dashboard/tasks/${task._id}`}
+                          className="text-Brand/Brand-1 underline"
+                        >
+                          {task.contract.slug}
+                        </Link>
                       </td>
-                    )}
-                  </tr>
-                );
-              })}
+
+                      {isVerificationMode ? null : (
+                        <td className="px-6 py-4 text-center w-[150px] text-sm">
+                          {task.selectedMarketplaces.length > 0 ? (
+                            task.selectedMarketplaces
+                              .sort()
+                              .map((marketplace) => marketplace.toLowerCase())
+                              .map((marketplace, index) => {
+                                const total =
+                                  task.bidType === "collection" &&
+                                  Object.keys(task?.selectedTraits || {})
+                                    .length == 0
+                                    ? 1
+                                    : Object.keys(task?.selectedTraits || {})
+                                        .length > 0
+                                    ? Object.values(task.selectedTraits).reduce(
+                                        (
+                                          acc: number,
+                                          curr: {
+                                            name: string;
+                                            availableInMarketplaces: string[];
+                                          }[]
+                                        ) => {
+                                          return (
+                                            acc +
+                                            curr.filter((trait) =>
+                                              trait.availableInMarketplaces
+                                                .map((m) => m.toLowerCase())
+                                                .includes(marketplace)
+                                            ).length
+                                          );
+                                        },
+                                        0
+                                      )
+                                    : task.tokenIds?.length || 1;
+
+                                return (
+                                  <div
+                                    className="flex gap-2 items-center"
+                                    key={index}
+                                  >
+                                    <div
+                                      className={`w-4 h-4 rounded-full ${
+                                        marketplace === "opensea"
+                                          ? "bg-[#2081e2]"
+                                          : marketplace === "blur"
+                                          ? "bg-[#FF8700]"
+                                          : marketplace === "magiceden"
+                                          ? "bg-[#e42575]"
+                                          : ""
+                                      }`}
+                                    ></div>
+                                    {isMergedTask(task) ? (
+                                      <div>
+                                        {
+                                          task.bidStats[
+                                            marketplace as keyof typeof task.bidStats
+                                          ]
+                                        }{" "}
+                                        / {total}
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                );
+                              })
+                          ) : (
+                            <span>No Marketplaces Selected</span>
+                          )}
+                        </td>
+                      )}
+                      <td className="px-6 py-4 text-center w-[120px]">
+                        {Object.keys(task?.selectedTraits || {}).length > 0
+                          ? "TRAIT"
+                          : task.bidType === "token" && task.tokenIds.length > 0
+                          ? "TOKEN"
+                          : task.bidType.toUpperCase()}
+                      </td>
+                      <td className="px-6 py-4 text-center w-[120px]">
+                        <div className="flex flex-col">
+                          {task.bidPrice.min &&
+                          task.bidPrice.minType &&
+                          task.bidPriceType === GENERAL_BID_PRICE ? (
+                            <span>
+                              {task.bidPrice.min}{" "}
+                              {task.bidPrice.minType === "percentage"
+                                ? "%"
+                                : "ETH".toUpperCase()}
+                            </span>
+                          ) : null}
+
+                          {task.openseaBidPrice.min &&
+                          task.openseaBidPrice.minType &&
+                          task.bidPriceType === MARKETPLACE_BID_PRICE ? (
+                            <span className="text-[#2081e2]">
+                              {task.openseaBidPrice.min}{" "}
+                              {task.openseaBidPrice.minType === "percentage"
+                                ? "%"
+                                : "WETH".toUpperCase()}
+                            </span>
+                          ) : null}
+
+                          {task.blurBidPrice.min &&
+                          task.blurBidPrice.minType &&
+                          task.bidPriceType === MARKETPLACE_BID_PRICE ? (
+                            <span className="text-[#FF8700]">
+                              {task.blurBidPrice.min}{" "}
+                              {task.blurBidPrice.minType === "percentage"
+                                ? "%"
+                                : "BETH".toUpperCase()}
+                            </span>
+                          ) : null}
+
+                          {task.magicEdenBidPrice.min &&
+                          task.magicEdenBidPrice.minType &&
+                          task.bidPriceType === MARKETPLACE_BID_PRICE ? (
+                            <span className="text-[#e42575]">
+                              {task.magicEdenBidPrice.min}{" "}
+                              {task.magicEdenBidPrice.minType === "percentage"
+                                ? "%"
+                                : "WETH".toUpperCase()}
+                            </span>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center w-[120px]">
+                        <div className="flex flex-col">
+                          {task.bidPrice.max &&
+                          task.bidPrice.maxType &&
+                          task.bidPriceType === GENERAL_BID_PRICE &&
+                          task.outbidOptions.outbid ? (
+                            <span>
+                              {task.bidPrice.max}{" "}
+                              {task.bidPrice.maxType === "percentage"
+                                ? "%"
+                                : "ETH".toUpperCase()}
+                            </span>
+                          ) : task.bidPrice.min &&
+                            task.bidPrice.minType &&
+                            task.bidPriceType === GENERAL_BID_PRICE ? (
+                            <span>
+                              {task.bidPrice.min}{" "}
+                              {task.bidPrice.minType === "percentage"
+                                ? "%"
+                                : "ETH".toUpperCase()}
+                            </span>
+                          ) : null}
+
+                          {task.openseaBidPrice.max &&
+                          task.openseaBidPrice.maxType &&
+                          task.bidPriceType === MARKETPLACE_BID_PRICE &&
+                          task.outbidOptions.outbid ? (
+                            <span className="text-[#2081e2]">
+                              {task.openseaBidPrice.max}{" "}
+                              {task.openseaBidPrice.maxType === "percentage"
+                                ? "%"
+                                : "ETH".toUpperCase()}
+                            </span>
+                          ) : task.openseaBidPrice.min &&
+                            task.openseaBidPrice.minType &&
+                            task.bidPriceType === MARKETPLACE_BID_PRICE ? (
+                            <span className="text-[#2081e2]">
+                              {task.openseaBidPrice.min}{" "}
+                              {task.openseaBidPrice.minType === "percentage"
+                                ? "%"
+                                : "WETH".toUpperCase()}
+                            </span>
+                          ) : null}
+
+                          {task.blurBidPrice.max &&
+                          task.blurBidPrice.maxType &&
+                          task.bidPriceType === MARKETPLACE_BID_PRICE &&
+                          task.outbidOptions.outbid ? (
+                            <span className="text-[#FF8700]">
+                              {task.blurBidPrice.max}{" "}
+                              {task.blurBidPrice.maxType === "percentage"
+                                ? "%"
+                                : "ETH".toUpperCase()}
+                            </span>
+                          ) : task.blurBidPrice.min &&
+                            task.blurBidPrice.minType &&
+                            task.bidPriceType === MARKETPLACE_BID_PRICE ? (
+                            <span className="text-[#FF8700]">
+                              {task.blurBidPrice.min}{" "}
+                              {task.blurBidPrice.minType === "percentage"
+                                ? "%"
+                                : "BETH".toUpperCase()}
+                            </span>
+                          ) : null}
+
+                          {task.magicEdenBidPrice.max &&
+                          task.magicEdenBidPrice.maxType &&
+                          task.bidPriceType === MARKETPLACE_BID_PRICE &&
+                          task.outbidOptions.outbid ? (
+                            <span className="text-[#e42575]">
+                              {task.magicEdenBidPrice.max}{" "}
+                              {task.magicEdenBidPrice.maxType === "percentage"
+                                ? "%"
+                                : "ETH".toUpperCase()}
+                            </span>
+                          ) : task.magicEdenBidPrice.min &&
+                            task.magicEdenBidPrice.minType &&
+                            task.bidPriceType === MARKETPLACE_BID_PRICE ? (
+                            <span className="text-[#e42575]">
+                              {task.magicEdenBidPrice.min}{" "}
+                              {task.magicEdenBidPrice.minType === "percentage"
+                                ? "%"
+                                : "WETH".toUpperCase()}
+                            </span>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center w-[100px]">
+                        <span className="sm:hidden font-bold">OpenSea</span>
+                        <Toggle
+                          checked={task.selectedMarketplaces.includes(
+                            "OpenSea"
+                          )}
+                          onChange={() => {
+                            if (
+                              !task.selectedMarketplaces.includes("OpenSea") &&
+                              !task.slugValid
+                            )
+                              return;
+                            onToggleMarketplace(task._id, "OpenSea");
+                          }}
+                          activeColor="#2081e2"
+                          inactiveColor="#3F3F46"
+                        />
+                      </td>
+                      <td className="px-6 py-4 text-center w-[100px]">
+                        <span className="sm:hidden font-bold">Blur</span>
+                        <Toggle
+                          checked={task.selectedMarketplaces.includes("Blur")}
+                          onChange={() => {
+                            if (
+                              !task.selectedMarketplaces.includes("Blur") &&
+                              (!task.blurValid || task.bidType === "token")
+                            )
+                              return;
+                            onToggleMarketplace(task._id, "Blur");
+                          }}
+                          activeColor="#FF8700"
+                          inactiveColor="#3F3F46"
+                        />
+                      </td>
+                      <td className="px-6 py-4 text-center w-[100px]">
+                        <span className="sm:hidden font-bold">MagicEden</span>
+                        <Toggle
+                          checked={task.selectedMarketplaces.includes(
+                            "MagicEden"
+                          )}
+                          onChange={() => {
+                            if (
+                              !task.selectedMarketplaces.includes(
+                                "MagicEden"
+                              ) &&
+                              !task.magicEdenValid
+                            )
+                              return;
+                            onToggleMarketplace(task._id, "MagicEden");
+                          }}
+                          activeColor="#e42575"
+                          inactiveColor="#3F3F46"
+                        />
+                      </td>
+                      <td className="px-6 py-4 text-center w-[100px]">
+                        <span className="sm:hidden font-bold">Tags</span>
+                        <div className="flex flex-wrap gap-1 items-center justify-center">
+                          {task.tags.map((tag) => (
+                            <span
+                              key={tag.name}
+                              style={{ backgroundColor: tag.color }}
+                              className="w-5 h-5 rounded-full"
+                            ></span>
+                          ))}
+                        </div>
+                      </td>
+
+                      {isVerificationMode ? null : (
+                        <td className="px-6 py-4 text-center w-[100px]">
+                          <span className="sm:hidden font-bold">Start</span>
+                          <label className="inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              className="sr-only"
+                              checked={task.running}
+                              onChange={() => {
+                                onToggleTaskStatus(task._id);
+                                const message = {
+                                  endpoint: "toggle-status",
+                                  data: task,
+                                };
+                                sendMessage(message);
+                              }}
+                            />
+                            <div
+                              className={`relative w-11 h-6 bg-gray-200 rounded-full transition-colors duration-200 ease-in-out ${
+                                task.running ? "!bg-Brand/Brand-1" : ""
+                              }`}
+                            >
+                              <div
+                                className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ease-in-out ${
+                                  task.running ? "transform translate-x-5" : ""
+                                }`}
+                              ></div>
+                            </div>
+                          </label>
+                        </td>
+                      )}
+                      <td className="px-6 py-4 text-center w-[80px]">
+                        <span className="sm:hidden font-bold">Edit</span>
+                        <div className="flex items-center justify-end sm:justify-center">
+                          <button onClick={() => onEditTask(task)}>
+                            <EditIcon />
+                          </button>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center w-[80px]">
+                        <span className="sm:hidden font-bold">Delete</span>
+                        <div className="flex items-center justify-end sm:justify-center">
+                          <button onClick={() => handleDeleteClick(task)}>
+                            <DeleteIcon />
+                          </button>
+                        </div>
+                      </td>
+                      {isVerificationMode && (
+                        <td className="px-6 py-4 text-center w-[80px]">
+                          {(!task.wallet?.address ||
+                            !task.wallet?.privateKey) && (
+                            <div
+                              className="flex items-center justify-center"
+                              title="Missing wallet information"
+                            >
+                              ⚠️
+                            </div>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  );
+                }
+              )}
             </tbody>
           </table>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import TaskModal from "@/components/tasks/TaskModal";
 import { useTaskStore, Task } from "@/store/task.store";
 import React from "react";
@@ -51,9 +51,33 @@ const Tasks = () => {
   const [selectedBidTypes, setSelectedBidTypes] = useState<BidType[]>([]);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [bidStats, setBidStats] = useState<BidStats>({});
 
   const { sendMessage } = useWebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
   const router = useRouter();
+
+  const getBidStats = useCallback(async () => {
+    if (!tasks.length) return;
+    const runningTasks = tasks.map((task) => ({
+      slug: task.contract.slug,
+      selectedMarketplaces: task.selectedMarketplaces,
+      taskId: task._id,
+    }));
+
+    try {
+      const response = await fetch("/api/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tasks: runningTasks }),
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch bid stats");
+      const data: BidStats = await response.json();
+      setBidStats(data);
+    } catch (error) {
+      console.error("Error fetching bid stats:", error);
+    }
+  }, [tasks]);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -72,6 +96,84 @@ const Tasks = () => {
 
     fetchTasks();
   }, [setTasks]);
+
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSlug = task.contract.slug
+      .toLowerCase()
+      .includes(filterText.toLowerCase());
+    const matchesTags =
+      selectedTags.length === 0 ||
+      selectedTags.some((tag) =>
+        task.tags.some((taskTag) => taskTag.name === tag.name)
+      );
+    const bidType =
+      Object.keys(task?.selectedTraits || {}).length > 0
+        ? "TRAIT"
+        : task.bidType === "token" && task.tokenIds.length > 0
+        ? "TOKEN"
+        : task.bidType.toUpperCase();
+    const matchesBidType =
+      selectedBidTypes.length === 0 ||
+      selectedBidTypes.includes(bidType as any);
+    return matchesSlug && matchesTags && matchesBidType;
+  });
+
+  const mergedTasks = useMemo(() => {
+    return filteredTasks.map(
+      (task): MergedTask => ({
+        ...task,
+        bidStats: bidStats[task._id] || {
+          opensea: 0,
+          magiceden: 0,
+          blur: 0,
+        },
+      })
+    );
+  }, [filteredTasks, bidStats]);
+
+  const previousTotalBidsRef = useRef({
+    opensea: 0,
+    blur: 0,
+    magiceden: 0,
+  });
+
+  const totalBids = useMemo(() => {
+    return {
+      opensea: Object.values(bidStats || {}).reduce(
+        (sum, stats) => sum + (stats.opensea || 0),
+        0
+      ),
+      blur: Object.values(bidStats || {}).reduce(
+        (sum, stats) => sum + (stats.blur || 0),
+        0
+      ),
+      magiceden: Object.values(bidStats || {}).reduce(
+        (sum, stats) => sum + (stats.magiceden || 0),
+        0
+      ),
+    };
+  }, [bidStats]);
+
+  useEffect(() => {
+    if (
+      JSON.stringify(previousTotalBidsRef.current) !== JSON.stringify(totalBids)
+    ) {
+      previousTotalBidsRef.current = { ...totalBids };
+    }
+  }, [totalBids]);
+
+  const bidDifference = useMemo(() => {
+    const currentTotal = Object.values(totalBids).reduce(
+      (sum, count) => sum + count,
+      0
+    );
+    const previousTotal = Object.values(previousTotalBidsRef.current).reduce(
+      (sum, count) => sum + count,
+      0
+    );
+    const difference = currentTotal - previousTotal;
+    return difference;
+  }, [totalBids]);
 
   const toggleTaskSelection = (taskId: string) => {
     setSelectedTasks((prev) => {
@@ -322,6 +424,12 @@ const Tasks = () => {
     window.URL.revokeObjectURL(url);
   };
 
+  useEffect(() => {
+    if (!getBidStats) return;
+    const intervalId = setInterval(() => getBidStats(), 5000);
+    return () => clearInterval(intervalId);
+  }, [getBidStats]);
+
   const exportButton = (
     <div className="relative inline-block">
       <button
@@ -503,6 +611,11 @@ const Tasks = () => {
           filterText={filterText}
           selectedTags={selectedTags}
           selectedBidTypes={selectedBidTypes}
+          mergedTasks={mergedTasks}
+          bidStats={bidStats}
+          getBidStats={getBidStats}
+          totalBids={totalBids}
+          bidDifference={bidDifference}
         />
       </Accordion>
       <RecentBids
@@ -736,3 +849,19 @@ const convertCSVToTasks = (csvContent: string): Task[] => {
     return task;
   });
 };
+
+export interface MergedTask extends Task {
+  bidStats: {
+    opensea: number;
+    magiceden: number;
+    blur: number;
+  };
+}
+
+export interface BidStats {
+  [key: string]: {
+    opensea: number;
+    magiceden: number;
+    blur: number;
+  };
+}
