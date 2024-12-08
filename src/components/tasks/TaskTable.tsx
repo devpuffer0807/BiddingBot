@@ -47,8 +47,6 @@ interface TaskTableProps {
     magiceden: number;
   }>;
   bidDifference?: number;
-
-  // onDeleteTask: (taskId: string) => void;
 }
 
 const TaskTable: React.FC<TaskTableProps> = ({
@@ -61,7 +59,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
   onEditTask,
   isVerificationMode = false,
   mergedTasks,
-  getBidStats,
   totalBids,
   bidDifference,
   tasks,
@@ -123,6 +120,10 @@ const TaskTable: React.FC<TaskTableProps> = ({
 
   const isMergedTask = (task: Task | MergedTask): task is MergedTask => {
     return "bidStats" in task;
+  };
+
+  const isLoopStat = (task: Task | MergedTask): task is MergedTask => {
+    return "loopStat" in task;
   };
 
   return (
@@ -201,9 +202,18 @@ const TaskTable: React.FC<TaskTableProps> = ({
                   Slug
                 </th>
                 {isVerificationMode ? null : (
-                  <th scope="col" className="px-6 py-3 text-center w-[150px]">
-                    Progress
-                  </th>
+                  <>
+                    <th scope="col" className="px-6 py-3 text-center w-[150px]">
+                      Progress
+                    </th>
+
+                    <th scope="col" className="px-6 py-3 text-center w-[150px]">
+                      Loop Count
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-center w-[150px]">
+                      Next Loop Countdown
+                    </th>
+                  </>
                 )}
                 <th scope="col" className="px-6 py-3 text-center w-[120px]">
                   Bid Type
@@ -291,73 +301,164 @@ const TaskTable: React.FC<TaskTableProps> = ({
                       </td>
 
                       {isVerificationMode ? null : (
-                        <td className="px-6 py-4 text-center w-[150px] text-sm">
-                          {task.selectedMarketplaces.length > 0 ? (
-                            task.selectedMarketplaces
-                              .sort()
-                              .map((marketplace) => marketplace.toLowerCase())
-                              .map((marketplace, index) => {
-                                const total =
-                                  task.bidType === "collection" &&
-                                  Object.keys(task?.selectedTraits || {})
-                                    .length == 0
-                                    ? 1
-                                    : Object.keys(task?.selectedTraits || {})
-                                        .length > 0
-                                    ? Object.values(task.selectedTraits).reduce(
-                                        (
-                                          acc: number,
-                                          curr: {
-                                            name: string;
-                                            availableInMarketplaces: string[];
-                                          }[]
-                                        ) => {
-                                          return (
-                                            acc +
-                                            curr.filter((trait) =>
-                                              trait.availableInMarketplaces
-                                                .map((m) => m.toLowerCase())
-                                                .includes(marketplace)
-                                            ).length
-                                          );
-                                        },
-                                        0
-                                      )
-                                    : task.tokenIds?.length || 1;
+                        <>
+                          <td className="px-6 py-4 text-center w-[150px] text-sm">
+                            {task.selectedMarketplaces.length > 0
+                              ? task.selectedMarketplaces
+                                  .sort()
+                                  .map((marketplace) =>
+                                    marketplace.toLowerCase()
+                                  )
+                                  .map((marketplace, index) => {
+                                    const total =
+                                      task.bidType === "collection" &&
+                                      Object.keys(task?.selectedTraits || {})
+                                        .length == 0
+                                        ? 1
+                                        : Object.keys(
+                                            task?.selectedTraits || {}
+                                          ).length > 0
+                                        ? Object.values(
+                                            task.selectedTraits
+                                          ).reduce(
+                                            (
+                                              acc: number,
+                                              curr: {
+                                                name: string;
+                                                availableInMarketplaces: string[];
+                                              }[]
+                                            ) => {
+                                              return (
+                                                acc +
+                                                curr.filter((trait) =>
+                                                  trait.availableInMarketplaces
+                                                    .map((m) => m.toLowerCase())
+                                                    .includes(marketplace)
+                                                ).length
+                                              );
+                                            },
+                                            0
+                                          )
+                                        : task.tokenIds?.length || 1;
 
-                                return (
-                                  <div
-                                    className="flex gap-2 items-center"
-                                    key={index}
-                                  >
-                                    <div
-                                      className={`w-4 h-4 rounded-full ${
-                                        marketplace === "opensea"
-                                          ? "bg-[#2081e2]"
-                                          : marketplace === "blur"
-                                          ? "bg-[#FF8700]"
-                                          : marketplace === "magiceden"
-                                          ? "bg-[#e42575]"
-                                          : ""
-                                      }`}
-                                    ></div>
-                                    {isMergedTask(task) ? (
-                                      <div>
-                                        {
-                                          task.bidStats[
-                                            marketplace as keyof typeof task.bidStats
-                                          ]
-                                        }{" "}
-                                        / {total}
+                                    return (
+                                      <div
+                                        className="flex gap-2 items-center"
+                                        key={index}
+                                      >
+                                        <div
+                                          className={`w-4 h-4 rounded-full ${
+                                            marketplace === "opensea"
+                                              ? "bg-[#2081e2]"
+                                              : marketplace === "blur"
+                                              ? "bg-[#FF8700]"
+                                              : marketplace === "magiceden"
+                                              ? "bg-[#e42575]"
+                                              : ""
+                                          }`}
+                                        ></div>
+                                        {isMergedTask(task) ? (
+                                          <div>
+                                            {
+                                              task.bidStats[
+                                                marketplace as keyof typeof task.bidStats
+                                              ]
+                                            }{" "}
+                                            / {total}
+                                          </div>
+                                        ) : null}
                                       </div>
-                                    ) : null}
-                                  </div>
-                                );
-                              })
-                          ) : (
-                            <span>No Marketplaces Selected</span>
-                          )}
-                        </td>
+                                    );
+                                  })
+                              : "--"}
+                          </td>
+
+                          <td className="px-6 py-4 text-center w-[150px] text-sm">
+                            {task.selectedMarketplaces.length > 0
+                              ? task.selectedMarketplaces
+                                  .sort()
+                                  .map((marketplace) =>
+                                    marketplace.toLowerCase()
+                                  )
+                                  .map((marketplace, index) => {
+                                    return (
+                                      <div
+                                        className="flex gap-2 items-center justify-center"
+                                        key={index}
+                                      >
+                                        <div
+                                          className={`w-4 h-4 rounded-full ${
+                                            marketplace === "opensea"
+                                              ? "bg-[#2081e2]"
+                                              : marketplace === "blur"
+                                              ? "bg-[#FF8700]"
+                                              : marketplace === "magiceden"
+                                              ? "bg-[#e42575]"
+                                              : ""
+                                          }`}
+                                        ></div>
+                                        {isLoopStat(task) ? (
+                                          <div>
+                                            {task.loopStat[
+                                              marketplace as keyof typeof task.loopStat
+                                            ].count || "--"}
+                                          </div>
+                                        ) : null}
+                                      </div>
+                                    );
+                                  })
+                              : "--"}
+                          </td>
+
+                          <td className="px-6 py-4 text-center w-[150px] text-sm">
+                            {task.selectedMarketplaces.length > 0
+                              ? task.selectedMarketplaces
+                                  .sort()
+                                  .map((marketplace) =>
+                                    marketplace.toLowerCase()
+                                  )
+                                  .map((marketplace, index) => {
+                                    return (
+                                      <div
+                                        className="flex gap-2 items-center justify-center"
+                                        key={index}
+                                      >
+                                        <div
+                                          className={`w-4 h-4 rounded-full ${
+                                            marketplace === "opensea"
+                                              ? "bg-[#2081e2]"
+                                              : marketplace === "blur"
+                                              ? "bg-[#FF8700]"
+                                              : marketplace === "magiceden"
+                                              ? "bg-[#e42575]"
+                                              : ""
+                                          }`}
+                                        ></div>
+                                        {isLoopStat(task) ? (
+                                          <div>
+                                            {Math.ceil(
+                                              (task.loopStat[
+                                                marketplace as keyof typeof task.loopStat
+                                              ].nextLoop -
+                                                Date.now()) /
+                                                1000
+                                            ) > 0
+                                              ? Math.ceil(
+                                                  (task.loopStat[
+                                                    marketplace as keyof typeof task.loopStat
+                                                  ].nextLoop -
+                                                    Date.now()) /
+                                                    1000
+                                                )
+                                              : "--"}
+                                          </div>
+                                        ) : null}
+                                      </div>
+                                    );
+                                  })
+                              : "--"}
+                          </td>
+                        </>
                       )}
                       <td className="px-6 py-4 text-center w-[120px]">
                         {Object.keys(task?.selectedTraits || {}).length > 0

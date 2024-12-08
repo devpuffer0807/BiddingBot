@@ -19,6 +19,7 @@ import Papa from "papaparse";
 import { useRouter } from "next/navigation";
 import DeleteModal from "@/components/tasks/DeleteTaskModal";
 import { toast } from "react-toastify";
+import { LoopStat } from "@/app/api/progress/route";
 
 const NEXT_PUBLIC_SERVER_WEBSOCKET = process.env
   .NEXT_PUBLIC_SERVER_WEBSOCKET as string;
@@ -52,6 +53,7 @@ const Tasks = () => {
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [bidStats, setBidStats] = useState<BidStats>({});
+  const [loopStat, setLoopStats] = useState<LoopStat>({});
 
   const { sendMessage } = useWebSocket(NEXT_PUBLIC_SERVER_WEBSOCKET);
   const router = useRouter();
@@ -72,8 +74,11 @@ const Tasks = () => {
       });
 
       if (!response.ok) throw new Error("Failed to fetch bid stats");
-      const data: BidStats = await response.json();
-      setBidStats(data);
+      const data = await response.json();
+      const orderCounts: BidStats = data.orderCounts;
+      const loopStats: LoopStat = data.loopStat;
+      setBidStats(orderCounts);
+      setLoopStats(loopStats);
     } catch (error) {
       console.error("Error fetching bid stats:", error);
     }
@@ -122,14 +127,32 @@ const Tasks = () => {
     return filteredTasks.map(
       (task): MergedTask => ({
         ...task,
-        bidStats: bidStats[task._id] || {
+        bidStats: (bidStats && bidStats[task._id]) || {
           opensea: 0,
           magiceden: 0,
           blur: 0,
         },
+        loopStat: {
+          opensea: (loopStat &&
+            loopStat[task._id] &&
+            loopStat[task._id]["opensea"]) || {
+            count: 0,
+            nextLoop: Date.now(),
+          },
+          magiceden: (loopStat &&
+            loopStat[task._id] &&
+            loopStat[task._id].magiceden) || {
+            count: 0,
+            nextLoop: Date.now(),
+          },
+          blur: (loopStat && loopStat[task._id] && loopStat[task._id].blur) || {
+            count: 0,
+            nextLoop: Date.now(),
+          },
+        },
       })
     );
-  }, [filteredTasks, bidStats]);
+  }, [filteredTasks, bidStats, loopStat]);
 
   const previousTotalBidsRef = useRef({
     opensea: 0,
@@ -427,7 +450,7 @@ const Tasks = () => {
   useEffect(() => {
     const intervalId = setInterval(getBidStats, 5000);
     return () => clearInterval(intervalId);
-  }, []);
+  }, [getBidStats]);
 
   const exportButton = (
     <div className="relative inline-block">
@@ -854,6 +877,20 @@ export interface MergedTask extends Task {
     opensea: number;
     magiceden: number;
     blur: number;
+  };
+  loopStat: {
+    opensea: {
+      count: number;
+      nextLoop: number;
+    };
+    magiceden: {
+      count: number;
+      nextLoop: number;
+    };
+    blur: {
+      count: number;
+      nextLoop: number;
+    };
   };
 }
 
