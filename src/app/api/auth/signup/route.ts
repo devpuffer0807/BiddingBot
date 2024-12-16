@@ -1,68 +1,35 @@
 import { NextResponse } from "next/server";
-import { User } from "@/models/user.model";
-import bcrypt from "bcryptjs";
 import * as jose from "jose";
-import nodemailer from "nodemailer";
 import { config } from "dotenv";
-import { emailTemplate } from "@/utils/emails/verification_email";
-import { connect } from "@/utils/mongodb";
+import { CreateCredential } from "@/interface/web-authn.interface";
 
 config();
 
 export async function POST(request: Request) {
   try {
-    await connect();
-    const { name, email, password, signupForUpdates }: IAuthBody =
-      await request.json();
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return NextResponse.json(
-        { error: true, message: "Email already exists" },
-        { status: 400 }
-      );
-    }
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const body = await request.json();
+    const { credential } = body;
+    const webAuthnCred = credential as CreateCredential;
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      signupForUpdates,
-      isVerified: false,
+    const response = NextResponse.json({
+      message: "Account created",
     });
 
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    const verificationToken = await new jose.SignJWT({
-      userId: newUser._id.toString(),
-    })
+    const token = await new jose.SignJWT({ userId: webAuthnCred.rawId })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("7d")
       .sign(secret);
 
-    const verificationUrl = `${process.env.CLIENT_URL}/auth/verify?token=${verificationToken}`;
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
-      },
+    const maxAge = 7 * 24 * 60 * 60;
+    response.cookies.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge,
+      path: "/",
     });
 
-    await transporter.sendMail({
-      from: "sales@nfttools.pro",
-      to: newUser.email,
-      subject: "Verify your email address",
-      html: emailTemplate(verificationUrl),
-    });
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Verification email sent. Please check your inbox.",
-      },
-      { status: 201 }
-    );
+    return response;
   } catch (error: any) {
     console.error("Error creating user:", error);
     return NextResponse.json(
@@ -70,11 +37,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
-
-interface IAuthBody {
-  name: string;
-  email: string;
-  password: string;
-  signupForUpdates: boolean;
 }

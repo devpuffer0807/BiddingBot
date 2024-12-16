@@ -2,13 +2,13 @@ import mongoose, { Schema } from "mongoose";
 
 interface ITag extends Document {
   _id: mongoose.Types.ObjectId;
-  user: mongoose.Types.ObjectId;
+  user: string;
   name: string;
   color: string;
 }
 
 const TagSchema = new Schema<ITag>({
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  user: { type: String, ref: "User", required: true },
   name: { type: String, required: true },
   color: { type: String, required: true },
 });

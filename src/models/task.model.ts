@@ -8,7 +8,7 @@ interface SelectedTraits {
 }
 export interface ITask extends Document {
   _id: mongoose.Types.ObjectId;
-  user: mongoose.Types.ObjectId;
+  user: string;
   contract: {
     slug: string;
     contractAddress: string;
@@ -95,7 +95,7 @@ export interface ITask extends Document {
 
 const TaskSchema: Schema = new Schema(
   {
-    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    user: { type: String, ref: "User", required: true },
     contract: {
       slug: { type: String, required: true },
       contractAddress: { type: String, required: true },

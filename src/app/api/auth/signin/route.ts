@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { User } from "@/models/user.model";
-import bcrypt from "bcryptjs";
 import * as jose from "jose";
 import { config } from "dotenv";
 import { connect } from "@/utils/mongodb";
+import { CreateCredential } from "@/interface/web-authn.interface";
 
 config();
 
@@ -11,31 +10,19 @@ export async function POST(request: Request) {
   try {
     await connect();
 
-    const { email, password }: IAuthBody = await request.json();
+    const body = await request.json();
+    const { credential } = body;
 
-    const user = await User.findOne({ email });
-
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return NextResponse.json(
-        { error: true, message: "Invalid email or password" },
-        { status: 401, statusText: "Unauthorized" }
-      );
-    }
+    const webAuthnCred = credential as CreateCredential;
 
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    const token = await new jose.SignJWT({ userId: user._id.toString() })
+    const token = await new jose.SignJWT({ userId: webAuthnCred.rawId })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("7d")
       .sign(secret);
 
     const response = NextResponse.json({
-      success: true,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        signupForUpdates: user.signupForUpdates,
-      },
+      message: "Passkey verified",
     });
 
     const maxAge = 7 * 24 * 60 * 60;
@@ -58,9 +45,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
-
-interface IAuthBody {
-  email: string;
-  password: string;
 }
