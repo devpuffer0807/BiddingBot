@@ -265,6 +265,7 @@ const FormSection: React.FC<FormSectionProps> = ({
         </label>
         <div className="relative">
           <CustomSelect
+            showDeleteWallet={true} // Add this prop
             options={updatedWalletOptions}
             value={formState.wallet?.address || ""}
             onChange={(selectedValue) =>

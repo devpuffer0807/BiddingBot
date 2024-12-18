@@ -66,22 +66,17 @@ export async function DELETE(
 ) {
   await connect();
   const userId = await getUserIdFromCookies(request);
-  const walletId = params.id;
+  const address = params.id;
+
+  console.log({ address });
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isObjectIdOrHexString(walletId)) {
-    return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
-  }
-
-  const isOwner = await checkWalletOwnership(walletId, userId);
-  if (!isOwner) {
-    return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
-  }
-
-  await Wallet.findByIdAndDelete(params.id);
+  await Wallet.deleteOne({
+    address: { $regex: new RegExp(`^${address}$`, "i") },
+  });
   return NextResponse.json(
     { message: "Wallet deleted successfully" },
     { status: 200 }

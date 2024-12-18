@@ -1,6 +1,9 @@
 import ChevronDown from "@/assets/svg/ChevronDown";
 import { useState } from "react";
 import WalletBalanceFetcher from "./WalletBalanceFetcher";
+import { useWalletStore } from "@/store/wallet.store";
+import { toast } from "react-toastify";
+import DeleteIcon from "@/assets/svg/DeleteIcon";
 
 export type CustomSelectOption = {
   value: string;
@@ -17,6 +20,7 @@ interface CustomSelectProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  showDeleteWallet?: boolean;
 }
 
 const CustomSelect = ({
@@ -25,9 +29,31 @@ const CustomSelect = ({
   onChange,
   placeholder = "Select an option",
   className = "",
+  showDeleteWallet = false,
 }: CustomSelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectedOption = options.find((opt) => opt.value === value);
+  const deleteWallet = useWalletStore((state) => state.deleteWallet);
+
+  const handleDeleteWallet = async (e: React.MouseEvent, walletId: string) => {
+    e.stopPropagation();
+
+    try {
+      const response = await fetch(`/api/wallet/${walletId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete wallet");
+      }
+
+      deleteWallet(walletId);
+      toast.success("Wallet deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete wallet");
+      console.error("Error deleting wallet:", error);
+    }
+  };
 
   return (
     <div className={`relative ${className}`}>
@@ -44,13 +70,13 @@ const CustomSelect = ({
           {options.map((option) => (
             <li
               key={option.value}
-              className="p-4 cursor-pointer transition-colors hover:bg-Brand/Brand-1"
+              className="p-4 cursor-pointer transition-colors hover:bg-Brand/Brand-1 flex justify-between items-center"
               onClick={() => {
                 onChange(option.value);
                 setIsOpen(false);
               }}
             >
-              <div className="hover:text-Primary-500-[night] transition-colors">
+              <div className="hover:text-Primary-500-[night] transition-colors flex-grow">
                 <div className="text-sm">{option.label}</div>
                 {option.address && (
                   <div className="text-xs text-Neutral/Neutral-600-[night]">
@@ -80,6 +106,14 @@ const CustomSelect = ({
                   )}
                 </div>
               </div>
+              {showDeleteWallet && (
+                <button
+                  onClick={(e) => handleDeleteWallet(e, option.value)}
+                  className="p-2 hover:text-red-500 transition-colors"
+                >
+                  <DeleteIcon />
+                </button>
+              )}
             </li>
           ))}
         </ul>
