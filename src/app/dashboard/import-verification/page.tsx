@@ -32,6 +32,10 @@ const ImportVerification = () => {
         addTask(task);
       });
 
+      if (tasksToImport.length === 0) {
+        return toast.warn("Nothing selected tasks");
+      }
+
       const response = await fetch("/api/task/bulk", {
         method: "POST",
         headers: {
@@ -99,6 +103,11 @@ const ImportVerification = () => {
     if (selectAll) {
       setSelectedTasks([]);
     } else {
+      if (selectableTasks.length === 0) {
+        toast.warn(
+          "There is not any selectable tasks, you should input wallet address and private key"
+        );
+      }
       setSelectedTasks(selectableTasks.map((task) => task._id));
     }
     setSelectAll(!selectAll);

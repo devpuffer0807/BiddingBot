@@ -17,6 +17,7 @@ interface BidInfo {
 }
 
 interface RecentBidsProps {
+  totalCount: number;
   bids: BidInfo[];
   currentPage: number;
   recordsPerPage: number;
@@ -27,6 +28,7 @@ interface RecentBidsProps {
 }
 
 const RecentBids: React.FC<RecentBidsProps> = ({
+  totalCount,
   bids,
   currentPage,
   recordsPerPage,
@@ -44,7 +46,7 @@ const RecentBids: React.FC<RecentBidsProps> = ({
   };
 
   return (
-    <Accordion title={`Recent Bids (${bids.length})`}>
+    <Accordion title={`Recent Bids (${totalCount})`}>
       <div className="border rounded-2xl py-3 sm:py-5 px-2 sm:px-6 bg-[#1f2129] border-Neutral/Neutral-Border-[night] h-full overflow-x-auto">
         <table className="w-full text-sm text-left">
           <thead>

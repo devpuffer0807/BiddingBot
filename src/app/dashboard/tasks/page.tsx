@@ -641,6 +641,7 @@ const Tasks = () => {
         />
       </Accordion>
       <RecentBids
+        totalCount={bids.length}
         bids={currentBids}
         currentPage={currentPage}
         recordsPerPage={recordsPerPage}
